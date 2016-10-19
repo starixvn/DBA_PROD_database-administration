@@ -874,7 +874,7 @@ BEGIN
 			ON	mr.server_name = mi.server_name
 			AND	mr.database_name = mi.database_name
 			AND	mr.object_id = mi.object_id
-			AND	mr.object_type = ''
+			AND	mr.object_type = 'PROCEDURE'
 			AND	mr.report_type = 'DELETED'
 	INNER JOIN	#databases AS d
 			ON	d.server_name = mi.server_name
