@@ -7,6 +7,7 @@ AS
 		
 	Revisions:
 		- 20160803@Billy:	v2.01	*start tracking*
+		- 20161019@Billy:	v2.04	Filter Report Records when new database is created - [Redmine: #66000]
 */
 BEGIN
     SET NOCOUNT ON;
@@ -527,6 +528,11 @@ BEGIN
 			AND	mr.object_id = t.table_id
 			AND	mr.object_type = 'TABLE'
 			AND	mr.report_type = 'CREATED'
+	INNER JOIN	dbo.vnDBA_Monitor_Information AS di WITH (NOLOCK)
+			ON	di.server_name = t.server_name
+			AND	di.database_name = ''
+			AND	di.object_name = t.database_name
+			AND	di.object_type = 'DATABASE'
 	WHERE	mi.object_id IS NULL
 		AND	mr.object_id IS NULL;
 	
@@ -563,6 +569,10 @@ BEGIN
 			AND	mr.object_id = mi.object_id
 			AND	mr.object_type = 'TABLE'
 			AND	mr.report_type = 'DELETED'
+	INNER JOIN	#databases AS d
+			ON	d.server_name = mi.server_name
+			AND	d.database_name = mi.database_name
+			AND	mi.object_type = 'TABLE'
 	WHERE	t.table_id IS NULL
 		AND mr.object_id IS NULL
 		AND	mi.object_type = 'TABLE';
@@ -670,6 +680,11 @@ BEGIN
 			AND	mr.object_id = v.view_id
 			AND	mr.object_type = 'VIEW'
 			AND	mr.report_type = 'CREATED'
+	INNER JOIN	dbo.vnDBA_Monitor_Information AS di WITH (NOLOCK)
+			ON	di.server_name = v.server_name
+			AND	di.database_name = ''
+			AND	di.object_name = v.database_name
+			AND	di.object_type = 'DATABASE'
 	WHERE	mi.object_id IS NULL
 		AND	mr.object_id IS NULL;
 	
@@ -706,6 +721,10 @@ BEGIN
 			AND	mr.object_id = mi.object_id
 			AND	mr.object_type = 'VIEW'
 			AND	mr.report_type = 'DELETED'
+	INNER JOIN	#databases AS d
+			ON	d.server_name = mi.server_name
+			AND	d.database_name = mi.database_name
+			AND	mi.object_type = 'VIEW'
 	WHERE	v.view_id IS NULL
 		AND	mr.object_id IS NULL
 		AND	mi.object_type = 'VIEW';
@@ -815,6 +834,11 @@ BEGIN
 			AND	mr.object_id = p.proc_id
 			AND	mr.object_type = 'PROCEDURE'
 			AND	mr.report_type = 'CREATED'
+	INNER JOIN	dbo.vnDBA_Monitor_Information AS di WITH (NOLOCK)
+			ON	di.server_name = p.server_name
+			AND	di.database_name = ''
+			AND	di.object_name = p.database_name
+			AND	di.object_type = 'DATABASE'
 	WHERE	mi.object_id IS NULL
 		AND	mr.object_id IS NULL
 		AND	p.proc_name <> 'DBA_GrantPermissions';
@@ -850,8 +874,12 @@ BEGIN
 			ON	mr.server_name = mi.server_name
 			AND	mr.database_name = mi.database_name
 			AND	mr.object_id = mi.object_id
-			AND	mr.object_type = 'PROCEDURE'
+			AND	mr.object_type = ''
 			AND	mr.report_type = 'DELETED'
+	INNER JOIN	#databases AS d
+			ON	d.server_name = mi.server_name
+			AND	d.database_name = mi.database_name
+			AND	mi.object_type = 'PROCEDURE'
 	WHERE	p.proc_id IS NULL
 		AND	mr.object_id IS NULL
 		AND	mi.object_type = 'PROCEDURE';
@@ -957,6 +985,11 @@ BEGIN
 			AND	mr.object_id = f.func_id
 			AND	mr.object_type = 'FUNCTION'
 			AND	mr.report_type = 'CREATED'
+	INNER JOIN	dbo.vnDBA_Monitor_Information AS di WITH (NOLOCK)
+			ON	di.server_name = f.server_name
+			AND	di.database_name = ''
+			AND	di.object_name = f.database_name
+			AND	di.object_type = 'DATABASE'
 	WHERE	mi.object_id IS NULL
 		AND	mr.object_id IS NULL;
 	
@@ -993,6 +1026,10 @@ BEGIN
 			AND	mr.object_id = mi.object_id
 			AND	mr.object_type = 'FUNCTION'
 			AND	mr.report_type = 'DELETED'
+	INNER JOIN	#databases AS d
+			ON	d.server_name = mi.server_name
+			AND	d.database_name = mi.database_name
+			AND	mi.object_type = 'FUNCTION'
 	WHERE	f.func_id IS NULL
 		AND	mr.object_id IS NULL
 		AND	mi.object_type = 'FUNCTION';
@@ -1101,6 +1138,11 @@ BEGIN
 			AND	mr.object_id = t.trig_id
 			AND	mr.object_type = 'TRIGGER'
 			AND	mr.report_type = 'CREATED'
+	INNER JOIN	dbo.vnDBA_Monitor_Information AS di WITH (NOLOCK)
+			ON	di.server_name = t.server_name
+			AND	di.database_name = ''
+			AND	di.object_name = t.database_name
+			AND	di.object_type = 'DATABASE'
 	WHERE	mi.object_id IS NULL
 		AND	mr.object_id IS NULL;
 	
@@ -1137,6 +1179,10 @@ BEGIN
 			AND	mr.object_id = mi.object_id
 			AND	mr.object_type = 'TRIGGER'
 			AND	mr.report_type = 'DELETED'
+	INNER JOIN	#databases AS d
+			ON	d.server_name = mi.server_name
+			AND	d.database_name = mi.database_name
+			AND	mi.object_type = 'TRIGGER'
 	WHERE	t.trig_id IS NULL
 		AND	mr.object_id IS NULL
 		AND	mi.object_type = 'TRIGGER';
