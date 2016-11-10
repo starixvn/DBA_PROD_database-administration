@@ -108,7 +108,7 @@ BEGIN
 
 		EXECUTE	msdb.dbo.sp_send_dbmail
 					@profile_name			= DEFAULT
-				,	@recipients				= 'billy.bui@starixsoft.com;lukas.luu@starixsoft.com;daniel.truong@starixsoft.com,patrick.pham@starixsoft.com'
+				,	@recipients				= 'billy.bui@starixsoft.com;lukas.luu@starixsoft.com;daniel.truong@starixsoft.com;patrick.pham@starixsoft.com'
 				,	@copy_recipients		= @email
 				,	@blind_copy_recipients	= @bcc_email
 				,	@subject				= @subject
