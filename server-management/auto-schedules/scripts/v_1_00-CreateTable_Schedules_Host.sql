@@ -11,7 +11,7 @@
 ----------------------------------------------------------------------------------------------------
 
 CREATE TABLE	dbo.vnDBA_Jobs_schedules (
-					schedule_id					INT
+					schedule_id					INT				NOT NULL
 				,	schedule_type				VARCHAR(50)
 				,	enabled						TINYINT
 				,	freq_type					INT
