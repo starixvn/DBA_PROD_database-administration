@@ -51,15 +51,17 @@
   "id": null,
   "links": [
     {
+      "asDropdown": false,
       "icon": "external link",
       "keepTime": true,
       "tags": [
-        "SQL Server"
+        "SQL Server",
+        "Landscape"
       ],
       "type": "dashboards"
     }
   ],
-  "refresh": "5s",
+  "refresh": "10s",
   "rows": [
     {
       "collapse": false,
@@ -1283,7 +1285,8 @@
   "schemaVersion": 14,
   "style": "dark",
   "tags": [
-    "SQL Server"
+    "SQL Server",
+    "Landscape"
   ],
   "templating": {
     "list": [
@@ -1316,7 +1319,6 @@
   "timepicker": {
     "nowDelay": "",
     "refresh_intervals": [
-      "5s",
       "10s",
       "30s",
       "1m",
@@ -1341,5 +1343,5 @@
   },
   "timezone": "browser",
   "title": "Server Overview",
-  "version": 40
+  "version": 44
 }

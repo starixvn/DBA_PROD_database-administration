@@ -17,12 +17,6 @@
       "version": "4.4.3"
     },
     {
-      "type": "panel",
-      "id": "grafana-clock-panel",
-      "name": "Clock",
-      "version": "0.0.9"
-    },
-    {
       "type": "datasource",
       "id": "grafana-simple-sql-datasource",
       "name": "SimpleSql",
@@ -57,116 +51,18 @@
   "id": null,
   "links": [
     {
+      "asDropdown": false,
       "icon": "external link",
       "keepTime": true,
       "tags": [
-        "SQL Server"
+        "SQL Server",
+        "Portrait"
       ],
       "type": "dashboards"
     }
   ],
   "refresh": "10s",
   "rows": [
-    {
-      "collapse": false,
-      "height": "90px",
-      "panels": [
-        {
-          "bgColor": "rgba(255, 78, 78, 0.2)",
-          "clockType": "12 hour",
-          "countdownSettings": {
-            "endCountdownTime": "2017-09-21T05:50:00.000Z",
-            "endText": "00:00:00"
-          },
-          "dateSettings": {
-            "dateFormat": "YYYY-MM-DD",
-            "fontSize": "11px",
-            "fontWeight": "normal",
-            "showDate": true
-          },
-          "height": "90px",
-          "id": 1,
-          "links": [],
-          "mode": "time",
-          "offsetFromUtc": "-4",
-          "offsetFromUtcMinutes": "",
-          "repeat": null,
-          "span": 4,
-          "timeSettings": {
-            "customFormat": "HH:mm:ss",
-            "fontSize": "30px",
-            "fontWeight": "bold"
-          },
-          "title": "Server Time (GMT-4)",
-          "transparent": false,
-          "type": "grafana-clock-panel"
-        },
-        {
-          "bgColor": "rgba(255, 196, 78, 0.2)",
-          "clockType": "12 hour",
-          "countdownSettings": {
-            "endCountdownTime": "2017-09-21T05:50:00.000Z",
-            "endText": "00:00:00"
-          },
-          "dateSettings": {
-            "dateFormat": "YYYY-MM-DD",
-            "fontSize": "11px",
-            "fontWeight": "normal",
-            "showDate": true
-          },
-          "height": "90px",
-          "id": 2,
-          "links": [],
-          "mode": "time",
-          "offsetFromUtc": "+7",
-          "offsetFromUtcMinutes": "",
-          "span": 4,
-          "timeSettings": {
-            "customFormat": "HH:mm:ss",
-            "fontSize": "30px",
-            "fontWeight": "normal"
-          },
-          "title": "Vietnam Time (GMT+7)",
-          "transparent": false,
-          "type": "grafana-clock-panel"
-        },
-        {
-          "bgColor": "rgba(78, 255, 79, 0.2)",
-          "clockType": "12 hour",
-          "countdownSettings": {
-            "endCountdownTime": "2017-09-21T05:50:00.000Z",
-            "endText": "00:00:00"
-          },
-          "dateSettings": {
-            "dateFormat": "YYYY-MM-DD",
-            "fontSize": "11px",
-            "fontWeight": "normal",
-            "showDate": true
-          },
-          "height": "90px",
-          "id": 3,
-          "links": [],
-          "mode": "time",
-          "offsetFromUtc": "+8",
-          "offsetFromUtcMinutes": "",
-          "span": 4,
-          "timeSettings": {
-            "customFormat": "HH:mm:ss",
-            "fontSize": "30px",
-            "fontWeight": "normal"
-          },
-          "title": "Taiwan Time (GMT+8)",
-          "transparent": false,
-          "type": "grafana-clock-panel"
-        }
-      ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "Clocks",
-      "titleSize": "h6"
-    },
     {
       "collapse": false,
       "height": 250,
@@ -207,7 +103,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -417,7 +313,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -603,7 +499,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -789,7 +685,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -977,7 +873,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -1165,7 +1061,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -1327,7 +1223,8 @@
   "schemaVersion": 14,
   "style": "dark",
   "tags": [
-    "SQL Server"
+    "SQL Server",
+    "Portrait"
   ],
   "templating": {
     "list": [
@@ -1374,12 +1271,11 @@
     ]
   },
   "time": {
-    "from": "2017-10-17T05:36:08.462Z",
-    "to": "2017-10-17T06:06:08.462Z"
+    "from": "now-15m",
+    "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
-      "5s",
       "10s",
       "30s",
       "1m",
@@ -1404,5 +1300,5 @@
   },
   "timezone": "",
   "title": "ALL SERVERS Overview Portrait",
-  "version": 6
+  "version": 19
 }

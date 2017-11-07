@@ -57,10 +57,12 @@
   "id": null,
   "links": [
     {
+      "asDropdown": false,
       "icon": "external link",
       "keepTime": true,
       "tags": [
-        "SQL Server"
+        "SQL Server",
+        "Landscape"
       ],
       "type": "dashboards"
     }
@@ -207,7 +209,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -415,7 +417,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -613,7 +615,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -799,7 +801,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -999,7 +1001,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -1187,7 +1189,7 @@
               "spaceLength": 3,
               "yaxis": 2
             },
-			{
+            {
               "alias": "/DBCUST[12]?([[]|$)/g",
               "color": "#F4D598"
             },
@@ -1349,7 +1351,8 @@
   "schemaVersion": 14,
   "style": "dark",
   "tags": [
-    "SQL Server"
+    "SQL Server",
+    "Landscape"
   ],
   "templating": {
     "list": [
@@ -1401,7 +1404,6 @@
   },
   "timepicker": {
     "refresh_intervals": [
-      "5s",
       "10s",
       "30s",
       "1m",
@@ -1426,5 +1428,5 @@
   },
   "timezone": "",
   "title": "ALL SERVERS Overview",
-  "version": 45
+  "version": 54
 }

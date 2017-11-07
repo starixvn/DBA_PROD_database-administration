@@ -51,10 +51,12 @@
   "id": null,
   "links": [
     {
+      "asDropdown": false,
       "icon": "external link",
       "keepTime": true,
       "tags": [
-        "SQL Server"
+        "SQL Server",
+        "Landscape"
       ],
       "type": "dashboards"
     }
@@ -845,7 +847,8 @@
   "schemaVersion": 14,
   "style": "dark",
   "tags": [
-    "SQL Server"
+    "SQL Server",
+    "Landscape"
   ],
   "templating": {
     "list": [
@@ -878,7 +881,6 @@
   "timepicker": {
     "nowDelay": "",
     "refresh_intervals": [
-      "5s",
       "10s",
       "30s",
       "1m",
@@ -903,5 +905,5 @@
   },
   "timezone": "browser",
   "title": "Server Wait Statistics Overview",
-  "version": 7
+  "version": 10
 }
