@@ -1,10 +1,6 @@
-USE [StarixDB]
+USE StarixDB;
 GO
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-ALTER PROCEDURE	[dbo].[vnDBA_sp_Grafana_GetDataDashboard_WS]
+ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetDataDashboard_WS
 						@paneltype		SMALLINT
 					,	@timefrom		DATETIME
 					,	@timeto			DATETIME
@@ -20,6 +16,7 @@ AS
 	
 	Revisions:
 		- 20170918@Billy:	Initial - [Redmine: #86054]
+		- 20180103@Billy:	Change value scale to milliseconds per second - [Redmine: #89022]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -174,7 +171,7 @@ BEGIN
 				ON	m.WaitType = w.WaitType
 		WHERE	m.Report <> @waitgroup;
 	END;
-	
+
 
 	-- Get data --
 
@@ -183,11 +180,11 @@ BEGIN
 	BEGIN;
 		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, wc.CalculateDate)
 			,	'Metric'	= w.WaitType
-			,	'Value'		= SUM(wc.CalcWaitTime_ms)
+			,	'Value'		= SUM(wc.CalcWaitTime_ms_p_s)
 		FROM		#waittypes AS w WITH (NOLOCK)
 		CROSS JOIN	#servers AS s WITH (NOLOCK)
 		CROSS APPLY	(
-			SELECT	_w.CalculateDate, _w.CalcWaitTime_ms
+			SELECT	_w.CalculateDate, 'CalcWaitTime_ms_p_s' = CAST(_w.CalcWaitTime_ms * 1000.0 / _w.Calc_msTicks AS DECIMAL(19, 1))
 			FROM	dbo.vnDBA_Wait_Captured AS _w WITH (NOLOCK)
 			WHERE	_w.ServerName = s.ServerName
 				AND	_w.WaitType = w.WaitType
@@ -203,4 +200,6 @@ BEGIN
 	DROP TABLE	#servers;
 	DROP TABLE	#waittypes;
 END;
+GO
+GRANT EXECUTE ON dbo.vnDBA_sp_Grafana_GetDataDashboard_WS TO vnGrafana AS dbo;
 GO
