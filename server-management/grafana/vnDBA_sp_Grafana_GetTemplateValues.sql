@@ -22,11 +22,22 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 	
-	IF	@templatetype = 1
-	-- Server list -- Performance Counter --
+	IF	@templatetype = 0
+	-- All list --
 	BEGIN;
 		SELECT	DISTINCT
 				'Value'		= s.ServerName
+		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
+		WHERE	s.isMonitored | @getAll <> 0
+		UNION ALL
+		SELECT	'Value'		= s.ServerName
+		FROM	dbo.vnDBA_Wait_Servers AS s WITH (NOLOCK)
+		WHERE	s.isMonitored | @getAll <> 0;
+	END;
+	IF	@templatetype = 1
+	-- Server list -- Performance Counter --
+	BEGIN;
+		SELECT	'Value'		= s.ServerName
 		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
@@ -35,8 +46,7 @@ BEGIN
 	BEGIN;
 		SELECT	'Value'		= ' None '
 		UNION ALL
-		SELECT	DISTINCT
-				'Value'		= s.ServerName
+		SELECT	'Value'		= s.ServerName
 		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
@@ -57,4 +67,6 @@ BEGIN
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
 END;
+GO
+GRANT EXECUTE ON dbo.vnDBA_sp_Grafana_GetTemplateValues TO vnGrafana AS dbo;
 GO

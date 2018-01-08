@@ -8,6 +8,7 @@ ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetDataDashboard_WS
 					,	@ex_servers		NVARCHAR(MAX)	= NULL
 					,	@waitgroup		NVARCHAR(128)	= NULL
 					,	@waittypes		NVARCHAR(MAX)	= NULL
+					,	@weekdiff		SMALLINT		= 0
 AS
 /*
 	Creator:	20171106@Billy
@@ -17,6 +18,7 @@ AS
 	Revisions:
 		- 20170918@Billy:	Initial - [Redmine: #86054]
 		- 20180103@Billy:	Change value scale to milliseconds per second - [Redmine: #89022]
+		- 20180108@Billy:	Support Performance Counter list - [Redmine: #89141]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -79,8 +81,8 @@ BEGIN
 
 
 	-- Convert UTC time to Server time --
-	SELECT	@timefrom	= DATEADD(HOUR, @server_zone, @timefrom)
-		,	@timeto		= DATEADD(HOUR, @server_zone, @timeto)
+	SELECT	@timefrom	= DATEADD(WEEK, -@weekdiff, DATEADD(HOUR, @server_zone, @timefrom))
+		,	@timeto		= DATEADD(WEEK, -@weekdiff, DATEADD(HOUR, @server_zone, @timeto))
 		;
 
 
@@ -131,6 +133,27 @@ BEGIN
 		INNER JOIN	cte
 				ON	s.ServerName = LTRIM(RTRIM(SUBSTRING(@ex_servers, cte.start, cte.finish - cte.start)));
 	END;
+
+
+	-- Update if match clustered physical machine --
+	UPDATE	#servers
+	SET		ServerName =	CASE ServerName	WHEN N'DBTRANS1'	THEN N'DBTRANS'
+											WHEN N'DBTRANS2'	THEN N'DBTRANS'
+											WHEN N'DBCUST1'		THEN N'DBCUST'
+											WHEN N'DBCUST2'		THEN N'DBCUST'
+											WHEN N'DB021'		THEN N'DB02'
+											WHEN N'DB022'		THEN N'DB02'
+											WHEN N'DBTP1'		THEN N'DBTP'
+											WHEN N'DBTP2'		THEN N'DBTP'
+																ELSE ServerName
+							END;
+
+	-- Delete unmatch Wait Statistics server list --
+	DELETE	tmp
+	FROM		#servers AS tmp WITH (TABLOCK)
+	LEFT JOIN	dbo.vnDBA_Wait_Servers AS ws WITH (NOLOCK)
+			ON	tmp.ServerName = ws.ServerName
+	WHERE	ws.ServerName IS NULL;
 
 
 	-- Parse wait types --

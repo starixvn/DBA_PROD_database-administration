@@ -8,6 +8,7 @@ ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetDataDashboard
 					,	@ex_servers		NVARCHAR(MAX)	= NULL
 					,	@object			NVARCHAR(128)	= NULL
 					,	@counters		NVARCHAR(MAX)	= NULL
+					,	@weekdiff		SMALLINT		= 0
 AS
 /*
 	Creator:	20170918@Billy
@@ -16,6 +17,7 @@ AS
 	
 	Revisions:
 		- 20170918@Billy:	Initial - [Redmine: #83352]
+		- 20180105@Billy:	Add @weekdiff for comparision dashboard - [Redmine: #89141]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -91,8 +93,8 @@ BEGIN
 
 
 	-- Convert UTC time to Server time --
-	SELECT	@timefrom	= DATEADD(HOUR, @server_zone, @timefrom)
-		,	@timeto		= DATEADD(HOUR, @server_zone, @timeto)
+	SELECT	@timefrom	= DATEADD(WEEK, -@weekdiff, DATEADD(HOUR, @server_zone, @timefrom))
+		,	@timeto		= DATEADD(WEEK, -@weekdiff, DATEADD(HOUR, @server_zone, @timeto))
 		;
 
 
@@ -230,6 +232,23 @@ BEGIN
 		GROUP BY	d.CounterTime, c.InstanceName
 		ORDER BY	'Time', 'Metric';
 	END;
+	
+	IF	@paneltype = 003
+	-- Graph chart panel -- Metric object - counter - instance --
+	BEGIN;
+		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+			,	'Metric'	= c.ObjectName + N'(' + c.InstanceName + N'): ' + c.CounterName
+			,	'Value'		= SUM(d.CounterValue)
+		FROM		#CounterDetails AS c WITH (NOLOCK)
+		CROSS APPLY	(
+			SELECT	_d.CounterTime, _d.CounterValue
+			FROM	dbo.vnDBA_Perf_CounterData AS _d WITH (NOLOCK)
+			WHERE	_d.CounterID = c.CounterID
+				AND	_d.CounterTime BETWEEN @timefrom AND @timeto
+		) AS d
+		GROUP BY	d.CounterTime, c.ObjectName, c.InstanceName, c.CounterName
+		ORDER BY	'Time', 'Metric';
+	END;
 
 	IF	@paneltype = 010
 	-- Graph chart panel -- Metric machine - counter --
@@ -286,4 +305,6 @@ BEGIN
 	DROP TABLE	#servers;
 	DROP TABLE	#counters;
 END;
+GO
+GRANT EXECUTE ON dbo.vnDBA_sp_Grafana_GetDataDashboard TO vnGrafana AS dbo;
 GO

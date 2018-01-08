@@ -203,8 +203,16 @@
           "repeat": null,
           "seriesOverrides": [
             {
-              "alias": "% Processor Time",
+              "alias": "/Processor[(]/g",
               "yaxis": 1
+            },
+            {
+              "alias": "/Process[(]/g",
+              "dashLength": 8,
+              "dashes": true,
+              "linewidth": 1,
+              "spaceLength": 2,
+              "yaxis": 2
             }
           ],
           "spaceLength": 10,
@@ -216,7 +224,7 @@
               "cmdtype": "sql",
               "rawQuery": false,
               "refId": "A",
-              "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 1, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @object = 'Processor';",
+              "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 003, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = '% Privileged Time, % Processor Time, % User Time';",
               "type": "timeseries",
               "utc": "utc"
             }
@@ -273,12 +281,12 @@
               "show": true
             },
             {
-              "format": "velocityms",
-              "label": null,
+              "format": "percent",
+              "label": "% usage time",
               "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": false
+              "max": "12800",
+              "min": "0",
+              "show": true
             }
           ]
         },
@@ -639,7 +647,7 @@
           "title": "",
           "transparent": true,
           "type": "singlestat",
-          "valueFontSize": "100%",
+          "valueFontSize": "80%",
           "valueMaps": [
             {
               "op": "=",
@@ -1343,5 +1351,5 @@
   },
   "timezone": "browser",
   "title": "Server Overview",
-  "version": 44
+  "version": 47
 }
