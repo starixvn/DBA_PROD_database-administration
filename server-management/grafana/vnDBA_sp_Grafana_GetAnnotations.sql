@@ -23,3 +23,6 @@ BEGIN;
 	ORDER BY d.CounterTime DESC;
 END;
 GO
+
+GRANT EXECUTE ON dbo.vnDBA_sp_Grafana_GetAnnotations TO vnGrafana AS dbo;
+GO

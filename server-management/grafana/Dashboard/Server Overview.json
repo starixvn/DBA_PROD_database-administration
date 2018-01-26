@@ -1240,7 +1240,7 @@
             {
               "cmdtype": "sql",
               "refId": "A",
-              "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 2, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @object= 'Network Interface', @counters = 'Output Queue Length';",
+              "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 2, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Processes Blocked';",
               "type": "timeseries",
               "utc": "utc"
             }
@@ -1248,7 +1248,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Network Output Queue Length",
+          "title": "Processes Blocked",
           "tooltip": {
             "shared": true,
             "sort": 2,
@@ -1277,7 +1277,7 @@
               "logBase": 1,
               "max": null,
               "min": null,
-              "show": true
+              "show": false
             }
           ]
         }
@@ -1351,5 +1351,5 @@
   },
   "timezone": "browser",
   "title": "Server Overview",
-  "version": 47
+  "version": 49
 }

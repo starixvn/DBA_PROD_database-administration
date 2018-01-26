@@ -35,6 +35,10 @@ END;
 GO
 
 
+GRANT EXECUTE ON dbo.vnDBA_sp_Wait_CaptureInfo TO sqlLink AS dbo;
+GO
+
+
 ADD SIGNATURE TO OBJECT::dbo.vnDBA_sp_Wait_CaptureInfo
 BY CERTIFICATE serverlevel_cert
 WITH PASSWORD = '************';
