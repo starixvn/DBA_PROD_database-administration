@@ -1240,7 +1240,7 @@
             {
               "cmdtype": "sql",
               "refId": "A",
-              "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 2, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Processes Blocked';",
+              "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 1, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Processes Blocked';",
               "type": "timeseries",
               "utc": "utc"
             }
@@ -1351,5 +1351,5 @@
   },
   "timezone": "browser",
   "title": "Server Overview",
-  "version": 49
+  "version": 50
 }
