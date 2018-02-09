@@ -85,9 +85,9 @@ BEGIN;
 												THEN -1001	-- Not Notified
 
 											WHEN src.SessionState = 'Disconnected' AND ISNULL(lt.SessionState, '') <> 'Disconnected'
-												THEN 1001	-- New Disconnected
+												THEN 1000	-- New Disconnected
 											WHEN src.SessionState = 'Disconnected' AND lt.SessionState = 'Disconnected' AND FLOOR(DATEDIFF(MINUTE, lt.DisconnectTime, lt.CurrentTime) / @Interval) <> FLOOR(DATEDIFF(MINUTE, src.DisconnectTime, src.CurrentTime) / @Interval)
-												THEN 1002	-- Repeative Disconnected
+												THEN 1001	-- Repeative Disconnected
 
 											WHEN src.SessionState = 'Active' AND lt.SessionId IS NULL
 												THEN 10		-- New Session
@@ -113,8 +113,8 @@ BEGIN;
 											WHEN 21		THEN 'Reconnected'
 											WHEN 22		THEN 'TakenOver'
 
+											WHEN 1000	THEN 'Disconnected'
 											WHEN 1001	THEN 'Notification'
-											WHEN 1002	THEN 'RepeativeNotification'
 
 											WHEN -10	THEN 'StillActive'
 											WHEN -1000	THEN 'StillDisconnected'
