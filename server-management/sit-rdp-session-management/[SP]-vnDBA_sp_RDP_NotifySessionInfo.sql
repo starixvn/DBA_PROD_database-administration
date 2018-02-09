@@ -41,7 +41,7 @@ The following users disconnect without log off:
 		SELECT	'[' + ServerName + ': ' + CAST(SessionId AS VARCHAR(MAX)) + '] - ' + UserName + ' - ' + ClientName + ' - Disconnected: ' + CAST(DATEDIFF(MINUTE, DisconnectTime, CurrentTime) AS VARCHAR(MAX)) + ' mins
 '
 		FROM	SITDB06.MonDB.dbo.vnDBA_RDP_Sessions WITH (NOLOCK)
-		WHERE	SessionStatusId BETWEEN 1001 AND 1999
+		WHERE	SessionStatusId BETWEEN 1001 AND 1499
 			AND	CurrentTime <= @MaxTime
 		FOR XML PATH ('')
 		,	TYPE
@@ -53,7 +53,31 @@ The following users disconnect without log off:
 		) xq(str)
 	) AS ms(str);
 
-	EXECUTE DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'SIT-Env', @JobId = NULL, @JobName = N'vnDBA : SIT RDP Management', @Message = @Message, @CaseId = 1;
+	IF	ISNULL(@Message, '') <> ''
+		EXECUTE DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'SIT-Env', @JobId = NULL, @JobName = N'vnDBA : SIT RDP Management', @Message = @Message, @CaseId = 1;
+	
+	SELECT	@Message = N'(shock) [SIT RDP] (shock)
+The following users disconnect without log off:
+' + ms.str + '
+------------------------------------------------------------------------------------------'
+	FROM	(
+		SELECT	'[' + ServerName + ': ' + CAST(SessionId AS VARCHAR(MAX)) + '] - ' + UserName + ' - ' + ClientName + ' - Disconnected: ' + CAST(DATEDIFF(MINUTE, DisconnectTime, CurrentTime) AS VARCHAR(MAX)) + ' mins
+'
+		FROM	SITDB06.MonDB.dbo.vnDBA_RDP_Sessions WITH (NOLOCK)
+		WHERE	SessionStatusId BETWEEN 1501 AND 1999
+			AND	CurrentTime <= @MaxTime
+		FOR XML PATH ('')
+		,	TYPE
+	) AS xm(xml)
+	CROSS APPLY (
+		SELECT	LEFT(xq.str, LEN(xq.str) - 2)
+		FROM	(
+			SELECT	xm.xml.value('.[1]', 'NVARCHAR(MAX)')
+		) xq(str)
+	) AS ms(str);
+	
+	IF	ISNULL(@Message, '') <> ''
+		EXECUTE DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'BOT', @JobId = NULL, @JobName = N'Bot Message', @Message = @Message, @CaseId = 1;
 
 	EXECUTE	SITDB06.MonDB.dbo.vnDBA_sp_RDP_ResolveInfo @MaxTime;
 END;

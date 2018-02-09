@@ -2,7 +2,7 @@ USE	MonDB;
 GO
 ALTER PROCEDURE	dbo.vnDBA_sp_RDP_CollectSessionInfo
 						@TSSession		dbo.TSSession		READONLY
-					,	@Interval		SMALLINT			= 10
+					,	@Interval		SMALLINT			= 30
 AS
 /*
 	Creator:	20180207@Billy
@@ -20,7 +20,6 @@ BEGIN;
 	SET NOCOUNT ON;
 	
 	DECLARE	@CurrentTime	DATETIME
-		,	@LastTime		DATETIME
 		;
 
 	CREATE TABLE	#Sessions (
@@ -37,6 +36,15 @@ BEGIN;
 					,	CurrentTime				DATETIME
 					);	
 	
+	CREATE TABLE	#Connecting (
+						ServerName				VARCHAR(128)
+					,	SessionId				INT
+					);
+
+	CREATE TABLE	#LoggedOff (
+						ServerName				VARCHAR(128)
+					,	SessionId				INT
+					);
 	
 	SELECT	TOP(1)
 			@CurrentTime = CurrentTime
@@ -47,11 +55,6 @@ BEGIN;
 	SELECT	ServerName, SessionId, SessionState, IPAddress, ClientName, WindowStationName, UserName, ConnectTime, DisconnectTime, LastInputTime, @CurrentTime
 	FROM	@TSSession AS tbl
 	WHERE	SessionState IN ('Active', 'Disconnected');
-	
-	SELECT	TOP(1)
-			@LastTime = CurrentTime
-	FROM	dbo.vnDBA_RDP_Sessions WITH (NOLOCK)
-	ORDER BY CurrentTime DESC;
 	
 	INSERT INTO	dbo.vnDBA_RDP_Sessions (ServerName, SessionId, SessionState, IPAddress, ClientName, WindowStationName, UserName, ConnectTime, DisconnectTime, LastInputTime, CurrentTime, SessionStatusId, SessionStatus)
 	SELECT	[ServerName]		= src.ServerName
@@ -76,6 +79,14 @@ BEGIN;
 			AND	src.ServerName = _tbl.ServerName
 			AND	src.SessionId = _tbl.SessionId
 	) AS lt
+	OUTER APPLY	(
+		SELECT	_ex.ForcedExcluded
+		FROM	dbo.vnDBA_RDP_Excluded AS _ex WITH (NOLOCK)
+		WHERE	src.ServerName = _ex.ServerName
+			AND	(	src.ClientName LIKE _ex.ClientName
+				OR	src.UserName LIKE _ex.UserName
+				)
+	) AS ex
 	CROSS APPLY	(
 		SELECT	[SessionStatusId]	= CASE	WHEN src.WindowStationName =lt.WindowStationName AND src.SessionState = 'Active'
 												THEN -10	-- Unchanged Active
@@ -87,8 +98,12 @@ BEGIN;
 											WHEN src.SessionState = 'Disconnected' AND ISNULL(lt.SessionState, '') <> 'Disconnected'
 												THEN 1000	-- New Disconnected
 											WHEN src.SessionState = 'Disconnected' AND lt.SessionState = 'Disconnected' AND FLOOR(DATEDIFF(MINUTE, lt.DisconnectTime, lt.CurrentTime) / @Interval) <> FLOOR(DATEDIFF(MINUTE, src.DisconnectTime, src.CurrentTime) / @Interval)
-												THEN 1001	-- Repeative Disconnected
-
+												THEN CASE	WHEN ForcedExcluded = 1
+																THEN -1999		-- Excluded
+															WHEN ForcedExcluded = 0
+																THEN 1501		-- Internal Notification
+															ELSE 1001			-- Repeative Disconnected
+													 END
 											WHEN src.SessionState = 'Active' AND lt.SessionId IS NULL
 												THEN 10		-- New Session
 											WHEN src.SessionState = 'Active' AND src.DisconnectTime IS NULL AND src.WindowStationName = lt.WindowStationName
@@ -123,27 +138,60 @@ BEGIN;
 	) sss
 	WHERE	ssid.SessionStatusId > 0;
 
-	INSERT INTO	dbo.vnDBA_RDP_Sessions (ServerName, SessionId, SessionState, IPAddress, ClientName, WindowStationName, UserName, ConnectTime, DisconnectTime, LastInputTime, CurrentTime, SessionStatusId, SessionStatus)
+	INSERT INTO	#Connecting (ServerName, SessionId)
+	SELECT	DISTINCT
+			tbl.ServerName, tbl.SessionId
+	FROM	dbo.vnDBA_RDP_Sessions AS tbl WITH (NOLOCK);
+
+	INSERT INTO	dbo.vnDBA_RDP_Sessions_bk (ServerName, SessionId, SessionState, IPAddress, ClientName, WindowStationName, UserName, ConnectTime, DisconnectTime, LastInputTime, CurrentTime, SessionStatusId, SessionStatus)
+	OUTPUT	Inserted.ServerName
+		,	Inserted.SessionId
+	INTO	#LoggedOff (ServerName, SessionId)
 	SELECT	[ServerName]		= tbl.ServerName
 		,	[SessionId]			= tbl.SessionId
 		,	[SessionState]		= NULL
-		,	[IPAddress]			= tbl.IPAddress
-		,	[ClientName]		= tbl.ClientName
-		,	[WindowStationName]	= tbl.WindowStationName
-		,	[UserName]			= tbl.UserName
-		,	[ConnectTime]		= tbl.ConnectTime
-		,	[DisconnectTime]	= CASE WHEN tbl.SessionState = 'Disconnected' THEN tbl.DisconnectTime ELSE @CurrentTime END
-		,	[LastInputTime]		= NULL
+		,	[IPAddress]			= ss.IPAddress
+		,	[ClientName]		= ss.ClientName
+		,	[WindowStationName]	= ss.WindowStationName
+		,	[UserName]			= ss.UserName
+		,	[ConnectTime]		= ss.ConnectTime
+		,	[DisconnectTime]	= CASE WHEN ss.SessionState = 'Disconnected' THEN ss.DisconnectTime ELSE @CurrentTime END
+		,	[LastInputTime]		= ss.LastInputTime
 		,	[CurrentTime]		= @CurrentTime
 		,	[SessionStatusId]	= 0
 		,	[SessionStatus]		= 'LoggedOff'
-	FROM		dbo.vnDBA_RDP_Sessions AS tbl WITH (NOLOCK)
+	FROM		#Connecting AS tbl WITH (NOLOCK)
+	CROSS APPLY	(
+		SELECT	TOP(1)
+				_ss.SessionState, _ss.IPAddress, _ss.ClientName, _ss.WindowStationName, _ss.UserName, _ss.ConnectTime, _ss.DisconnectTime, _ss.LastInputTime
+		FROM	dbo.vnDBA_RDP_Sessions AS _ss WITH (NOLOCK)
+		WHERE	_ss.ServerName = tbl.ServerName
+			AND	_ss.SessionId = tbl.SessionId
+			AND	_ss.SessionState IN ('Active', 'Disconnected')
+		ORDER BY _ss.CurrentTime DESC
+	) AS ss
 	LEFT JOIN	#Sessions AS src WITH (NOLOCK)
 			ON	tbl.ServerName = src.ServerName
 			AND	tbl.SessionId = src.SessionId
-	WHERE	tbl.CurrentTime = @LastTime
-		AND	tbl.SessionState IS NOT NULL
-		AND	src.SessionId IS NULL;
+	WHERE	src.SessionId IS NULL;
+
+	DELETE	tbl
+	OUTPUT	Deleted.ServerName, Deleted.SessionId, Deleted.SessionState, Deleted.IPAddress, Deleted.ClientName, Deleted.WindowStationName, Deleted.UserName, Deleted.ConnectTime, Deleted.DisconnectTime, Deleted.LastInputTime, Deleted.CurrentTime, Deleted.SessionStatusId, Deleted.SessionStatus
+	INTO	dbo.vnDBA_RDP_Sessions_bk (ServerName, SessionId, SessionState, IPAddress, ClientName, WindowStationName, UserName, ConnectTime, DisconnectTime, LastInputTime, CurrentTime, SessionStatusId, SessionStatus)
+	FROM		dbo.vnDBA_RDP_Sessions AS tbl WITH (ROWLOCK)
+	INNER JOIN	#LoggedOff AS lo WITH (NOLOCK)
+			ON	tbl.ServerName = lo.ServerName
+			AND	tbl.SessionId = lo.SessionId;
+
+	UPDATE	tbl
+	SET		tbl.LastInputTime = src.LastInputTime
+	FROM		dbo.vnDBA_RDP_Sessions AS tbl WITH (ROWLOCK)
+	INNER JOIN	#Sessions AS src WITH (NOLOCK)
+			ON	tbl.ServerName = src.ServerName
+			AND	tbl.SessionId = src.SessionId
+			AND	tbl.WindowStationName = src.WindowStationName
+	WHERE	src.SessionState = 'Active'
+		AND	tbl.SessionState = 'Active';
 END;
 GO
 GRANT EXECUTE ON dbo.vnDBA_sp_RDP_CollectSessionInfo TO vnTask AS dbo;

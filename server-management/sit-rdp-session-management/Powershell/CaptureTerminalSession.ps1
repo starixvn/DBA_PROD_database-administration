@@ -28,7 +28,7 @@ Write-Verbose "Create Command to SQL Server"
 
 $SQLCommand = New-Object System.Data.SqlClient.SqlCommand
 $SQLCommand.Connection = $SQLConnection
-$SQLCommand.CommandText = "EXECUTE	MonDB.dbo.vnDBA_sp_RDP_CollectSessionInfo @InputTable, 10;"
+$SQLCommand.CommandText = "EXECUTE	MonDB.dbo.vnDBA_sp_RDP_CollectSessionInfo @InputTable, 30;"
 $SQLCommand.Parameters.Add((New-Object Data.SqlClient.SqlParameter("@InputTable",[Data.SqlDBType]::Structured))) | Out-Null
 
 Write-Verbose "Define parameters"
