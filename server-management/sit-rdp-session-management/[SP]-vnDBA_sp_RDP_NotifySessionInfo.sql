@@ -21,6 +21,21 @@ BEGIN;
 		,	@MaxTime		DATETIME
 		;
 
+	DECLARE	@WorkHourBegin	TINYINT
+		,	@WorkHourEnd	TINYINT
+		;
+
+	SELECT	@WorkHourBegin	= 8
+		,	@WorkHourEnd	= 6
+		;
+
+	IF	NOT(DATEPART(HOUR, GETDATE()) BETWEEN 8 AND 18) AND DATEPART(MINUTE, GETDATE()) <> 0 AND DATEPART(HOUR, GETDATE()) % 2 <> 0
+	BEGIN;
+		RAISERROR('Out of work time, limited notification!', 0, 0) WITH NOWAIT;
+
+		RETURN;
+	END;
+
 	SELECT	@MaxTime = CurrentTime
 	FROM	OPENQUERY(SITDB06, '
 SELECT	TOP(1)
