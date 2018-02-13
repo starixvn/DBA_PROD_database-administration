@@ -111,9 +111,9 @@ BEGIN;
 											WHEN src.SessionState = 'Active' AND src.DisconnectTime IS NULL AND lt.SessionId IS NOT NULL AND lt.SessionState IS NULL
 												THEN 12		-- New Session reusing SessionId
 
-											WHEN src.SessionState = 'Active' AND src.DisconnectTime = lt.DisconnectTime AND src.ConnectTime > lt.ConnectTime AND src.UserName = lt.UserName
+											WHEN src.SessionState = 'Active' AND src.DisconnectTime = lt.DisconnectTime AND src.ConnectTime > lt.ConnectTime AND src.ClientName = lt.ClientName
 												THEN 21		-- Reconnected
-											WHEN src.SessionState = 'Active' AND src.DisconnectTime = lt.DisconnectTime AND src.ConnectTime > lt.ConnectTime AND src.UserName <> lt.UserName
+											WHEN src.SessionState = 'Active' AND src.DisconnectTime = lt.DisconnectTime AND src.ConnectTime > lt.ConnectTime AND src.ClientName <> lt.ClientName
 												THEN 22		-- Taken Over
 
 											ELSE NULL
