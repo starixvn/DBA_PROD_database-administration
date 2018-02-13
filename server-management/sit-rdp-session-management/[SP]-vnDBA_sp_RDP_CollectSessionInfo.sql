@@ -90,14 +90,14 @@ BEGIN;
 	CROSS APPLY	(
 		SELECT	[SessionStatusId]	= CASE	WHEN src.WindowStationName =lt.WindowStationName AND src.SessionState = 'Active'
 												THEN -10	-- Unchanged Active
-											WHEN src.SessionState = 'Disconnected' AND lt.SessionState = 'Disconnected' AND FLOOR(DATEDIFF(MINUTE, lt.DisconnectTime, lt.CurrentTime) / @Interval) = FLOOR(DATEDIFF(MINUTE, src.DisconnectTime, src.CurrentTime) / @Interval)
+											WHEN src.SessionState = 'Disconnected' AND lt.SessionState = 'Disconnected' AND DATEDIFF(MINUTE, src.DisconnectTime, src.CurrentTime) % @Interval <> 0
 												THEN -1000	-- Unchanged Disconnected
 											WHEN src.SessionState = 'Disconnected' AND lt.SessionStatusId BETWEEN 1001 AND 1999
 												THEN -1001	-- Not Notified
 
 											WHEN src.SessionState = 'Disconnected' AND ISNULL(lt.SessionState, '') <> 'Disconnected'
 												THEN 1000	-- New Disconnected
-											WHEN src.SessionState = 'Disconnected' AND lt.SessionState = 'Disconnected' AND FLOOR(DATEDIFF(MINUTE, lt.DisconnectTime, lt.CurrentTime) / @Interval) <> FLOOR(DATEDIFF(MINUTE, src.DisconnectTime, src.CurrentTime) / @Interval)
+											WHEN src.SessionState = 'Disconnected' AND lt.SessionState = 'Disconnected' AND DATEDIFF(MINUTE, src.DisconnectTime, src.CurrentTime) % @Interval = 0
 												THEN CASE	WHEN ForcedExcluded = 1
 																THEN -1999		-- Excluded
 															WHEN ForcedExcluded = 0

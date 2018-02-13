@@ -29,13 +29,6 @@ BEGIN;
 		,	@WorkHourEnd	= 6
 		;
 
-	IF	NOT(DATEPART(HOUR, GETDATE()) BETWEEN 8 AND 18) AND DATEPART(MINUTE, GETDATE()) <> 0 AND DATEPART(HOUR, GETDATE()) % 2 <> 0
-	BEGIN;
-		RAISERROR('Out of work time, limited notification!', 0, 0) WITH NOWAIT;
-
-		RETURN;
-	END;
-
 	SELECT	@MaxTime = CurrentTime
 	FROM	OPENQUERY(SITDB06, '
 SELECT	TOP(1)
@@ -47,6 +40,15 @@ ORDER BY CurrentTime DESC
 			
 	IF	@MaxTime IS NULL
 		RETURN;
+		
+	IF	NOT(DATEPART(HOUR, GETDATE()) BETWEEN 8 AND 18 AND DATEPART(HOUR, GETDATE()) % 2 = 0 AND DATEPART(MINUTE, GETDATE()) < 30)
+	BEGIN;
+		RAISERROR('Out of work time, limited notification!', 0, 0) WITH NOWAIT;
+
+		EXECUTE	SITDB06.MonDB.dbo.vnDBA_sp_RDP_ResolveInfo @MaxTime;
+
+		RETURN;
+	END;
 
 	SELECT	@Message = N'(shock) [SIT RDP] (shock)
 The following users disconnect without log off:
