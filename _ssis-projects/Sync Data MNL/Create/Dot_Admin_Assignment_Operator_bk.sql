@@ -1,0 +1,26 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Dot_Admin_Assignment_Operator_bk](
+	[ID] [int] NOT NULL,
+	[matchid] [int] NULL,
+	[OperatorType] [int] NULL,
+	[OperatorID] [int] NULL,
+	[bettype] [smallint] NULL,
+ CONSTRAINT [PK_Dot_admin_Assignment_Operator_bk] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [DATA]
+) ON [DATA]
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_matchid] ON [dbo].[Dot_Admin_Assignment_Operator_bk] 
+(
+	[matchid] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [DATA]
+GO
+
+
