@@ -1,0 +1,17 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{D183A3D8-5FD8-494B-B014-37F57B35E655}") = "DB06-DBTP_bodb_Archive_Weekly", "DB06-DBTP_bodb_Archive_Weekly\DB06-DBTP_bodb_Archive_Weekly.dtproj", "{5FEA344B-86C0-4A7F-8DAD-126FB0DC7895}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Development|Default = Development|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5FEA344B-86C0-4A7F-8DAD-126FB0DC7895}.Development|Default.ActiveCfg = Development
+		{5FEA344B-86C0-4A7F-8DAD-126FB0DC7895}.Development|Default.Build.0 = Development
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

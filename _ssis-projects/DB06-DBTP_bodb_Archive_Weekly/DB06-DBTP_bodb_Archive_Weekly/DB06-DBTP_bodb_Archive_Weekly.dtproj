@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ProductVersion>10.50.1600.1</ProductVersion>
+  <SchemaVersion>9.0.1.0</SchemaVersion>
+  <State>$base64$PFNvdXJjZUNvbnRyb2xJbmZvIHhtbG5zOnhzZD0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEiIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zOmRkbDI9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDAzL2VuZ2luZS8yIiB4bWxuczpkZGwyXzI9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDAzL2VuZ2luZS8yLzIiIHhtbG5zOmRkbDEwMF8xMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDA4L2VuZ2luZS8xMDAvMTAwIiB4bWxuczpkZGwyMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEwL2VuZ2luZS8yMDAiIHhtbG5zOmRkbDIwMF8yMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEwL2VuZ2luZS8yMDAvMjAwIiB4bWxuczpkd2Q9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vRGF0YVdhcmVob3VzZS9EZXNpZ25lci8xLjAiPg0KICA8RW5hYmxlZD5mYWxzZTwvRW5hYmxlZD4NCiAgPFByb2plY3ROYW1lPjwvUHJvamVjdE5hbWU+DQogIDxBdXhQYXRoPjwvQXV4UGF0aD4NCiAgPExvY2FsUGF0aD48L0xvY2FsUGF0aD4NCiAgPFByb3ZpZGVyPjwvUHJvdmlkZXI+DQo8L1NvdXJjZUNvbnRyb2xJbmZvPg==</State>
+  <Database>
+    <Name>DB06-DBTP_bodb_Archive_Weekly.database</Name>
+    <FullPath>DB06-DBTP_bodb_Archive_Weekly.database</FullPath>
+  </Database>
+  <Cubes />
+  <Dimensions />
+  <DataSources />
+  <DataSourceViews />
+  <MiningModels />
+  <Roles />
+  <Miscellaneous />
+  <Configurations>
+    <Configuration>
+      <Name>Development</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings />
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings />
+        <DatabaseStorageLocations />
+      </Options>
+    </Configuration>
+  </Configurations>
+  <DTSPackages>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - AutoPayoutResult_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - AutoPayoutResult_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - BetParlayResult.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - BetParlayResult.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - bettrans_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - bettrans_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - bettransG.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - bettransG.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - bettransLC_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - bettransLC_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - bettransm.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - bettransm.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - bettransRnG_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - bettransRnG_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - bingoBall_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - bingoBall_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - Dot_Admin_Assignment_Operator_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - Dot_Admin_Assignment_Operator_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - Dot_Admin_LiveLog.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - Dot_Admin_LiveLog.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - match_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - match_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - MatchMaxBet_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - MatchMaxBet_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - odds_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - odds_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - outright_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - outright_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - ProviderResultDetail_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - ProviderResultDetail_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - ResultDetail_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - ResultDetail_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - ResultDetail3rd_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - ResultDetail3rd_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - SS_GameState_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - SS_GameState_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - statement.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - statement.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - transfer_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - transfer_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - translog_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - translog_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - Update_Done.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - Update_Done.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - VSOutright_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - VSOutright_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - BetTradeSelling180.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - BetTradeSelling180.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - BetTradeSellingCancelled180.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - BetTradeSellingCancelled180.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - match_remark.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - match_remark.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - VendorBettypeStatus_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - VendorBettypeStatus_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - VendorStatus_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - VendorStatus_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - Match3rd_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - Match3rd_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - BalNetPosition_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - BalNetPosition_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - NetPositionCalculationLog_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - NetPositionCalculationLog_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - NetPositionTrans_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - NetPositionTrans_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>Viet - DB06 to DBTP - Odds3rd_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - Odds3rd_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+  </DTSPackages>
+</Project>
