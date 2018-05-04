@@ -28,12 +28,12 @@ AS
 		- @timefrom:		The UTC time to get data from
 		- @timeto:			The UTC time to get data to
 
-		- @servers:			List of servers to select data from, seperated by comma 「,」 and can be enclosed with curly brackets 「{}」
+		- @servers:			List of servers to select data from, seperated by comma  ,  and can be enclosed with curly brackets  {} 
 								NULL			All available servers
 
 		- @waitgroup:		The group of wait type need to be selected
 
-		- @waittypes:		List of counters need to be selected, seperated by comma 「,」 and can be enclosed with curly brackets 「{}」
+		- @waittypes:		List of counters need to be selected, seperated by comma  ,  and can be enclosed with curly brackets  {} 
 								At least one of these 2 parameters (@waitgroup, @waittypes) have to be not null
 */
 BEGIN

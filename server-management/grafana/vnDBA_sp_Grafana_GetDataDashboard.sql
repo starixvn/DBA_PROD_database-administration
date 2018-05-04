@@ -18,6 +18,7 @@ AS
 	Revisions:
 		- 20170918@Billy:	Initial - [Redmine: #83352]
 		- 20180105@Billy:	Add @weekdiff for comparision dashboard - [Redmine: #89141]
+		- 20180403@Billy:	Add panel type 111 - [Redmine: #91078]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -27,12 +28,12 @@ AS
 		- @timefrom:		The UTC time to get data from
 		- @timeto:			The UTC time to get data to
 
-		- @servers:			List of servers to select data from, seperated by comma 「,」 and can be enclosed with curly brackets 「{}」
+		- @servers:			List of servers to select data from, seperated by comma  ,  and can be enclosed with curly brackets {}
 								NULL			All available servers
 
 		- @object:			The object (group) of counter need to be selected
 
-		- @counters:		List of counters need to be selected, seperated by comma 「,」 and can be enclosed with curly brackets 「{}」
+		- @counters:		List of counters need to be selected, seperated by comma  ,  and can be enclosed with curly brackets  {} 
 								At least one of these 2 parameters (@object, @counters) have to be not null
 */
 BEGIN
@@ -294,6 +295,24 @@ BEGIN
 					_d.CounterValue
 			FROM	dbo.vnDBA_Perf_CounterData AS _d WITH (NOLOCK)
 			WHERE	_d.CounterID = c.CounterID
+			ORDER BY	_d.CounterTime DESC
+		) AS d;
+
+		IF	@@ROWCOUNT <> 1
+			RAISERROR('There are only 1 counter accepted!', 16, 1);
+	END;
+
+	IF	@paneltype = 111
+	-- Single stat panel -- Last 10 seconds value --
+	BEGIN;
+		SELECT	'Value'		= ISNULL(d.CounterValue, 0)
+		FROM		#CounterDetails AS c WITH (NOLOCK)
+		OUTER APPLY	(
+			SELECT	TOP(1)
+					_d.CounterValue
+			FROM	dbo.vnDBA_Perf_CounterData AS _d WITH (NOLOCK)
+			WHERE	_d.CounterID = c.CounterID
+				AND	_d.CounterTime BETWEEN DATEADD(SECOND, -10, @timeto) AND @timeto
 			ORDER BY	_d.CounterTime DESC
 		) AS d;
 
