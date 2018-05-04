@@ -187,7 +187,7 @@
       <FullPath>NetPositionTrans_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>Odds3rd_bk.dtsx</Name>
       <FullPath>Odds3rd_bk.dtsx</FullPath>
       <References />
