@@ -15,6 +15,7 @@ AS
 		- 20171106@Billy:	Add wait statistics servers template - [Redmine: #86054]
 		- 20180104@Billy:	Change performance servers template to metadata table - [Redmine: #00000]
 		- 20180105@Billy:	Add @getAll parameter for showing unmonitor servers - [Redmine: #00000]
+		- 20180507@Billy:	Grafana 5.1 integration - [Redmine: #94602]
 		
 	Developer's Notes:
 		
@@ -26,43 +27,43 @@ BEGIN
 	-- All list --
 	BEGIN;
 		SELECT	DISTINCT
-				'Value'		= s.ServerName
+				[value]		= s.ServerName
 		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0
 		UNION ALL
-		SELECT	'Value'		= s.ServerName
+		SELECT	[value]		= s.ServerName
 		FROM	dbo.vnDBA_Wait_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
 	IF	@templatetype = 1
 	-- Server list -- Performance Counter --
 	BEGIN;
-		SELECT	'Value'		= s.ServerName
+		SELECT	[value]		= s.ServerName
 		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
 	ELSE IF	@templatetype = 2
 	-- Excluded server list -- Performance Counter --
 	BEGIN;
-		SELECT	'Value'		= ' None '
+		SELECT	[value]		= ' None '
 		UNION ALL
-		SELECT	'Value'		= s.ServerName
+		SELECT	[value]		= s.ServerName
 		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
 	ELSE IF	@templatetype = 11
 	-- Server list -- Wait Statistics --
 	BEGIN;
-		SELECT	'Value'		= s.ServerName
+		SELECT	[value]		= s.ServerName
 		FROM	dbo.vnDBA_Wait_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
 	ELSE IF	@templatetype = 12
 	-- Excluded server list -- Wait Statistics --
 	BEGIN;
-		SELECT	'Value'		= ' None '
+		SELECT	[value]		= ' None '
 		UNION ALL
-		SELECT	'Value'		= s.ServerName
+		SELECT	[value]		= s.ServerName
 		FROM	dbo.vnDBA_Wait_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;

@@ -19,6 +19,7 @@ AS
 		- 20170918@Billy:	Initial - [Redmine: #83352]
 		- 20180105@Billy:	Add @weekdiff for comparision dashboard - [Redmine: #89141]
 		- 20180403@Billy:	Add panel type 111 - [Redmine: #91078]
+		- 20180503@Billy:	Grafana 5.1 integration - [Redmine: #94602]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -113,11 +114,11 @@ BEGIN
 		SELECT	@servers = CASE WHEN RIGHT(@servers, 1) = '}' THEN SUBSTRING(@servers, 1, LEN(@servers) - 1) ELSE @servers END;
 	
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @servers, 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @servers, 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @servers, cte.finish + 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @servers, cte.finish + 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@servers)
 		)
@@ -133,11 +134,11 @@ BEGIN
 		SELECT	@ex_servers = CASE WHEN RIGHT(@ex_servers, 1) = '}' THEN SUBSTRING(@ex_servers, 1, LEN(@ex_servers) - 1) ELSE @ex_servers END;
 			
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @ex_servers, 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @ex_servers, 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @ex_servers, cte.finish + 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @ex_servers, cte.finish + 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@ex_servers)
 		)
@@ -155,11 +156,11 @@ BEGIN
 		SELECT	@counters = CASE WHEN RIGHT(@counters, 1) = '}' THEN SUBSTRING(@counters, 1, LEN(@counters) - 1) ELSE @counters END;
 	
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @counters, 1) = 0 THEN LEN(@counters) + 1 ELSE CHARINDEX(',', @counters, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @counters, 1) = 0 THEN LEN(@counters) + 1 ELSE CHARINDEX(',', @counters, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @counters, cte.finish + 1) = 0 THEN LEN(@counters) + 1 ELSE CHARINDEX(',', @counters, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @counters, cte.finish + 1) = 0 THEN LEN(@counters) + 1 ELSE CHARINDEX(',', @counters, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@counters)
 		)
@@ -186,9 +187,9 @@ BEGIN
 	IF	@paneltype = 000
 	-- Graph chart panel -- Metric machine --
 	BEGIN;
-		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, d.CounterTime)
-			,	'Metric'	= CASE LEFT(c.MachineName, 2) WHEN '\\' THEN SUBSTRING(c.MachineName, 3, LEN(c.MachineName)) ELSE c.MachineName END
-			,	'Value'		= SUM(d.CounterValue)
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+			,	[metric]	= CASE LEFT(c.MachineName, 2) WHEN '\\' THEN SUBSTRING(c.MachineName, 3, LEN(c.MachineName)) ELSE c.MachineName END
+			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
 		CROSS APPLY	(
 			SELECT	_d.CounterTime, _d.CounterValue
@@ -197,15 +198,15 @@ BEGIN
 				AND	_d.CounterTime BETWEEN @timefrom AND @timeto
 		) AS d
 		GROUP BY	d.CounterTime, c.MachineName
-		ORDER BY	'Time', 'Metric';
+		ORDER BY	[time], [metric];
 	END;
 	
 	IF	@paneltype = 001
 	-- Graph chart panel -- Metric counter --
 	BEGIN;
-		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, d.CounterTime)
-			,	'Metric'	= c.CounterName
-			,	'Value'		= SUM(d.CounterValue)
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+			,	[metric]	= c.CounterName
+			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
 		CROSS APPLY	(
 			SELECT	_d.CounterTime, _d.CounterValue
@@ -214,15 +215,15 @@ BEGIN
 				AND	_d.CounterTime BETWEEN @timefrom AND @timeto
 		) AS d
 		GROUP BY	d.CounterTime, c.CounterName
-		ORDER BY	'Time', 'Metric';
+		ORDER BY	[time], [metric];
 	END;
 	
 	IF	@paneltype = 002
 	-- Graph chart panel -- Metric instance --
 	BEGIN;
-		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, d.CounterTime)
-			,	'Metric'	= c.InstanceName
-			,	'Value'		= SUM(d.CounterValue)
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+			,	[metric]	= c.InstanceName
+			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
 		CROSS APPLY	(
 			SELECT	_d.CounterTime, _d.CounterValue
@@ -231,15 +232,15 @@ BEGIN
 				AND	_d.CounterTime BETWEEN @timefrom AND @timeto
 		) AS d
 		GROUP BY	d.CounterTime, c.InstanceName
-		ORDER BY	'Time', 'Metric';
+		ORDER BY	[time], [metric];
 	END;
 	
 	IF	@paneltype = 003
 	-- Graph chart panel -- Metric object - counter - instance --
 	BEGIN;
-		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, d.CounterTime)
-			,	'Metric'	= c.ObjectName + N'(' + c.InstanceName + N'): ' + c.CounterName
-			,	'Value'		= SUM(d.CounterValue)
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+			,	[metric]	= c.ObjectName + N'(' + c.InstanceName + N'): ' + c.CounterName
+			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
 		CROSS APPLY	(
 			SELECT	_d.CounterTime, _d.CounterValue
@@ -248,15 +249,15 @@ BEGIN
 				AND	_d.CounterTime BETWEEN @timefrom AND @timeto
 		) AS d
 		GROUP BY	d.CounterTime, c.ObjectName, c.InstanceName, c.CounterName
-		ORDER BY	'Time', 'Metric';
+		ORDER BY	[time], [metric];
 	END;
 
 	IF	@paneltype = 010
 	-- Graph chart panel -- Metric machine - counter --
 	BEGIN;
-		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, d.CounterTime)
-			,	'Metric'	= CASE LEFT(c.MachineName, 2) WHEN '\\' THEN SUBSTRING(c.MachineName, 3, LEN(c.MachineName)) ELSE c.MachineName END + '[' + CAST(c.NumberId AS VARCHAR) + ']'
-			,	'Value'		= SUM(d.CounterValue)
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+			,	[metric]	= CASE LEFT(c.MachineName, 2) WHEN '\\' THEN SUBSTRING(c.MachineName, 3, LEN(c.MachineName)) ELSE c.MachineName END + '[' + CAST(c.NumberId AS VARCHAR) + ']'
+			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
 		CROSS APPLY	(
 			SELECT	_d.CounterTime, _d.CounterValue
@@ -271,7 +272,7 @@ BEGIN
 	IF	@paneltype = 101
 	-- Single stat panel -- Latest value --
 	BEGIN;
-		SELECT	'Value'		= d.CounterValue
+		SELECT	[value]		= d.CounterValue
 		FROM		#CounterDetails AS c WITH (NOLOCK)
 		CROSS APPLY	(
 			SELECT	TOP(1)
@@ -288,7 +289,7 @@ BEGIN
 	IF	@paneltype = 102
 	-- Single stat panel -- Sum latest value --
 	BEGIN;
-		SELECT	'Value'		= SUM(d.CounterValue)
+		SELECT	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
 		CROSS APPLY	(
 			SELECT	TOP(1)
@@ -305,7 +306,7 @@ BEGIN
 	IF	@paneltype = 111
 	-- Single stat panel -- Last 10 seconds value --
 	BEGIN;
-		SELECT	'Value'		= ISNULL(d.CounterValue, 0)
+		SELECT	[value]		= ISNULL(d.CounterValue, 0)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
 		OUTER APPLY	(
 			SELECT	TOP(1)

@@ -4,10 +4,10 @@ ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetAnnotations
 						@annotationtype		INT
 AS
 BEGIN;
-	SELECT	'time' = DATEADD(HOUR, 4, d.CounterTime)
-		,	'title' = 'Warning'
-		,	'text' = CAST(d.CounterValue AS VARCHAR) + ' - ' + c.MachineName
-		,	'tags' = 'CPU'
+	SELECT	[time]		= DATEADD(HOUR, 4, d.CounterTime)
+		,	[title]		= 'Warning'
+		,	[text]		= CAST(d.CounterValue AS VARCHAR) + ' - ' + c.MachineName
+		,	[tags]		= 'CPU'
 	FROM		dbo.CounterDetails AS c WITH (NOLOCK)
 	CROSS APPLY	(
 		SELECT	TOP(1)

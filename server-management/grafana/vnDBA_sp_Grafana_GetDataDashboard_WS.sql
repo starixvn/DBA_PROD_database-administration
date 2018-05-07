@@ -19,6 +19,7 @@ AS
 		- 20170918@Billy:	Initial - [Redmine: #86054]
 		- 20180103@Billy:	Change value scale to milliseconds per second - [Redmine: #89022]
 		- 20180108@Billy:	Support Performance Counter list - [Redmine: #89141]
+		- 20180507@Billy:	Grafana 5.1 integration - [Redmine: #94602]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -100,11 +101,11 @@ BEGIN
 		SELECT	@servers = CASE WHEN RIGHT(@servers, 1) = '}' THEN SUBSTRING(@servers, 1, LEN(@servers) - 1) ELSE @servers END;
 	
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @servers, 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @servers, 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @servers, cte.finish + 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @servers, cte.finish + 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@servers)
 		)
@@ -120,11 +121,11 @@ BEGIN
 		SELECT	@ex_servers = CASE WHEN RIGHT(@ex_servers, 1) = '}' THEN SUBSTRING(@ex_servers, 1, LEN(@ex_servers) - 1) ELSE @ex_servers END;
 			
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @ex_servers, 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @ex_servers, 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @ex_servers, cte.finish + 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @ex_servers, cte.finish + 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@ex_servers)
 		)
@@ -163,11 +164,11 @@ BEGIN
 		SELECT	@waittypes = CASE WHEN RIGHT(@waittypes, 1) = '}' THEN SUBSTRING(@waittypes, 1, LEN(@waittypes) - 1) ELSE @waittypes END;
 	
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @waittypes, 1) = 0 THEN LEN(@waittypes) + 1 ELSE CHARINDEX(',', @waittypes, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @waittypes, 1) = 0 THEN LEN(@waittypes) + 1 ELSE CHARINDEX(',', @waittypes, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @waittypes, cte.finish + 1) = 0 THEN LEN(@waittypes) + 1 ELSE CHARINDEX(',', @waittypes, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @waittypes, cte.finish + 1) = 0 THEN LEN(@waittypes) + 1 ELSE CHARINDEX(',', @waittypes, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@waittypes)
 		)
@@ -201,9 +202,9 @@ BEGIN
 	IF	@paneltype = 001
 	-- Graph chart panel -- Wait Time --
 	BEGIN;
-		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, wc.CalculateDate)
-			,	'Metric'	= w.WaitType
-			,	'Value'		= SUM(wc.CalcWaitTime_ms_p_s)
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, wc.CalculateDate)
+			,	[metric]	= w.WaitType
+			,	[value]		= SUM(wc.CalcWaitTime_ms_p_s)
 		FROM		#waittypes AS w WITH (NOLOCK)
 		CROSS JOIN	#servers AS s WITH (NOLOCK)
 		CROSS APPLY	(
@@ -214,7 +215,7 @@ BEGIN
 				AND	_w.CalculateDate BETWEEN @timefrom AND @timeto
 		) AS wc
 		GROUP BY	wc.CalculateDate, w.WaitType
-		ORDER BY	'Time', 'Metric'
+		ORDER BY	[time], [metric]
 		OPTION (FORCE ORDER);
 	END;
 	
