@@ -38,7 +38,8 @@ BEGIN
 	IF	@templatetype = 1
 	-- Server list -- Performance Counter --
 	BEGIN;
-		SELECT	[value]		= s.ServerName
+		SELECT	DISTINCT
+				[value]		= s.ServerName
 		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
