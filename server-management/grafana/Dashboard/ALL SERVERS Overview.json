@@ -33,6 +33,12 @@
       "id": "graph",
       "name": "Graph",
       "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "singlestat",
+      "name": "Singlestat",
+      "version": ""
     }
   ],
   "annotations": {
@@ -170,8 +176,109 @@
       "titleSize": "h6"
     },
     {
+      "collapse": true,
+      "height": "",
+      "panels": [
+        {
+          "cacheTimeout": null,
+          "colorBackground": true,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": "${DS_SIMPLESQL}",
+          "format": "none",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "15",
+          "id": 11,
+          "interval": null,
+          "links": [],
+          "mappingType": 2,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "minSpan": 1,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "1",
+              "text": "ON",
+              "to": "999999999999999999999999999999999"
+            },
+            {
+              "from": "0",
+              "text": "OFF",
+              "to": "0"
+            }
+          ],
+          "repeat": "servers",
+          "span": 1,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "",
+          "targets": [
+            {
+              "cmdtype": "sql",
+              "refId": "A",
+              "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 111, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @counters = 'Available KBytes';",
+              "type": "timeseries",
+              "utc": "localtime"
+            }
+          ],
+          "thresholds": "1,1",
+          "title": "$servers",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            },
+            {
+              "op": "=",
+              "text": "",
+              "value": ""
+            }
+          ],
+          "valueName": "avg"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Server Status",
+      "titleSize": "h6"
+    },
+    {
       "collapse": false,
-      "height": 250,
+      "height": "",
       "panels": [
         {
           "aliasColors": {},
@@ -180,7 +287,7 @@
           "dashes": false,
           "datasource": "${DS_SIMPLESQL}",
           "fill": 0,
-          "height": "284px",
+          "height": "247px",
           "id": 4,
           "legend": {
             "avg": false,
@@ -234,11 +341,11 @@
               "color": "#806EB7"
             },
             {
-              "alias": "/DB05([[]|$)/g",
+              "alias": "/DB05([[]|$|N)/g",
               "color": "#CFFAFF"
             },
             {
-              "alias": "/DB06([[]|$)/g",
+              "alias": "/DB06([[]|$|N)/g",
               "color": "#CCA300"
             },
             {
@@ -320,7 +427,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 00, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'Processor', @counters = '% Processor Time';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [
@@ -388,7 +495,7 @@
           "dashes": false,
           "datasource": "${DS_SIMPLESQL}",
           "fill": 1,
-          "height": "250px",
+          "height": "230px",
           "id": 8,
           "legend": {
             "avg": false,
@@ -442,11 +549,11 @@
               "color": "#806EB7"
             },
             {
-              "alias": "/DB05([[]|$)/g",
+              "alias": "/DB05([[]|$|N)/g",
               "color": "#CFFAFF"
             },
             {
-              "alias": "/DB06([[]|$)/g",
+              "alias": "/DB06([[]|$|N)/g",
               "color": "#CCA300"
             },
             {
@@ -528,7 +635,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 010, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'Network Interface', @counters = 'Bytes Received/sec, Bytes Sent/sec';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -577,7 +684,7 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": "",
       "panels": [
         {
           "aliasColors": {},
@@ -586,7 +693,7 @@
           "dashes": false,
           "datasource": "${DS_SIMPLESQL}",
           "fill": 0,
-          "height": "250px",
+          "height": "230px",
           "id": 5,
           "legend": {
             "avg": false,
@@ -640,11 +747,11 @@
               "color": "#806EB7"
             },
             {
-              "alias": "/DB05([[]|$)/g",
+              "alias": "/DB05([[]|$|N)/g",
               "color": "#CFFAFF"
             },
             {
-              "alias": "/DB06([[]|$)/g",
+              "alias": "/DB06([[]|$|N)/g",
               "color": "#CCA300"
             },
             {
@@ -726,7 +833,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 00, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -772,7 +879,7 @@
           "dashes": false,
           "datasource": "${DS_SIMPLESQL}",
           "fill": 0,
-          "height": "250px",
+          "height": "230px",
           "id": 9,
           "legend": {
             "avg": false,
@@ -826,11 +933,11 @@
               "color": "#806EB7"
             },
             {
-              "alias": "/DB05([[]|$)/g",
+              "alias": "/DB05([[]|$|N)/g",
               "color": "#CFFAFF"
             },
             {
-              "alias": "/DB06([[]|$)/g",
+              "alias": "/DB06([[]|$|N)/g",
               "color": "#CCA300"
             },
             {
@@ -912,7 +1019,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 00, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'SQLServer:SQL Statistics', @counters = 'Batch Requests/sec';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -961,7 +1068,7 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": "",
       "panels": [
         {
           "aliasColors": {},
@@ -970,7 +1077,7 @@
           "dashes": false,
           "datasource": "${DS_SIMPLESQL}",
           "fill": 1,
-          "height": "250px",
+          "height": "230",
           "id": 6,
           "legend": {
             "alignAsTable": false,
@@ -1026,11 +1133,11 @@
               "color": "#806EB7"
             },
             {
-              "alias": "/DB05([[]|$)/g",
+              "alias": "/DB05([[]|$|N)/g",
               "color": "#CFFAFF"
             },
             {
-              "alias": "/DB06([[]|$)/g",
+              "alias": "/DB06([[]|$|N)/g",
               "color": "#CCA300"
             },
             {
@@ -1112,7 +1219,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 010, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @counters = 'Granted Workspace Memory (KB), Pages/sec';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -1158,7 +1265,7 @@
           "dashes": false,
           "datasource": "${DS_SIMPLESQL}",
           "fill": 0,
-          "height": "284px",
+          "height": "248px",
           "id": 10,
           "legend": {
             "alignAsTable": false,
@@ -1214,11 +1321,11 @@
               "color": "#806EB7"
             },
             {
-              "alias": "/DB05([[]|$)/g",
+              "alias": "/DB05([[]|$|N)/g",
               "color": "#CFFAFF"
             },
             {
-              "alias": "/DB06([[]|$)/g",
+              "alias": "/DB06([[]|$|N)/g",
               "color": "#CCA300"
             },
             {
@@ -1300,7 +1407,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 00, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'SQLServer:General Statistics', @counters = 'Processes blocked';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -1345,6 +1452,221 @@
       "repeatRowId": null,
       "showTitle": false,
       "title": "Row #4",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": "",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_SIMPLESQL}",
+          "fill": 0,
+          "height": "250",
+          "id": 35,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 1,
+          "points": true,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "/-DBCUST-/g",
+              "color": "#F4D598"
+            },
+            {
+              "alias": "/-DBTRANS-/g",
+              "color": "#1F78C1"
+            },
+            {
+              "alias": "/-DB02-/g",
+              "color": "#E24D42"
+            },
+            {
+              "alias": "/-DB052-/g",
+              "color": "#E5A8E2"
+            },
+            {
+              "alias": "/-DB053-/g",
+              "color": "#9AC48A"
+            },
+            {
+              "alias": "/-DB054-/g",
+              "color": "#806EB7"
+            },
+            {
+              "alias": "/-DB05-/g",
+              "color": "#CFFAFF"
+            },
+            {
+              "alias": "/-DB06-/g",
+              "color": "#CCA300"
+            },
+            {
+              "alias": "/-DBTP-/g",
+              "color": "#F29191"
+            },
+            {
+              "alias": "/-DBDW-/g",
+              "color": "#70DBED"
+            },
+            {
+              "alias": "/-DBDW2-/g",
+              "color": "#6ED0E0"
+            },
+            {
+              "alias": "/-DBLICAPI-/g",
+              "color": "#DEDAF7"
+            },
+            {
+              "alias": "/-DB233-/g",
+              "color": "#EA6460"
+            },
+            {
+              "alias": "/-DB206-/g",
+              "color": "#5195CE"
+            },
+            {
+              "alias": "/-DB215-/g",
+              "color": "#629E51"
+            },
+            {
+              "alias": "/-DB234-/g",
+              "color": "#E5AC0E"
+            },
+            {
+              "alias": "/-DBDWCSS-/g",
+              "color": "#2F575E"
+            },
+            {
+              "alias": "/-DBSPARE-/g",
+              "color": "#99440A"
+            },
+            {
+              "alias": "/-DBFRAUD-/g",
+              "color": "#E0F9D7"
+            },
+            {
+              "alias": "/-DBFRAUD02-/g",
+              "color": "#BADFF4"
+            },
+            {
+              "alias": "/-FPS_DB01-/g",
+              "color": "#F9E2D2"
+            },
+            {
+              "alias": "/-FPS_DB02-/g",
+              "color": "#F9D9F9"
+            },
+            {
+              "alias": "/-DBDIST-/g",
+              "color": "#0A50A1"
+            },
+            {
+              "alias": "/-DBDIST02-/g",
+              "color": "#890F02"
+            },
+            {
+              "alias": "/-DBDIST03-/g",
+              "color": "#F2C96D"
+            },
+            {
+              "alias": "/-DB04(\\d)?-/g",
+              "color": "#58140C"
+            }
+          ],
+          "spaceLength": 10,
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "cmdtype": "sql",
+              "refId": "A",
+              "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 002, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @counters = 'Dist:Delivery Latency';",
+              "type": "timeseries",
+              "utc": "utc"
+            }
+          ],
+          "thresholds": [
+            {
+              "colorMode": "ok",
+              "fill": true,
+              "line": true,
+              "op": "lt",
+              "value": 20000
+            },
+            {
+              "colorMode": "warning",
+              "fill": true,
+              "line": true,
+              "op": "lt",
+              "value": 60000
+            },
+            {
+              "colorMode": "critical",
+              "fill": true,
+              "line": true,
+              "op": "gt",
+              "value": 60000
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Distributor",
+          "tooltip": {
+            "shared": true,
+            "sort": 2,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "ms",
+              "label": "Delivery Latency",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Row #5",
       "titleSize": "h6"
     }
   ],
@@ -1428,5 +1750,5 @@
   },
   "timezone": "",
   "title": "ALL SERVERS Overview",
-  "version": 54
+  "version": 72
 }

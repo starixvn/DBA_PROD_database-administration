@@ -291,7 +291,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'CXPACKET';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -454,7 +454,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'LOCK';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -531,7 +531,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'LATCH';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -870,5 +870,5 @@
   },
   "timezone": "browser",
   "title": "Server Wait Statistics Overview Portrait",
-  "version": 7
+  "version": 8
 }

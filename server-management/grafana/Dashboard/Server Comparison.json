@@ -940,7 +940,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = 'Pages/sec, Page Faults/sec';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -1021,7 +1021,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Pages/sec, Page Faults/sec';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -1142,7 +1142,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = 'Disk Reads/sec, Disk Writes/sec, Disk Read Bytes/sec, Disk Write Bytes/sec';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -1892,7 +1892,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'CXPACKET';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -1975,7 +1975,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'CXPACKET';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -2243,7 +2243,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'LOCK';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -2321,7 +2321,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'LOCK';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -2410,7 +2410,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'LATCH';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -2486,7 +2486,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'LATCH';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -3087,7 +3087,7 @@
         "multi": false,
         "name": "diff",
         "options": [],
-        "query": "SELECT CAST(ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS VARCHAR) + 'w' FROM (VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) a(x) CROSS JOIN (VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) b(x)",
+        "query": "SELECT CAST(ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) - 1 AS VARCHAR) + 'w' FROM (VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) a(x) CROSS JOIN (VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) b(x)",
         "refresh": 1,
         "regex": "",
         "sort": 3,
@@ -3100,7 +3100,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -3130,5 +3130,5 @@
   },
   "timezone": "browser",
   "title": "Server Comparison",
-  "version": 12
+  "version": 14
 }

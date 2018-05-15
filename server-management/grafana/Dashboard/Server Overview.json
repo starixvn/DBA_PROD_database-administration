@@ -700,7 +700,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 1, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Pages/sec, Page Faults/sec';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -820,7 +820,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 1, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Disk Reads/sec, Disk Writes/sec, Disk Read Bytes/sec, Disk Write Bytes/sec';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": [],
@@ -920,7 +920,7 @@
               "refId": "A",
               "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 102, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
               "type": "timeseries",
-              "utc": "localtime"
+              "utc": "utc"
             }
           ],
           "thresholds": "1,3",
@@ -1351,5 +1351,5 @@
   },
   "timezone": "browser",
   "title": "Server Overview",
-  "version": 50
+  "version": 51
 }
