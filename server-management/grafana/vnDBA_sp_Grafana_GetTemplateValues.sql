@@ -2,7 +2,8 @@ USE	StarixDB;
 GO
 ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetTemplateValues
 						@templatetype		TINYINT
-					,	@getAll				BIT			= 1
+					,	@getAll				BIT				= 1
+					,	@input				NVARCHAR(MAX)	= NULL
 AS
 /*
 	Creator:	20170920@Billy
@@ -16,9 +17,19 @@ AS
 		- 20180104@Billy:	Change performance servers template to metadata table - [Redmine: #00000]
 		- 20180105@Billy:	Add @getAll parameter for showing unmonitor servers - [Redmine: #00000]
 		- 20180507@Billy:	Grafana 5.1 integration - [Redmine: #94602]
+		- 20180615@Billy:	Enhancement - [Redmine: #96988]
 		
 	Developer's Notes:
-		
+		- @templatetype:	Specify the type of template that need to be selected
+								0				All performance counter and wait statistics servers
+
+								1				All performance counter servers
+								2				All performance counter servers for exclusion
+
+								11				All wait statistics servers
+								12				All wait statistics servers for exclusion
+
+
 */
 BEGIN
 	SET NOCOUNT ON;
@@ -38,8 +49,7 @@ BEGIN
 	IF	@templatetype = 1
 	-- Server list -- Performance Counter --
 	BEGIN;
-		SELECT	DISTINCT
-				[value]		= s.ServerName
+		SELECT	[value]		= s.ServerName
 		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
 	END;
@@ -67,6 +77,27 @@ BEGIN
 		SELECT	[value]		= s.ServerName
 		FROM	dbo.vnDBA_Wait_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
+	END;
+	ELSE IF	@templatetype = 1001
+	-- Server information -- CPUs --
+	BEGIN;
+		SELECT	[Value]		= s.CPUs
+		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
+		WHERE	s.ServerName = @input;
+	END;
+	ELSE IF	@templatetype = 1002
+	-- Server information -- Workers --
+	BEGIN;
+		SELECT	[Value]		= s.MaxWorkers
+		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
+		WHERE	s.ServerName = @input;
+	END;
+	ELSE IF	@templatetype = 1003
+	-- Server information -- Memory --
+	BEGIN;
+		SELECT	[Value]		= s.MemoryKB
+		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
+		WHERE	s.ServerName = @input;
 	END;
 END;
 GO
