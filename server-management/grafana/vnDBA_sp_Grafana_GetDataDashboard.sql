@@ -20,6 +20,7 @@ AS
 		- 20180105@Billy:	Add @weekdiff for comparision dashboard - [Redmine: #89141]
 		- 20180403@Billy:	Add panel type 111 - [Redmine: #91078]
 		- 20180503@Billy:	Grafana 5.1 integration - [Redmine: #94602]
+		- 20180615@Billy:	Enhancement - [Redmine: #96988]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -45,7 +46,7 @@ BEGIN
 
 
 	-- Validate parameters --
-	IF	ISNULL(@object, @counters) IS NULL
+	IF	ISNULL(@object, @counters) IS NULL AND @paneltype >= 0
 	BEGIN;
 		RAISERROR('Please specify at least one of Object or Counter to be selected!', 16, 1) WITH NOWAIT;
 		RETURN;
@@ -319,6 +320,25 @@ BEGIN
 
 		IF	@@ROWCOUNT <> 1
 			RAISERROR('There are only 1 counter accepted!', 16, 1);
+	END;
+
+
+	-- Static value --
+	IF	@paneltype = -1
+	-- Static value -- Total CPUs capacity --
+	BEGIN;
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, t.time)
+			,	[metric]	= N'%CPU Capacity'
+			,	[value]		= ps.CPUs * 100
+		FROM		#servers AS s WITH (NOLOCK)
+		INNER JOIN	dbo.vnDBA_Perf_Servers AS ps WITH (NOLOCK)
+				ON	N'\\' + ps.ServerName = s.ServerName
+		CROSS APPLY	(
+			SELECT	[time]		= @timefrom
+			UNION ALL
+			SELECT	[time]		= @timeto
+		) AS t
+		ORDER BY	[time], [metric];
 	END;
 
 	-- Cleanup temporary tables --

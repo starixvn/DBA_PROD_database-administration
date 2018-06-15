@@ -1,9 +1,8 @@
 USE	StarixDB;
 GO
 ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetTemplateValues
-						@templatetype		TINYINT
+						@templatetype		SMALLINT
 					,	@getAll				BIT				= 1
-					,	@input				NVARCHAR(MAX)	= NULL
 AS
 /*
 	Creator:	20170920@Billy
@@ -77,27 +76,6 @@ BEGIN
 		SELECT	[value]		= s.ServerName
 		FROM	dbo.vnDBA_Wait_Servers AS s WITH (NOLOCK)
 		WHERE	s.isMonitored | @getAll <> 0;
-	END;
-	ELSE IF	@templatetype = 1001
-	-- Server information -- CPUs --
-	BEGIN;
-		SELECT	[Value]		= s.CPUs
-		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
-		WHERE	s.ServerName = @input;
-	END;
-	ELSE IF	@templatetype = 1002
-	-- Server information -- Workers --
-	BEGIN;
-		SELECT	[Value]		= s.MaxWorkers
-		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
-		WHERE	s.ServerName = @input;
-	END;
-	ELSE IF	@templatetype = 1003
-	-- Server information -- Memory --
-	BEGIN;
-		SELECT	[Value]		= s.MemoryKB
-		FROM	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
-		WHERE	s.ServerName = @input;
 	END;
 END;
 GO
