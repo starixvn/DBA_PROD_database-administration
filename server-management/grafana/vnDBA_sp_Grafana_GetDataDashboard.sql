@@ -280,6 +280,7 @@ BEGIN
 					_d.CounterValue
 			FROM	dbo.vnDBA_Perf_CounterData AS _d WITH (NOLOCK)
 			WHERE	_d.CounterID = c.CounterID
+				AND	_d.CounterTime <= @timeto
 			ORDER BY	_d.CounterTime DESC
 		) AS d;
 
@@ -297,6 +298,7 @@ BEGIN
 					_d.CounterValue
 			FROM	dbo.vnDBA_Perf_CounterData AS _d WITH (NOLOCK)
 			WHERE	_d.CounterID = c.CounterID
+				AND	_d.CounterTime <= @timeto
 			ORDER BY	_d.CounterTime DESC
 		) AS d;
 
@@ -324,6 +326,7 @@ BEGIN
 
 
 	-- Static value --
+
 	IF	@paneltype = -1
 	-- Static value -- Total CPUs capacity --
 	BEGIN;

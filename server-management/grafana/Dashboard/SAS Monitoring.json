@@ -1,0 +1,1552 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_MICROSOFT_SQL SERVER",
+      "label": "Microsoft SQL Server",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "mssql",
+      "pluginName": "Microsoft SQL Server"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "5.1.2"
+    },
+    {
+      "type": "panel",
+      "id": "grafana-clock-panel",
+      "name": "Clock",
+      "version": "0.0.9"
+    },
+    {
+      "type": "panel",
+      "id": "graph",
+      "name": "Graph",
+      "version": "5.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "mssql",
+      "name": "Microsoft SQL Server",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "limit": 100,
+        "name": "Annotations & Alerts",
+        "showIn": 0,
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "keepTime": true,
+      "tags": [
+        "SQL Server",
+        "Landscape",
+        "v2"
+      ],
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "bgColor": "rgba(255, 78, 78, 0.2)",
+      "clockType": "12 hour",
+      "countdownSettings": {
+        "endCountdownTime": "2017-09-21T05:50:00.000Z",
+        "endText": "00:00:00"
+      },
+      "dateSettings": {
+        "dateFormat": "YYYY-MM-DD",
+        "fontSize": "11px",
+        "fontWeight": "normal",
+        "showDate": true
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "height": "90px",
+      "id": 1,
+      "links": [],
+      "mode": "time",
+      "offsetFromUtc": "-4",
+      "offsetFromUtcMinutes": "",
+      "repeat": null,
+      "timeSettings": {
+        "customFormat": "HH:mm:ss",
+        "fontSize": "30px",
+        "fontWeight": "bold"
+      },
+      "title": "Server Time (GMT-4)",
+      "transparent": false,
+      "type": "grafana-clock-panel"
+    },
+    {
+      "bgColor": "rgba(255, 196, 78, 0.2)",
+      "clockType": "12 hour",
+      "countdownSettings": {
+        "endCountdownTime": "2017-09-21T05:50:00.000Z",
+        "endText": "00:00:00"
+      },
+      "dateSettings": {
+        "dateFormat": "YYYY-MM-DD",
+        "fontSize": "11px",
+        "fontWeight": "normal",
+        "showDate": true
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "height": "90px",
+      "id": 2,
+      "links": [],
+      "mode": "time",
+      "offsetFromUtc": "+7",
+      "offsetFromUtcMinutes": "",
+      "timeSettings": {
+        "customFormat": "HH:mm:ss",
+        "fontSize": "30px",
+        "fontWeight": "normal"
+      },
+      "title": "Vietnam Time (GMT+7)",
+      "transparent": false,
+      "type": "grafana-clock-panel"
+    },
+    {
+      "bgColor": "rgba(78, 255, 79, 0.2)",
+      "clockType": "12 hour",
+      "countdownSettings": {
+        "endCountdownTime": "2017-09-21T05:50:00.000Z",
+        "endText": "00:00:00"
+      },
+      "dateSettings": {
+        "dateFormat": "YYYY-MM-DD",
+        "fontSize": "11px",
+        "fontWeight": "normal",
+        "showDate": true
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "height": "90px",
+      "id": 3,
+      "links": [],
+      "mode": "time",
+      "offsetFromUtc": "+8",
+      "offsetFromUtcMinutes": "",
+      "timeSettings": {
+        "customFormat": "HH:mm:ss",
+        "fontSize": "30px",
+        "fontWeight": "normal"
+      },
+      "title": "Taiwan Time (GMT+8)",
+      "transparent": false,
+      "type": "grafana-clock-panel"
+    },
+    {
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                10
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "A",
+                "30s",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          },
+          {
+            "evaluator": {
+              "params": [
+                25
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "or"
+            },
+            "query": {
+              "params": [
+                "B",
+                "30s",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "keep_state",
+        "frequency": "10s",
+        "handler": 1,
+        "name": "CPU alert",
+        "noDataState": "no_data",
+        "notifications": []
+      },
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 3
+      },
+      "height": "247px",
+      "id": 4,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "/DB[^[]*[[]2]/g",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "/DBCUST[12]?([[]|$)/g",
+          "color": "#F4D598"
+        },
+        {
+          "alias": "/DBTRANS[12]?([[]|$)/g",
+          "color": "#1F78C1"
+        },
+        {
+          "alias": "/DB02[12]?([[]|$)/g",
+          "color": "#E24D42"
+        },
+        {
+          "alias": "/DB052([[]|$)/g",
+          "color": "#E5A8E2"
+        },
+        {
+          "alias": "/DB053([[]|$)/g",
+          "color": "#9AC48A"
+        },
+        {
+          "alias": "/DB054([[]|$)/g",
+          "color": "#806EB7"
+        },
+        {
+          "alias": "/DB05([[]|$|N)/g",
+          "color": "#CFFAFF"
+        },
+        {
+          "alias": "/DB06([[]|$|N)/g",
+          "color": "#CCA300"
+        },
+        {
+          "alias": "/DBTP[12]?([[]|$)/g",
+          "color": "#F29191"
+        },
+        {
+          "alias": "/DBDW([[]|$)/g",
+          "color": "#70DBED"
+        },
+        {
+          "alias": "/DBDW2([[]|$)/g",
+          "color": "#6ED0E0"
+        },
+        {
+          "alias": "/DBLICAPI[2]?([[]|$)/g",
+          "color": "#DEDAF7"
+        },
+        {
+          "alias": "/DB233([[]|$)/g",
+          "color": "#EA6460"
+        },
+        {
+          "alias": "/DB206([[]|$)/g",
+          "color": "#5195CE"
+        },
+        {
+          "alias": "/DB215([[]|$)/g",
+          "color": "#629E51"
+        },
+        {
+          "alias": "/DB234([[]|$)/g",
+          "color": "#E5AC0E"
+        },
+        {
+          "alias": "/DBDWCSS([[]|$)/g",
+          "color": "#2F575E"
+        },
+        {
+          "alias": "/DBSPARE([[]|$)/g",
+          "color": "#99440A"
+        },
+        {
+          "alias": "/DBFRAUD([[]|$)/g",
+          "color": "#E0F9D7"
+        },
+        {
+          "alias": "/DBFRAUD02([[]|$)/g",
+          "color": "#BADFF4"
+        },
+        {
+          "alias": "/FPS_DB01([[]|$)/g",
+          "color": "#F9E2D2"
+        },
+        {
+          "alias": "/FPS_DB02([[]|$)/g",
+          "color": "#F9D9F9"
+        },
+        {
+          "alias": "/DBDIST([[]|$)/g",
+          "color": "#0A50A1"
+        },
+        {
+          "alias": "/DBDIST02([[]|$)/g",
+          "color": "#890F02"
+        },
+        {
+          "alias": "/DBDIST03([[]|$)/g",
+          "color": "#F2C96D"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\n    ,   @timeto DATETIME = $__timeTo()\n    ;\n\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 000, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB021, DB022, DBCUST1, DBCUST2, DBTRANS1, DBTRANS2', @object = 'Processor', @counters = '% Processor Time';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 00, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'Processor', @counters = '% Processor Time';",
+          "type": "timeseries",
+          "utc": "utc"
+        },
+        {
+          "alias": "",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\n    ,   @timeto DATETIME = $__timeTo()\n    ;\n\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 000, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB05N1, DB05N2, DB05, DB052, DB053, DB054, DB06N1, DB06N2, DB06, DBTP, DBAFF', @object = 'Processor', @counters = '% Processor Time';",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 10
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "CPU",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": "% Processor Time",
+          "logBase": 1,
+          "max": "100",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                60000
+              ],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "A",
+                "1m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "keep_state",
+        "frequency": "10s",
+        "handler": 1,
+        "name": "Distributor alert",
+        "noDataState": "no_data",
+        "notifications": []
+      },
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 3
+      },
+      "height": "250",
+      "id": 35,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 1,
+      "points": true,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "/-DBCUST-/g",
+          "color": "#F4D598"
+        },
+        {
+          "alias": "/-DBTRANS-/g",
+          "color": "#1F78C1"
+        },
+        {
+          "alias": "/-DB02-/g",
+          "color": "#E24D42"
+        },
+        {
+          "alias": "/-DB052-/g",
+          "color": "#E5A8E2"
+        },
+        {
+          "alias": "/-DB053-/g",
+          "color": "#9AC48A"
+        },
+        {
+          "alias": "/-DB054-/g",
+          "color": "#806EB7"
+        },
+        {
+          "alias": "/-DB05-/g",
+          "color": "#CFFAFF"
+        },
+        {
+          "alias": "/-DB06-/g",
+          "color": "#CCA300"
+        },
+        {
+          "alias": "/-DBTP-/g",
+          "color": "#F29191"
+        },
+        {
+          "alias": "/-DBDW-/g",
+          "color": "#70DBED"
+        },
+        {
+          "alias": "/-DBDW2-/g",
+          "color": "#6ED0E0"
+        },
+        {
+          "alias": "/-DBLICAPI-/g",
+          "color": "#DEDAF7"
+        },
+        {
+          "alias": "/-DB233-/g",
+          "color": "#EA6460"
+        },
+        {
+          "alias": "/-DB206-/g",
+          "color": "#5195CE"
+        },
+        {
+          "alias": "/-DB215-/g",
+          "color": "#629E51"
+        },
+        {
+          "alias": "/-DB234-/g",
+          "color": "#E5AC0E"
+        },
+        {
+          "alias": "/-DBDWCSS-/g",
+          "color": "#2F575E"
+        },
+        {
+          "alias": "/-DBSPARE-/g",
+          "color": "#99440A"
+        },
+        {
+          "alias": "/-DBFRAUD-/g",
+          "color": "#E0F9D7"
+        },
+        {
+          "alias": "/-DBFRAUD02-/g",
+          "color": "#BADFF4"
+        },
+        {
+          "alias": "/-FPS_DB01-/g",
+          "color": "#F9E2D2"
+        },
+        {
+          "alias": "/-FPS_DB02-/g",
+          "color": "#F9D9F9"
+        },
+        {
+          "alias": "/-DBDIST-/g",
+          "color": "#0A50A1"
+        },
+        {
+          "alias": "/-DBDIST02-/g",
+          "color": "#890F02"
+        },
+        {
+          "alias": "/-DBDIST03-/g",
+          "color": "#F2C96D"
+        },
+        {
+          "alias": "/-DB04(\\d)?-/g",
+          "color": "#fce2de"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 002, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DBDIST, DBDIST02, DBDIST03', @counters = 'Dist:Delivery Latency';",
+          "refId": "A",
+          "target": "",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 60000
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Distributor",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": "Delivery Latency",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "height": "230px",
+      "id": 5,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "/DB[^[]*[[]2]/g",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "/DBCUST[12]?([[]|$)/g",
+          "color": "#F4D598"
+        },
+        {
+          "alias": "/DBTRANS[12]?([[]|$)/g",
+          "color": "#1F78C1"
+        },
+        {
+          "alias": "/DB02[12]?([[]|$)/g",
+          "color": "#E24D42"
+        },
+        {
+          "alias": "/DB052([[]|$)/g",
+          "color": "#E5A8E2"
+        },
+        {
+          "alias": "/DB053([[]|$)/g",
+          "color": "#9AC48A"
+        },
+        {
+          "alias": "/DB054([[]|$)/g",
+          "color": "#806EB7"
+        },
+        {
+          "alias": "/DB05([[]|$|N)/g",
+          "color": "#CFFAFF"
+        },
+        {
+          "alias": "/DB06([[]|$|N)/g",
+          "color": "#CCA300"
+        },
+        {
+          "alias": "/DBTP[12]?([[]|$)/g",
+          "color": "#F29191"
+        },
+        {
+          "alias": "/DBDW([[]|$)/g",
+          "color": "#70DBED"
+        },
+        {
+          "alias": "/DBDW2([[]|$)/g",
+          "color": "#6ED0E0"
+        },
+        {
+          "alias": "/DBLICAPI[2]?([[]|$)/g",
+          "color": "#DEDAF7"
+        },
+        {
+          "alias": "/DB233([[]|$)/g",
+          "color": "#EA6460"
+        },
+        {
+          "alias": "/DB206([[]|$)/g",
+          "color": "#5195CE"
+        },
+        {
+          "alias": "/DB215([[]|$)/g",
+          "color": "#629E51"
+        },
+        {
+          "alias": "/DB234([[]|$)/g",
+          "color": "#E5AC0E"
+        },
+        {
+          "alias": "/DBDWCSS([[]|$)/g",
+          "color": "#2F575E"
+        },
+        {
+          "alias": "/DBSPARE([[]|$)/g",
+          "color": "#99440A"
+        },
+        {
+          "alias": "/DBFRAUD([[]|$)/g",
+          "color": "#E0F9D7"
+        },
+        {
+          "alias": "/DBFRAUD02([[]|$)/g",
+          "color": "#BADFF4"
+        },
+        {
+          "alias": "/FPS_DB01([[]|$)/g",
+          "color": "#F9E2D2"
+        },
+        {
+          "alias": "/FPS_DB02([[]|$)/g",
+          "color": "#F9D9F9"
+        },
+        {
+          "alias": "/DBDIST([[]|$)/g",
+          "color": "#0A50A1"
+        },
+        {
+          "alias": "/DBDIST02([[]|$)/g",
+          "color": "#890F02"
+        },
+        {
+          "alias": "/DBDIST03([[]|$)/g",
+          "color": "#F2C96D"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 000, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB021, DB022, DBCUST1, DBCUST2, DBTRANS1, DBTRANS2', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 00, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
+          "type": "timeseries",
+          "utc": "utc"
+        },
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 000, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB05N1, DB05N2, DB05, DB052, DB053, DB054, DB06N1, DB06N2, DB06, DBTP, DBAFF', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
+          "refId": "B",
+          "target": "select metric",
+          "type": "timeserie",
+          "utc": "localtime"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Disk",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": "Current Disk Queue Length",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "height": "230px",
+      "id": 9,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "/DB[^[]*[[]2]/g",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "/DBCUST[12]?([[]|$)/g",
+          "color": "#F4D598"
+        },
+        {
+          "alias": "/DBTRANS[12]?([[]|$)/g",
+          "color": "#1F78C1"
+        },
+        {
+          "alias": "/DB02[12]?([[]|$)/g",
+          "color": "#E24D42"
+        },
+        {
+          "alias": "/DB052([[]|$)/g",
+          "color": "#E5A8E2"
+        },
+        {
+          "alias": "/DB053([[]|$)/g",
+          "color": "#9AC48A"
+        },
+        {
+          "alias": "/DB054([[]|$)/g",
+          "color": "#806EB7"
+        },
+        {
+          "alias": "/DB05([[]|$|N)/g",
+          "color": "#CFFAFF"
+        },
+        {
+          "alias": "/DB06([[]|$|N)/g",
+          "color": "#CCA300"
+        },
+        {
+          "alias": "/DBTP[12]?([[]|$)/g",
+          "color": "#F29191"
+        },
+        {
+          "alias": "/DBDW([[]|$)/g",
+          "color": "#70DBED"
+        },
+        {
+          "alias": "/DBDW2([[]|$)/g",
+          "color": "#6ED0E0"
+        },
+        {
+          "alias": "/DBLICAPI[2]?([[]|$)/g",
+          "color": "#DEDAF7"
+        },
+        {
+          "alias": "/DB233([[]|$)/g",
+          "color": "#EA6460"
+        },
+        {
+          "alias": "/DB206([[]|$)/g",
+          "color": "#5195CE"
+        },
+        {
+          "alias": "/DB215([[]|$)/g",
+          "color": "#629E51"
+        },
+        {
+          "alias": "/DB234([[]|$)/g",
+          "color": "#E5AC0E"
+        },
+        {
+          "alias": "/DBDWCSS([[]|$)/g",
+          "color": "#2F575E"
+        },
+        {
+          "alias": "/DBSPARE([[]|$)/g",
+          "color": "#99440A"
+        },
+        {
+          "alias": "/DBFRAUD([[]|$)/g",
+          "color": "#E0F9D7"
+        },
+        {
+          "alias": "/DBFRAUD02([[]|$)/g",
+          "color": "#BADFF4"
+        },
+        {
+          "alias": "/FPS_DB01([[]|$)/g",
+          "color": "#F9E2D2"
+        },
+        {
+          "alias": "/FPS_DB02([[]|$)/g",
+          "color": "#F9D9F9"
+        },
+        {
+          "alias": "/DBDIST([[]|$)/g",
+          "color": "#0A50A1"
+        },
+        {
+          "alias": "/DBDIST02([[]|$)/g",
+          "color": "#890F02"
+        },
+        {
+          "alias": "/DBDIST03([[]|$)/g",
+          "color": "#F2C96D"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 000, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB021, DB022, DBCUST1, DBCUST2, DBTRANS1, DBTRANS2', @object = 'SQLServer:SQL Statistics', @counters = 'Batch Requests/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 00, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'SQLServer:SQL Statistics', @counters = 'Batch Requests/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        },
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 000, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB05N1, DB05N2, DB05, DB052, DB053, DB054, DB06N1, DB06N2, DB06, DBTP, DBAFF', @object = 'SQLServer:SQL Statistics', @counters = 'Batch Requests/sec';",
+          "refId": "B",
+          "target": "select metric",
+          "type": "timeserie",
+          "utc": "localtime"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "SQL Statistics",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ops",
+          "label": "Batch Requests/sec",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "height": "230",
+      "id": 6,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "/DB[^[]*[[]2]/g",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "/DBCUST[12]?([[]|$)/g",
+          "color": "#F4D598"
+        },
+        {
+          "alias": "/DBTRANS[12]?([[]|$)/g",
+          "color": "#1F78C1"
+        },
+        {
+          "alias": "/DB02[12]?([[]|$)/g",
+          "color": "#E24D42"
+        },
+        {
+          "alias": "/DB052([[]|$)/g",
+          "color": "#E5A8E2"
+        },
+        {
+          "alias": "/DB053([[]|$)/g",
+          "color": "#9AC48A"
+        },
+        {
+          "alias": "/DB054([[]|$)/g",
+          "color": "#806EB7"
+        },
+        {
+          "alias": "/DB05([[]|$|N)/g",
+          "color": "#CFFAFF"
+        },
+        {
+          "alias": "/DB06([[]|$|N)/g",
+          "color": "#CCA300"
+        },
+        {
+          "alias": "/DBTP[12]?([[]|$)/g",
+          "color": "#F29191"
+        },
+        {
+          "alias": "/DBDW([[]|$)/g",
+          "color": "#70DBED"
+        },
+        {
+          "alias": "/DBDW2([[]|$)/g",
+          "color": "#6ED0E0"
+        },
+        {
+          "alias": "/DBLICAPI[2]?([[]|$)/g",
+          "color": "#DEDAF7"
+        },
+        {
+          "alias": "/DB233([[]|$)/g",
+          "color": "#EA6460"
+        },
+        {
+          "alias": "/DB206([[]|$)/g",
+          "color": "#5195CE"
+        },
+        {
+          "alias": "/DB215([[]|$)/g",
+          "color": "#629E51"
+        },
+        {
+          "alias": "/DB234([[]|$)/g",
+          "color": "#E5AC0E"
+        },
+        {
+          "alias": "/DBDWCSS([[]|$)/g",
+          "color": "#2F575E"
+        },
+        {
+          "alias": "/DBSPARE([[]|$)/g",
+          "color": "#99440A"
+        },
+        {
+          "alias": "/DBFRAUD([[]|$)/g",
+          "color": "#E0F9D7"
+        },
+        {
+          "alias": "/DBFRAUD02([[]|$)/g",
+          "color": "#BADFF4"
+        },
+        {
+          "alias": "/FPS_DB01([[]|$)/g",
+          "color": "#F9E2D2"
+        },
+        {
+          "alias": "/FPS_DB02([[]|$)/g",
+          "color": "#F9D9F9"
+        },
+        {
+          "alias": "/DBDIST([[]|$)/g",
+          "color": "#0A50A1"
+        },
+        {
+          "alias": "/DBDIST02([[]|$)/g",
+          "color": "#890F02"
+        },
+        {
+          "alias": "/DBDIST03([[]|$)/g",
+          "color": "#F2C96D"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 010, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB021, DB022, DBCUST1, DBCUST2, DBTRANS1, DBTRANS2', @counters = 'Granted Workspace Memory (KB), Pages/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 010, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @counters = 'Granted Workspace Memory (KB), Pages/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        },
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 010, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB05N1, DB05N2, DB05, DB052, DB053, DB054, DB06N1, DB06N2, DB06, DBTP, DBAFF', @counters = 'Granted Workspace Memory (KB), Pages/sec';",
+          "refId": "B",
+          "target": "select metric",
+          "type": "timeserie",
+          "utc": "localtime"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Memory",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "deckbytes",
+          "label": "[1] Granted Workspace Memory",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": "[2] Pages/sec",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "height": "248px",
+      "id": 10,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "/DB[^[]*[[]2]/g",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "/DBCUST[12]?([[]|$)/g",
+          "color": "#F4D598"
+        },
+        {
+          "alias": "/DBTRANS[12]?([[]|$)/g",
+          "color": "#1F78C1"
+        },
+        {
+          "alias": "/DB02[12]?([[]|$)/g",
+          "color": "#E24D42"
+        },
+        {
+          "alias": "/DB052([[]|$)/g",
+          "color": "#E5A8E2"
+        },
+        {
+          "alias": "/DB053([[]|$)/g",
+          "color": "#9AC48A"
+        },
+        {
+          "alias": "/DB054([[]|$)/g",
+          "color": "#806EB7"
+        },
+        {
+          "alias": "/DB05([[]|$|N)/g",
+          "color": "#CFFAFF"
+        },
+        {
+          "alias": "/DB06([[]|$|N)/g",
+          "color": "#CCA300"
+        },
+        {
+          "alias": "/DBTP[12]?([[]|$)/g",
+          "color": "#F29191"
+        },
+        {
+          "alias": "/DBDW([[]|$)/g",
+          "color": "#70DBED"
+        },
+        {
+          "alias": "/DBDW2([[]|$)/g",
+          "color": "#6ED0E0"
+        },
+        {
+          "alias": "/DBLICAPI[2]?([[]|$)/g",
+          "color": "#DEDAF7"
+        },
+        {
+          "alias": "/DB233([[]|$)/g",
+          "color": "#EA6460"
+        },
+        {
+          "alias": "/DB206([[]|$)/g",
+          "color": "#5195CE"
+        },
+        {
+          "alias": "/DB215([[]|$)/g",
+          "color": "#629E51"
+        },
+        {
+          "alias": "/DB234([[]|$)/g",
+          "color": "#E5AC0E"
+        },
+        {
+          "alias": "/DBDWCSS([[]|$)/g",
+          "color": "#2F575E"
+        },
+        {
+          "alias": "/DBSPARE([[]|$)/g",
+          "color": "#99440A"
+        },
+        {
+          "alias": "/DBFRAUD([[]|$)/g",
+          "color": "#E0F9D7"
+        },
+        {
+          "alias": "/DBFRAUD02([[]|$)/g",
+          "color": "#BADFF4"
+        },
+        {
+          "alias": "/FPS_DB01([[]|$)/g",
+          "color": "#F9E2D2"
+        },
+        {
+          "alias": "/FPS_DB02([[]|$)/g",
+          "color": "#F9D9F9"
+        },
+        {
+          "alias": "/DBDIST([[]|$)/g",
+          "color": "#0A50A1"
+        },
+        {
+          "alias": "/DBDIST02([[]|$)/g",
+          "color": "#890F02"
+        },
+        {
+          "alias": "/DBDIST03([[]|$)/g",
+          "color": "#F2C96D"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 000, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB021, DB022, DBCUST1, DBCUST2, DBTRANS1, DBTRANS2', @object = 'SQLServer:General Statistics', @counters = 'Processes blocked';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 00, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @object = 'SQLServer:General Statistics', @counters = 'Processes blocked';",
+          "type": "timeseries",
+          "utc": "utc"
+        },
+        {
+          "alias": "",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 000, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DB05N1, DB05N2, DB05, DB052, DB053, DB054, DB06N1, DB06N2, DB06, DBTP, DBAFF', @object = 'SQLServer:General Statistics', @counters = 'Processes blocked';",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Wait Statistics",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": "Process Blocked",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "deckbytes",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 16,
+  "style": "dark",
+  "tags": [
+    "SQL Server",
+    "Landscape",
+    "v2"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "",
+  "title": "SAS Monitoring",
+  "uid": "jl8YhXnmk",
+  "version": 7
+}
