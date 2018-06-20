@@ -60,7 +60,7 @@
   "gnetId": null,
   "graphTooltip": 1,
   "id": null,
-  "iteration": 1529307750674,
+  "iteration": 1529468268531,
   "links": [
     {
       "asDropdown": false,
@@ -68,8 +68,7 @@
       "keepTime": true,
       "tags": [
         "SQL Server",
-        "Comparision",
-        "v2"
+        "Comparision"
       ],
       "type": "dashboards"
     }
@@ -3250,8 +3249,7 @@
   "style": "dark",
   "tags": [
     "SQL Server",
-    "Comparision",
-    "v2"
+    "Comparision"
   ],
   "templating": {
     "list": [
@@ -3349,5 +3347,5 @@
   "timezone": "browser",
   "title": "Server Comparison V2",
   "uid": "uKiT6uniz",
-  "version": 5
+  "version": 6
 }

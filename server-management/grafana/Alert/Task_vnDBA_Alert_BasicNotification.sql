@@ -42,10 +42,14 @@ BEGIN;
 		;
 
 	INSERT INTO	@excluded (MachineName)
-	VALUES	('\\DBDWCSS')
-		,	('\\DBSPARE')
+	VALUES	('\\DBSPARE')
+		,	('\\DBDWCSS')
 		,	('\\DBDW')
 		,	('\\DBDW2')
+		,	('\\DBDIST')
+		,	('\\DBDIST02')
+		,	('\\DBDIST03')
+		,	('\\DBDISTRM')
 		;
 
 	WHILE	0 = 0
@@ -57,7 +61,7 @@ BEGIN;
 				ON	input.ObjectName = c.ObjectName
 				AND	input.CounterName = c.CounterName
 		LEFT JOIN	@excluded AS ex
-				ON	c.MachineName = ex.MachineName
+				ON	c.MachineName LIKE ex.MachineName
 		CROSS APPLY	(
 			SELECT	[CounterTime]		= MIN(_ad.CounterTime)
 				,	[ViolatedCnt]		= SUM(_ad.Violated)

@@ -46,7 +46,7 @@
   "gnetId": null,
   "graphTooltip": 1,
   "id": null,
-  "iteration": 1529307700332,
+  "iteration": 1529468219525,
   "links": [
     {
       "asDropdown": false,
@@ -54,8 +54,7 @@
       "keepTime": true,
       "tags": [
         "SQL Server",
-        "Portrait",
-        "v2"
+        "Portrait"
       ],
       "type": "dashboards"
     }
@@ -111,7 +110,7 @@
         },
         {
           "alias": "/DBTRANS[12]?([[]|$)/g",
-          "color": "#1F78C1"
+          "color": "#447ebc"
         },
         {
           "alias": "/DB02[12]?([[]|$)/g",
@@ -119,39 +118,39 @@
         },
         {
           "alias": "/DB052([[]|$)/g",
-          "color": "#E5A8E2"
+          "color": "#e5a8e2"
         },
         {
           "alias": "/DB053([[]|$)/g",
-          "color": "#9AC48A"
+          "color": "#629e51"
         },
         {
           "alias": "/DB054([[]|$)/g",
-          "color": "#806EB7"
+          "color": "#aea2e0"
         },
         {
           "alias": "/DB05([[]|$|N)/g",
-          "color": "#CFFAFF"
+          "color": "#b7dbab"
         },
         {
           "alias": "/DB06([[]|$|N)/g",
-          "color": "#CCA300"
+          "color": "#e5ac0e"
         },
         {
           "alias": "/DBTP[12]?([[]|$)/g",
-          "color": "#F29191"
+          "color": "#f9934e"
         },
         {
           "alias": "/DBDW([[]|$)/g",
-          "color": "#70DBED"
+          "color": "#6ed0e0"
         },
         {
           "alias": "/DBDW2([[]|$)/g",
-          "color": "#6ED0E0"
+          "color": "#65c5db"
         },
         {
           "alias": "/DBLICAPI[2]?([[]|$)/g",
-          "color": "#DEDAF7"
+          "color": "#ba43a9"
         },
         {
           "alias": "/DB233([[]|$)/g",
@@ -159,19 +158,19 @@
         },
         {
           "alias": "/DB206([[]|$)/g",
-          "color": "#5195CE"
+          "color": "#705da0"
         },
         {
           "alias": "/DB215([[]|$)/g",
-          "color": "#629E51"
+          "color": "#508642"
         },
         {
           "alias": "/DB234([[]|$)/g",
-          "color": "#E5AC0E"
+          "color": "#eab839"
         },
         {
           "alias": "/DBDWCSS([[]|$)/g",
-          "color": "#2F575E"
+          "color": "#2f575e"
         },
         {
           "alias": "/DBSPARE([[]|$)/g",
@@ -203,7 +202,23 @@
         },
         {
           "alias": "/DBDIST03([[]|$)/g",
-          "color": "#F2C96D"
+          "color": "#c15c17"
+        },
+        {
+          "alias": "/DBDISTRM([[]|$)/g",
+          "color": "#967302"
+        },
+        {
+          "alias": "/DB042([[]|$)/g",
+          "color": "#badff4"
+        },
+        {
+          "alias": "/DB043([[]|$)/g",
+          "color": "#dedaf7"
+        },
+        {
+          "alias": "/DB044([[]|$)/g",
+          "color": "#fce2de"
         }
       ],
       "spaceLength": 10,
@@ -335,7 +350,7 @@
         },
         {
           "alias": "/DBTRANS[12]?([[]|$)/g",
-          "color": "#1F78C1"
+          "color": "#447ebc"
         },
         {
           "alias": "/DB02[12]?([[]|$)/g",
@@ -343,39 +358,39 @@
         },
         {
           "alias": "/DB052([[]|$)/g",
-          "color": "#E5A8E2"
+          "color": "#e5a8e2"
         },
         {
           "alias": "/DB053([[]|$)/g",
-          "color": "#9AC48A"
+          "color": "#629e51"
         },
         {
           "alias": "/DB054([[]|$)/g",
-          "color": "#806EB7"
+          "color": "#aea2e0"
         },
         {
           "alias": "/DB05([[]|$|N)/g",
-          "color": "#CFFAFF"
+          "color": "#b7dbab"
         },
         {
           "alias": "/DB06([[]|$|N)/g",
-          "color": "#CCA300"
+          "color": "#e5ac0e"
         },
         {
           "alias": "/DBTP[12]?([[]|$)/g",
-          "color": "#F29191"
+          "color": "#f9934e"
         },
         {
           "alias": "/DBDW([[]|$)/g",
-          "color": "#70DBED"
+          "color": "#6ed0e0"
         },
         {
           "alias": "/DBDW2([[]|$)/g",
-          "color": "#6ED0E0"
+          "color": "#65c5db"
         },
         {
           "alias": "/DBLICAPI[2]?([[]|$)/g",
-          "color": "#DEDAF7"
+          "color": "#ba43a9"
         },
         {
           "alias": "/DB233([[]|$)/g",
@@ -383,19 +398,19 @@
         },
         {
           "alias": "/DB206([[]|$)/g",
-          "color": "#5195CE"
+          "color": "#705da0"
         },
         {
           "alias": "/DB215([[]|$)/g",
-          "color": "#629E51"
+          "color": "#508642"
         },
         {
           "alias": "/DB234([[]|$)/g",
-          "color": "#E5AC0E"
+          "color": "#eab839"
         },
         {
           "alias": "/DBDWCSS([[]|$)/g",
-          "color": "#2F575E"
+          "color": "#2f575e"
         },
         {
           "alias": "/DBSPARE([[]|$)/g",
@@ -427,7 +442,23 @@
         },
         {
           "alias": "/DBDIST03([[]|$)/g",
-          "color": "#F2C96D"
+          "color": "#c15c17"
+        },
+        {
+          "alias": "/DBDISTRM([[]|$)/g",
+          "color": "#967302"
+        },
+        {
+          "alias": "/DB042([[]|$)/g",
+          "color": "#badff4"
+        },
+        {
+          "alias": "/DB043([[]|$)/g",
+          "color": "#dedaf7"
+        },
+        {
+          "alias": "/DB044([[]|$)/g",
+          "color": "#fce2de"
         }
       ],
       "spaceLength": 10,
@@ -535,7 +566,7 @@
         },
         {
           "alias": "/DBTRANS[12]?([[]|$)/g",
-          "color": "#1F78C1"
+          "color": "#447ebc"
         },
         {
           "alias": "/DB02[12]?([[]|$)/g",
@@ -543,39 +574,39 @@
         },
         {
           "alias": "/DB052([[]|$)/g",
-          "color": "#E5A8E2"
+          "color": "#e5a8e2"
         },
         {
           "alias": "/DB053([[]|$)/g",
-          "color": "#9AC48A"
+          "color": "#629e51"
         },
         {
           "alias": "/DB054([[]|$)/g",
-          "color": "#806EB7"
+          "color": "#aea2e0"
         },
         {
           "alias": "/DB05([[]|$|N)/g",
-          "color": "#CFFAFF"
+          "color": "#b7dbab"
         },
         {
           "alias": "/DB06([[]|$|N)/g",
-          "color": "#CCA300"
+          "color": "#e5ac0e"
         },
         {
           "alias": "/DBTP[12]?([[]|$)/g",
-          "color": "#F29191"
+          "color": "#f9934e"
         },
         {
           "alias": "/DBDW([[]|$)/g",
-          "color": "#70DBED"
+          "color": "#6ed0e0"
         },
         {
           "alias": "/DBDW2([[]|$)/g",
-          "color": "#6ED0E0"
+          "color": "#65c5db"
         },
         {
           "alias": "/DBLICAPI[2]?([[]|$)/g",
-          "color": "#DEDAF7"
+          "color": "#ba43a9"
         },
         {
           "alias": "/DB233([[]|$)/g",
@@ -583,19 +614,19 @@
         },
         {
           "alias": "/DB206([[]|$)/g",
-          "color": "#5195CE"
+          "color": "#705da0"
         },
         {
           "alias": "/DB215([[]|$)/g",
-          "color": "#629E51"
+          "color": "#508642"
         },
         {
           "alias": "/DB234([[]|$)/g",
-          "color": "#E5AC0E"
+          "color": "#eab839"
         },
         {
           "alias": "/DBDWCSS([[]|$)/g",
-          "color": "#2F575E"
+          "color": "#2f575e"
         },
         {
           "alias": "/DBSPARE([[]|$)/g",
@@ -627,7 +658,23 @@
         },
         {
           "alias": "/DBDIST03([[]|$)/g",
-          "color": "#F2C96D"
+          "color": "#c15c17"
+        },
+        {
+          "alias": "/DBDISTRM([[]|$)/g",
+          "color": "#967302"
+        },
+        {
+          "alias": "/DB042([[]|$)/g",
+          "color": "#badff4"
+        },
+        {
+          "alias": "/DB043([[]|$)/g",
+          "color": "#dedaf7"
+        },
+        {
+          "alias": "/DB044([[]|$)/g",
+          "color": "#fce2de"
         }
       ],
       "spaceLength": 10,
@@ -735,7 +782,7 @@
         },
         {
           "alias": "/DBTRANS[12]?([[]|$)/g",
-          "color": "#1F78C1"
+          "color": "#447ebc"
         },
         {
           "alias": "/DB02[12]?([[]|$)/g",
@@ -743,39 +790,39 @@
         },
         {
           "alias": "/DB052([[]|$)/g",
-          "color": "#E5A8E2"
+          "color": "#e5a8e2"
         },
         {
           "alias": "/DB053([[]|$)/g",
-          "color": "#9AC48A"
+          "color": "#629e51"
         },
         {
           "alias": "/DB054([[]|$)/g",
-          "color": "#806EB7"
+          "color": "#aea2e0"
         },
         {
           "alias": "/DB05([[]|$|N)/g",
-          "color": "#CFFAFF"
+          "color": "#b7dbab"
         },
         {
           "alias": "/DB06([[]|$|N)/g",
-          "color": "#CCA300"
+          "color": "#e5ac0e"
         },
         {
           "alias": "/DBTP[12]?([[]|$)/g",
-          "color": "#F29191"
+          "color": "#f9934e"
         },
         {
           "alias": "/DBDW([[]|$)/g",
-          "color": "#70DBED"
+          "color": "#6ed0e0"
         },
         {
           "alias": "/DBDW2([[]|$)/g",
-          "color": "#6ED0E0"
+          "color": "#65c5db"
         },
         {
           "alias": "/DBLICAPI[2]?([[]|$)/g",
-          "color": "#DEDAF7"
+          "color": "#ba43a9"
         },
         {
           "alias": "/DB233([[]|$)/g",
@@ -783,19 +830,19 @@
         },
         {
           "alias": "/DB206([[]|$)/g",
-          "color": "#5195CE"
+          "color": "#705da0"
         },
         {
           "alias": "/DB215([[]|$)/g",
-          "color": "#629E51"
+          "color": "#508642"
         },
         {
           "alias": "/DB234([[]|$)/g",
-          "color": "#E5AC0E"
+          "color": "#eab839"
         },
         {
           "alias": "/DBDWCSS([[]|$)/g",
-          "color": "#2F575E"
+          "color": "#2f575e"
         },
         {
           "alias": "/DBSPARE([[]|$)/g",
@@ -827,7 +874,23 @@
         },
         {
           "alias": "/DBDIST03([[]|$)/g",
-          "color": "#F2C96D"
+          "color": "#c15c17"
+        },
+        {
+          "alias": "/DBDISTRM([[]|$)/g",
+          "color": "#967302"
+        },
+        {
+          "alias": "/DB042([[]|$)/g",
+          "color": "#badff4"
+        },
+        {
+          "alias": "/DB043([[]|$)/g",
+          "color": "#dedaf7"
+        },
+        {
+          "alias": "/DB044([[]|$)/g",
+          "color": "#fce2de"
         }
       ],
       "spaceLength": 10,
@@ -937,7 +1000,7 @@
         },
         {
           "alias": "/DBTRANS[12]?([[]|$)/g",
-          "color": "#1F78C1"
+          "color": "#447ebc"
         },
         {
           "alias": "/DB02[12]?([[]|$)/g",
@@ -945,39 +1008,39 @@
         },
         {
           "alias": "/DB052([[]|$)/g",
-          "color": "#E5A8E2"
+          "color": "#e5a8e2"
         },
         {
           "alias": "/DB053([[]|$)/g",
-          "color": "#9AC48A"
+          "color": "#629e51"
         },
         {
           "alias": "/DB054([[]|$)/g",
-          "color": "#806EB7"
+          "color": "#aea2e0"
         },
         {
           "alias": "/DB05([[]|$|N)/g",
-          "color": "#CFFAFF"
+          "color": "#b7dbab"
         },
         {
           "alias": "/DB06([[]|$|N)/g",
-          "color": "#CCA300"
+          "color": "#e5ac0e"
         },
         {
           "alias": "/DBTP[12]?([[]|$)/g",
-          "color": "#F29191"
+          "color": "#f9934e"
         },
         {
           "alias": "/DBDW([[]|$)/g",
-          "color": "#70DBED"
+          "color": "#6ed0e0"
         },
         {
           "alias": "/DBDW2([[]|$)/g",
-          "color": "#6ED0E0"
+          "color": "#65c5db"
         },
         {
           "alias": "/DBLICAPI[2]?([[]|$)/g",
-          "color": "#DEDAF7"
+          "color": "#ba43a9"
         },
         {
           "alias": "/DB233([[]|$)/g",
@@ -985,19 +1048,19 @@
         },
         {
           "alias": "/DB206([[]|$)/g",
-          "color": "#5195CE"
+          "color": "#705da0"
         },
         {
           "alias": "/DB215([[]|$)/g",
-          "color": "#629E51"
+          "color": "#508642"
         },
         {
           "alias": "/DB234([[]|$)/g",
-          "color": "#E5AC0E"
+          "color": "#eab839"
         },
         {
           "alias": "/DBDWCSS([[]|$)/g",
-          "color": "#2F575E"
+          "color": "#2f575e"
         },
         {
           "alias": "/DBSPARE([[]|$)/g",
@@ -1029,7 +1092,23 @@
         },
         {
           "alias": "/DBDIST03([[]|$)/g",
-          "color": "#F2C96D"
+          "color": "#c15c17"
+        },
+        {
+          "alias": "/DBDISTRM([[]|$)/g",
+          "color": "#967302"
+        },
+        {
+          "alias": "/DB042([[]|$)/g",
+          "color": "#badff4"
+        },
+        {
+          "alias": "/DB043([[]|$)/g",
+          "color": "#dedaf7"
+        },
+        {
+          "alias": "/DB044([[]|$)/g",
+          "color": "#fce2de"
         }
       ],
       "spaceLength": 10,
@@ -1139,7 +1218,7 @@
         },
         {
           "alias": "/DBTRANS[12]?([[]|$)/g",
-          "color": "#1F78C1"
+          "color": "#447ebc"
         },
         {
           "alias": "/DB02[12]?([[]|$)/g",
@@ -1147,39 +1226,39 @@
         },
         {
           "alias": "/DB052([[]|$)/g",
-          "color": "#E5A8E2"
+          "color": "#e5a8e2"
         },
         {
           "alias": "/DB053([[]|$)/g",
-          "color": "#9AC48A"
+          "color": "#629e51"
         },
         {
           "alias": "/DB054([[]|$)/g",
-          "color": "#806EB7"
+          "color": "#aea2e0"
         },
         {
           "alias": "/DB05([[]|$|N)/g",
-          "color": "#CFFAFF"
+          "color": "#b7dbab"
         },
         {
           "alias": "/DB06([[]|$|N)/g",
-          "color": "#CCA300"
+          "color": "#e5ac0e"
         },
         {
           "alias": "/DBTP[12]?([[]|$)/g",
-          "color": "#F29191"
+          "color": "#f9934e"
         },
         {
           "alias": "/DBDW([[]|$)/g",
-          "color": "#70DBED"
+          "color": "#6ed0e0"
         },
         {
           "alias": "/DBDW2([[]|$)/g",
-          "color": "#6ED0E0"
+          "color": "#65c5db"
         },
         {
           "alias": "/DBLICAPI[2]?([[]|$)/g",
-          "color": "#DEDAF7"
+          "color": "#ba43a9"
         },
         {
           "alias": "/DB233([[]|$)/g",
@@ -1187,19 +1266,19 @@
         },
         {
           "alias": "/DB206([[]|$)/g",
-          "color": "#5195CE"
+          "color": "#705da0"
         },
         {
           "alias": "/DB215([[]|$)/g",
-          "color": "#629E51"
+          "color": "#508642"
         },
         {
           "alias": "/DB234([[]|$)/g",
-          "color": "#E5AC0E"
+          "color": "#eab839"
         },
         {
           "alias": "/DBDWCSS([[]|$)/g",
-          "color": "#2F575E"
+          "color": "#2f575e"
         },
         {
           "alias": "/DBSPARE([[]|$)/g",
@@ -1231,7 +1310,23 @@
         },
         {
           "alias": "/DBDIST03([[]|$)/g",
-          "color": "#F2C96D"
+          "color": "#c15c17"
+        },
+        {
+          "alias": "/DBDISTRM([[]|$)/g",
+          "color": "#967302"
+        },
+        {
+          "alias": "/DB042([[]|$)/g",
+          "color": "#badff4"
+        },
+        {
+          "alias": "/DB043([[]|$)/g",
+          "color": "#dedaf7"
+        },
+        {
+          "alias": "/DB044([[]|$)/g",
+          "color": "#fce2de"
         }
       ],
       "spaceLength": 10,
@@ -1356,107 +1451,119 @@
       "renderer": "flot",
       "seriesOverrides": [
         {
-          "alias": "/-DBCUST-/g",
+          "alias": "/DBCUST[12]?([[]|$)/g",
           "color": "#F4D598"
         },
         {
-          "alias": "/-DBTRANS-/g",
-          "color": "#1F78C1"
+          "alias": "/DBTRANS[12]?([[]|$)/g",
+          "color": "#447ebc"
         },
         {
-          "alias": "/-DB02-/g",
+          "alias": "/DB02[12]?([[]|$)/g",
           "color": "#E24D42"
         },
         {
-          "alias": "/-DB052-/g",
-          "color": "#E5A8E2"
+          "alias": "/DB052([[]|$)/g",
+          "color": "#e5a8e2"
         },
         {
-          "alias": "/-DB053-/g",
-          "color": "#9AC48A"
+          "alias": "/DB053([[]|$)/g",
+          "color": "#629e51"
         },
         {
-          "alias": "/-DB054-/g",
-          "color": "#806EB7"
+          "alias": "/DB054([[]|$)/g",
+          "color": "#aea2e0"
         },
         {
-          "alias": "/-DB05-/g",
-          "color": "#CFFAFF"
+          "alias": "/DB05([[]|$|N)/g",
+          "color": "#b7dbab"
         },
         {
-          "alias": "/-DB06-/g",
-          "color": "#CCA300"
+          "alias": "/DB06([[]|$|N)/g",
+          "color": "#e5ac0e"
         },
         {
-          "alias": "/-DBTP-/g",
-          "color": "#F29191"
+          "alias": "/DBTP[12]?([[]|$)/g",
+          "color": "#f9934e"
         },
         {
-          "alias": "/-DBDW-/g",
-          "color": "#70DBED"
+          "alias": "/DBDW([[]|$)/g",
+          "color": "#6ed0e0"
         },
         {
-          "alias": "/-DBDW2-/g",
-          "color": "#6ED0E0"
+          "alias": "/DBDW2([[]|$)/g",
+          "color": "#65c5db"
         },
         {
-          "alias": "/-DBLICAPI-/g",
-          "color": "#DEDAF7"
+          "alias": "/DBLICAPI[2]?([[]|$)/g",
+          "color": "#ba43a9"
         },
         {
-          "alias": "/-DB233-/g",
+          "alias": "/DB233([[]|$)/g",
           "color": "#EA6460"
         },
         {
-          "alias": "/-DB206-/g",
-          "color": "#5195CE"
+          "alias": "/DB206([[]|$)/g",
+          "color": "#705da0"
         },
         {
-          "alias": "/-DB215-/g",
-          "color": "#629E51"
+          "alias": "/DB215([[]|$)/g",
+          "color": "#508642"
         },
         {
-          "alias": "/-DB234-/g",
-          "color": "#E5AC0E"
+          "alias": "/DB234([[]|$)/g",
+          "color": "#eab839"
         },
         {
-          "alias": "/-DBDWCSS-/g",
-          "color": "#2F575E"
+          "alias": "/DBDWCSS([[]|$)/g",
+          "color": "#2f575e"
         },
         {
-          "alias": "/-DBSPARE-/g",
+          "alias": "/DBSPARE([[]|$)/g",
           "color": "#99440A"
         },
         {
-          "alias": "/-DBFRAUD-/g",
+          "alias": "/DBFRAUD([[]|$)/g",
           "color": "#E0F9D7"
         },
         {
-          "alias": "/-DBFRAUD02-/g",
+          "alias": "/DBFRAUD02([[]|$)/g",
           "color": "#BADFF4"
         },
         {
-          "alias": "/-FPS_DB01-/g",
+          "alias": "/FPS_DB01([[]|$)/g",
           "color": "#F9E2D2"
         },
         {
-          "alias": "/-FPS_DB02-/g",
+          "alias": "/FPS_DB02([[]|$)/g",
           "color": "#F9D9F9"
         },
         {
-          "alias": "/-DBDIST-/g",
+          "alias": "/DBDIST([[]|$)/g",
           "color": "#0A50A1"
         },
         {
-          "alias": "/-DBDIST02-/g",
+          "alias": "/DBDIST02([[]|$)/g",
           "color": "#890F02"
         },
         {
-          "alias": "/-DBDIST03-/g",
-          "color": "#F2C96D"
+          "alias": "/DBDIST03([[]|$)/g",
+          "color": "#c15c17"
         },
         {
-          "alias": "/-DB04(\\d)?-/g",
+          "alias": "/DBDISTRM([[]|$)/g",
+          "color": "#967302"
+        },
+        {
+          "alias": "/DB042([[]|$)/g",
+          "color": "#badff4"
+        },
+        {
+          "alias": "/DB043([[]|$)/g",
+          "color": "#dedaf7"
+        },
+        {
+          "alias": "/DB044([[]|$)/g",
           "color": "#fce2de"
         }
       ],
@@ -1468,7 +1575,7 @@
           "alias": "",
           "cmdtype": "sql",
           "format": "time_series",
-          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 002, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DBDIST, DBDIST02, DBDIST03', @counters = 'Dist:Delivery Latency';",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 004, @timefrom = @timefrom, @timeto = @timeto, @servers = 'DBDIST', @counters = 'Dist:Delivery Latency';",
           "refId": "A",
           "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 002, @timefrom = '$from', @timeto = '$to', @servers = '$servers', @ex_servers = '$ex_servers', @counters = 'Dist:Delivery Latency';",
           "type": "timeseries",
@@ -1486,7 +1593,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Distributor",
+      "title": "[Replication] DBTrans_Bet",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -1529,8 +1636,7 @@
   "style": "dark",
   "tags": [
     "SQL Server",
-    "Portrait",
-    "v2"
+    "Portrait"
   ],
   "templating": {
     "list": [
@@ -1621,5 +1727,5 @@
   "timezone": "",
   "title": "ALL SERVERS Overview Portrait V2",
   "uid": "z_QMqX7mz",
-  "version": 8
+  "version": 14
 }

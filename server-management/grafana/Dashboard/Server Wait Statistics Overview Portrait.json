@@ -58,7 +58,7 @@
   "gnetId": null,
   "graphTooltip": 1,
   "id": null,
-  "iteration": 1529307782953,
+  "iteration": 1529468331730,
   "links": [
     {
       "asDropdown": false,
@@ -66,8 +66,7 @@
       "keepTime": true,
       "tags": [
         "SQL Server",
-        "Portrait",
-        "v2"
+        "Portrait"
       ],
       "type": "dashboards"
     }
@@ -907,8 +906,7 @@
   "style": "dark",
   "tags": [
     "SQL Server",
-    "Portrait",
-    "v2"
+    "Portrait"
   ],
   "templating": {
     "list": [
@@ -966,5 +964,5 @@
   "timezone": "browser",
   "title": "Server Wait Statistics Overview Portrait V2",
   "uid": "0mE6k97mz",
-  "version": 3
+  "version": 4
 }

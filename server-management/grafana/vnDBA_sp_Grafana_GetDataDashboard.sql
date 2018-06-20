@@ -21,6 +21,7 @@ AS
 		- 20180403@Billy:	Add panel type 111 - [Redmine: #91078]
 		- 20180503@Billy:	Grafana 5.1 integration - [Redmine: #94602]
 		- 20180615@Billy:	Enhancement - [Redmine: #96988]
+		- 20180619@Billy:	Special handling for distribution panel - [Redmine: #00000]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -252,7 +253,30 @@ BEGIN
 		GROUP BY	d.CounterTime, c.ObjectName, c.InstanceName, c.CounterName
 		ORDER BY	[time], [metric];
 	END;
-
+	
+	IF	@paneltype = 004
+	-- Graph chart panel -- Metric instance -- For DISTRIBUTION
+	BEGIN;
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+			,	[metric]	= ss.SubscriberName
+			,	[value]		= SUM(d.CounterValue)
+		FROM		#CounterDetails AS c WITH (NOLOCK)
+		CROSS APPLY	(
+			SELECT	_d.CounterTime, _d.CounterValue
+			FROM	dbo.vnDBA_Perf_CounterData AS _d WITH (NOLOCK)
+			WHERE	_d.CounterID = c.CounterID
+				AND	_d.CounterTime BETWEEN @timefrom AND @timeto
+		) AS d
+		CROSS APPLY	(
+			SELECT	[SubscriberName]	= REVERSE(LEFT(REVERSE(_ss.SubscriberName), CHARINDEX('-', REVERSE(_ss.SubscriberName)) - 1))
+			FROM	(
+				SELECT	[SubscriberName]	= LEFT(c.InstanceName, LEN(c.InstanceName) - CHARINDEX('-', REVERSE(c.InstanceName)))
+			) _ss
+		) AS ss
+		GROUP BY	d.CounterTime, ss.SubscriberName
+		ORDER BY	[time], [metric];
+	END;
+	
 	IF	@paneltype = 010
 	-- Graph chart panel -- Metric machine - counter --
 	BEGIN;

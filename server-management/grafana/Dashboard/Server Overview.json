@@ -58,7 +58,7 @@
   "gnetId": null,
   "graphTooltip": 2,
   "id": null,
-  "iteration": 1529307765930,
+  "iteration": 1529468315962,
   "links": [
     {
       "asDropdown": false,
@@ -67,8 +67,7 @@
       "keepTime": true,
       "tags": [
         "SQL Server",
-        "Landscape",
-        "v2"
+        "Landscape"
       ],
       "targetBlank": true,
       "type": "dashboards"
@@ -1406,8 +1405,7 @@
   "style": "dark",
   "tags": [
     "SQL Server",
-    "Landscape",
-    "v2"
+    "Landscape"
   ],
   "templating": {
     "list": [
@@ -1465,5 +1463,5 @@
   "timezone": "browser",
   "title": "Server Overview V2",
   "uid": "1LVkkr7ik",
-  "version": 9
+  "version": 10
 }
