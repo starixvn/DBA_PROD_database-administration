@@ -40,4 +40,4 @@ BEGIN
 	delete bettrans14 with (rowlock) where transid in(select transid from #tmp) and matchid = 25899834
 end
 GO
-
+/*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/

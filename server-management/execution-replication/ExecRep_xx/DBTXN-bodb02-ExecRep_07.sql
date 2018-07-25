@@ -127,4 +127,4 @@ GO
 
 GRANT VIEW DEFINITION ON [dbo].[ExecRep_07] TO [vnteam] AS [dbo]
 GO
-
+/*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/
