@@ -11,6 +11,7 @@ AS
 	Task: delete data on table14 
 
 	Revisions:
+		- 20180725@Billy:	Change the way of deleting data of IP2Country tables - [Redmine: #98857]
 */
 BEGIN
 	SET NOCOUNT ON 
@@ -57,6 +58,57 @@ BEGIN
 		-- call execRep SP
 		EXEC dbo.ExecRep_09 @recommend = 0, @winlostdate = @winlostdate, @parlay = 29, @tableName = 'betParlayResult'
 	END
+
+	IF	@DeletedTarget = 'Task_bettrans14_IP2Country'
+	BEGIN;
+		WHILE 0 = 0
+		BEGIN;
+			DELETE	TOP(2500)
+			FROM	dbo.Task_bettrans14_IP2Country WITH (ROWLOCK) 
+			WHERE	winlostdate <= @winlostdate;
+
+			IF	@@ROWCOUNT = 0
+				BREAK;
+			
+			WAITFOR DELAY '00:00:00.180';
+		END;
+
+		RETURN;
+	END;
+
+	IF	@DeletedTarget = 'Task_bettransRNG14_IP2Country'
+	BEGIN;
+		WHILE 0 = 0
+		BEGIN;
+			DELETE	TOP(2500)
+			FROM	dbo.Task_bettransRNG14_IP2Country WITH (ROWLOCK) 
+			WHERE	winlostdate <= @winlostdate;
+
+			IF	@@ROWCOUNT = 0
+				BREAK;
+			
+			WAITFOR DELAY '00:00:00.180';
+		END;
+
+		RETURN;
+	END;
+
+	IF	@DeletedTarget = 'Task_bettransLC14_IP2Country'
+	BEGIN;
+		WHILE 0 = 0
+		BEGIN;
+			DELETE	TOP(2500)
+			FROM	dbo.Task_bettransLC14_IP2Country WITH (ROWLOCK) 
+			WHERE	winlostdate <= @winlostdate;
+
+			IF	@@ROWCOUNT = 0
+				BREAK;
+			
+			WAITFOR DELAY '00:00:00.180';
+		END;
+
+		RETURN;
+	END;
 END
 GO
 /*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/
