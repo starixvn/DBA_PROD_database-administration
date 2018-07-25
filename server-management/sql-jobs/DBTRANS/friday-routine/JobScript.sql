@@ -2,6 +2,9 @@
 	Creator:	@
 	Job Name:	[Joe : DBTRANS_bodb02 : Friday routine]
 	Server:		DBTRANS
+	Revision:
+		- 20180725@Billy:	Initiate on GIT - [Redmine: #00000]
+		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
 */
 
 SET NOCOUNT ON;
@@ -9,7 +12,7 @@ SET NOCOUNT ON;
 USE msdb;
 GO
 
-BEGIN	TRANSACTION;
+BEGIN TRANSACTION;
 
 DECLARE @ReturnCode		INT
 	,	@jobId			BINARY(16)
@@ -227,39 +230,67 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
-DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
-Declare @wldate smalldatetime 
+DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
+DECLARE @wldate SMALLDATETIME;
 
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
-ORDER BY 1
+SELECT winlostdate
+FROM dbo.Task_ArchiveDate WITH (NOLOCK)
+ORDER BY winlostdate
 
-SELECT @wldate = winlostdate FROM @archiveDate
-WHERE rid = 1
+SELECT @wldate = winlostdate
+FROM @archiveDate
+WHERE rid = 1;
 
-DECLARE @rowcount INT
+DECLARE @rowcount INT;
 
-SET @rowcount = 1
+SELECT @rowcount = 1;
 WHILE @rowcount <> 0
-BEGIN
-	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'',@deletedTarget = ''bettrans14'',@rowcount = @rowcount OUTPUT
-	WAITFOR DELAY ''00:00:00:180'' 
-END 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''TransLog14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others''
-WAITFOR DELAY ''00:00:03'' 
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettrans14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14'';
+WAITFOR DELAY ''00:00:03'';
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''translog14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+ 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
+WAITFOR DELAY ''00:00:03'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -287,41 +318,67 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
-DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
-Declare @wldate smalldatetime 
+DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
+DECLARE @wldate SMALLDATETIME;
 
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
-ORDER BY 1
+SELECT winlostdate
+FROM dbo.Task_ArchiveDate WITH (NOLOCK)
+ORDER BY winlostdate
 
-SELECT @wldate = winlostdate FROM @archiveDate
-WHERE rid = 2
+SELECT @wldate = winlostdate
+FROM @archiveDate
+WHERE rid = 2;
 
+DECLARE @rowcount INT;
 
-DECLARE @rowcount INT
-
-SET @rowcount = 1
+SELECT @rowcount = 1;
 WHILE @rowcount <> 0
-BEGIN
-	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'',@deletedTarget = ''bettrans14'',@rowcount = @rowcount OUTPUT
-	WAITFOR DELAY ''00:00:00:180'' 
-END 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''TransLog14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others''
-WAITFOR DELAY ''00:00:03'' 
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettrans14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14'';
+WAITFOR DELAY ''00:00:03'';
 
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''translog14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+ 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
+WAITFOR DELAY ''00:00:03'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -349,39 +406,67 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
-DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
-Declare @wldate smalldatetime 
+DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
+DECLARE @wldate SMALLDATETIME;
 
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
-ORDER BY 1
+SELECT winlostdate
+FROM dbo.Task_ArchiveDate WITH (NOLOCK)
+ORDER BY winlostdate
 
-SELECT @wldate = winlostdate FROM @archiveDate
-WHERE rid = 3
+SELECT @wldate = winlostdate
+FROM @archiveDate
+WHERE rid = 3;
 
+DECLARE @rowcount INT;
 
-DECLARE @rowcount INT
-
-SET @rowcount = 1
+SELECT @rowcount = 1;
 WHILE @rowcount <> 0
-BEGIN
-	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'',@deletedTarget = ''bettrans14'',@rowcount = @rowcount OUTPUT
-	WAITFOR DELAY ''00:00:00:180'' 
-END 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''TransLog14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others''
-WAITFOR DELAY ''00:00:03'' 
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettrans14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14'';
+WAITFOR DELAY ''00:00:03'';
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''translog14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+ 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
+WAITFOR DELAY ''00:00:03'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -409,40 +494,67 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
-DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
-Declare @wldate smalldatetime 
+DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
+DECLARE @wldate SMALLDATETIME;
 
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
-ORDER BY 1
+SELECT winlostdate
+FROM dbo.Task_ArchiveDate WITH (NOLOCK)
+ORDER BY winlostdate
 
-SELECT @wldate = winlostdate FROM @archiveDate
-WHERE rid = 4
+SELECT @wldate = winlostdate
+FROM @archiveDate
+WHERE rid = 4;
 
+DECLARE @rowcount INT;
 
-DECLARE @rowcount INT
-
-SET @rowcount = 1
+SELECT @rowcount = 1;
 WHILE @rowcount <> 0
-BEGIN
-	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'',@deletedTarget = ''bettrans14'',@rowcount = @rowcount OUTPUT
-	WAITFOR DELAY ''00:00:00:180'' 
-END 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''TransLog14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others''
-WAITFOR DELAY ''00:00:03'' 
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettrans14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14'';
+WAITFOR DELAY ''00:00:03'';
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''translog14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+ 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
+WAITFOR DELAY ''00:00:03'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -470,40 +582,67 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
-DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
-Declare @wldate smalldatetime 
+DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
+DECLARE @wldate SMALLDATETIME;
 
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
-ORDER BY 1
+SELECT winlostdate
+FROM dbo.Task_ArchiveDate WITH (NOLOCK)
+ORDER BY winlostdate
 
-SELECT @wldate = winlostdate FROM @archiveDate
-WHERE rid = 5
+SELECT @wldate = winlostdate
+FROM @archiveDate
+WHERE rid = 5;
 
-DECLARE @rowcount INT
+DECLARE @rowcount INT;
 
-SET @rowcount = 1
+SELECT @rowcount = 1;
 WHILE @rowcount <> 0
-BEGIN
-	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'',@deletedTarget = ''bettrans14'',@rowcount = @rowcount OUTPUT
-	WAITFOR DELAY ''00:00:00:180'' 
-END 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''TransLog14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others''
-WAITFOR DELAY ''00:00:03'' 
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettrans14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14'';
+WAITFOR DELAY ''00:00:03'';
 
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''translog14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+ 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
+WAITFOR DELAY ''00:00:03'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -531,40 +670,67 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
-DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
-Declare @wldate smalldatetime 
+DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
+DECLARE @wldate SMALLDATETIME;
 
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
-ORDER BY 1
+SELECT winlostdate
+FROM dbo.Task_ArchiveDate WITH (NOLOCK)
+ORDER BY winlostdate
 
-SELECT @wldate = winlostdate FROM @archiveDate
-WHERE rid = 6
+SELECT @wldate = winlostdate
+FROM @archiveDate
+WHERE rid = 6;
 
+DECLARE @rowcount INT;
 
-DECLARE @rowcount INT
-
-SET @rowcount = 1
+SELECT @rowcount = 1;
 WHILE @rowcount <> 0
-BEGIN
-	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'',@deletedTarget = ''bettrans14'',@rowcount = @rowcount OUTPUT
-	WAITFOR DELAY ''00:00:00:180'' 
-END 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''TransLog14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others''
-WAITFOR DELAY ''00:00:03'' 
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettrans14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14'';
+WAITFOR DELAY ''00:00:03'';
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''translog14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+ 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
+WAITFOR DELAY ''00:00:03'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -592,40 +758,67 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
-DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
-Declare @wldate smalldatetime 
+DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
+DECLARE @wldate SMALLDATETIME;
 
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
-ORDER BY 1
+SELECT winlostdate
+FROM dbo.Task_ArchiveDate WITH (NOLOCK)
+ORDER BY winlostdate
 
-SELECT @wldate = winlostdate FROM @archiveDate
-WHERE rid = 7
+SELECT @wldate = winlostdate
+FROM @archiveDate
+WHERE rid = 7;
 
+DECLARE @rowcount INT;
 
-DECLARE @rowcount INT
-
-SET @rowcount = 1
+SELECT @rowcount = 1;
 WHILE @rowcount <> 0
-BEGIN
-	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'',@deletedTarget = ''bettrans14'',@rowcount = @rowcount OUTPUT
-	WAITFOR DELAY ''00:00:00:180'' 
-END 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''TransLog14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14''
-WAITFOR DELAY ''00:00:03'' 
-EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others''
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettrans14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransm14'';
+WAITFOR DELAY ''00:00:03'';
 
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''sum_winloss'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''translog14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransLC14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''bettransRNG14'', @rowcount = @rowcount OUTPUT;
+	WAITFOR DELAY ''00:00:00:180'';
+END;
+ 
+EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
+WAITFOR DELAY ''00:00:03'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -653,27 +846,37 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
-DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
+DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME)
+
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
-ORDER BY 1
+SELECT winlostdate
+FROM dbo.Task_ArchiveDate WITH (NOLOCK)
+ORDER BY winlostdate;
 
 --- will edit ExecRep_02 to add last round later, which will cover data missmatch between servers
---Declare @wldate smalldatetime
---SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 1
---	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB''
---SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 2
---	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB''
---SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 3
---	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB''
---SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 4
---	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB''
---SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 5
---	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB''
---SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 6
---	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB''
---SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 7
---	EXEC dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB''
+
+--DECLARE @wldate SMALLDATETIME;
+
+--SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 1;
+--EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'';
+
+--SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 2;
+--EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'';
+
+--SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 3;
+--EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'';
+
+--SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 4;
+--EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'';
+
+--SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 5;
+--EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'';
+
+--SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 6;
+--EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'';
+
+--SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 7;
+--EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0

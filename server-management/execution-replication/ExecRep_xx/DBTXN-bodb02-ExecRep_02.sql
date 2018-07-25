@@ -16,12 +16,13 @@ AS
 	Task: call from Joe : ClearData14 working routine
 	DB: DBTXN.BODB02
 	Revisions:		
-		- 20151012@Sophia: Add delete BettransLC14 and BettransRNG14
-    	- 20160526@Victor: Add delete TransLog14 
-		- 20170725@Sophia: Change Datatype of TransID [Redmine: #73545]
+		- 20151012@Sophia:	Add delete BettransLC14 and BettransRNG14
+    	- 20160526@Victor:	Add delete TransLog14 
+		- 20170725@Sophia:	Change Datatype of TransID [Redmine: #73545]
 		- 20170914@Patrick: Integrate with Lucky3 [RedmineId: #83190]
-		- 20171004@Lukas: add @deletedTarget for deleting data for one by one table
- */
+		- 20171004@Lukas:	Add @deletedTarget for deleting data for one by one table
+		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
+*/
 -- =======================
 -- Parameter check\control
 -- =======================
@@ -49,9 +50,9 @@ BEGIN
 	)
 	BEGIN
 		
-		Declare @rc int, @rn int, @rn2 int
+		DECLARE @rc INT, @rn INT, @rn2 INT
 
-		IF @deletedTarget = 'bettrans14' --- delete bettrans14
+		IF	@deletedTarget = 'bettrans14' --- delete bettrans14
 		BEGIN
 			SET @rowcount = 0
 
@@ -74,7 +75,7 @@ BEGIN
 			RETURN
 		END --- end of deleting bettrans14
 
-		IF @deletedTarget = 'bettransm14' --- delete bettransm14
+		IF	@deletedTarget = 'bettransm14' --- delete bettransm14
 		BEGIN
 			CREATE TABLE #btm (rn int PRIMARY KEY IDENTITY(1,1), transid BIGINT)
 			IF @@SERVERNAME LIKE 'DB04%'
@@ -118,98 +119,103 @@ BEGIN
 				COMMIT TRANSACTION
 
 				SET @rn  = @rn  + 2500
-				SET @rn2 = @rn2 + 2500 
+				SET @rn2 = @rn2 + 2500
 			END
 			DROP TABLE #btm
 			RETURN
 		END  --- end of deleting bettransm14
 
-		IF @deletedTarget = 'sum_winloss' --- delete sum_winloss
-		BEGIN
-			SET @rc = 1
-			WHILE @RC > 0
-			BEGIN
-				BEGIN TRANSACTION
-				DELETE TOP (2500)
-				FROM sum_winloss with (ROWLOCK)
-				WHERE winlostdate <= @winlostdate
+		IF	@deletedTarget = 'sum_winloss' --- delete sum_winloss
+		BEGIN;
+			SELECT	@rowcount = 0;
 
-				SET @rc = @@ROWCOUNT
-				COMMIT TRANSACTION
-			END
-			RETURN
-		END --- end of deleting sum_winloss
+			BEGIN TRANSACTION;
 
-		IF @deletedTarget = 'bettransG14' --- delete bettransG14
-		BEGIN
-			SET @rc = 1
-			WHILE @RC > 0
-			BEGIN
-				BEGIN TRANSACTION
-				DELETE TOP (2500)
-				FROM bettransG14 with (ROWLOCK)
-				WHERE winlostdate = @winlostdate
+			DELETE	TOP(2500)
+			FROM	dbo.sum_winloss AS tbl WITH (ROWLOCK)
+			WHERE	tbl.winlostdate <= @winlostdate;
 
-				SET @rc = @@ROWCOUNT
-				COMMIT TRANSACTION
-			END
-			RETURN
-		END --- end of deleting bettransG14
+			SELECT	@rowcount = @@ROWCOUNT;
 
-		IF @deletedTarget = 'TransLog14' --- delete TransLog14
-		BEGIN
-			SET @rc = 1
-			WHILE @RC > 0
-			BEGIN
-				BEGIN TRANSACTION
-				DELETE TOP (2500)
-				FROM TransLog14  with (ROWLOCK)
-				WHERE winlostdate = @winlostdate
+			COMMIT TRANSACTION;
 
-				SET @rc = @@ROWCOUNT
-				COMMIT TRANSACTION
-			END
-			RETURN
-		END  --- end of deleting TransLog14
+			RETURN;
+		END; --- end of deleting sum_winloss
 
-		IF @deletedTarget = 'bettransLC14' --- delete bettransLC14
-		BEGIN
-			SET @rc = 1
-			WHILE @RC > 0
-			BEGIN
-				BEGIN TRANSACTION
-				DELETE TOP (2500)
-				FROM bettransLC14 WITH (ROWLOCK)
-				WHERE winlostdate = @winlostdate
+		IF	@deletedTarget = 'bettransG14' --- delete bettransG14
+		BEGIN;
+			SELECT	@rowcount = 0;
 
-				SET @rc = @@ROWCOUNT
-				COMMIT TRANSACTION
-			END
-			RETURN
-		END--- end of deleting bettransLC14
+			BEGIN TRANSACTION;
+
+			DELETE	TOP(2500)
+			FROM	dbo.bettransG14 AS tbl WITH (ROWLOCK)
+			WHERE	tbl.winlostdate = @winlostdate;
+
+			SELECT	@rowcount = @@ROWCOUNT;
+
+			COMMIT TRANSACTION;
+
+			RETURN;
+		END; --- end of deleting bettransG14
+
+		IF	@deletedTarget = 'translog14' --- delete translog14
+		BEGIN;
+			SELECT	@rowcount = 0;
+
+			BEGIN TRANSACTION;
+
+			DELETE	TOP(2500)
+			FROM	dbo.translog14 AS tbl WITH (ROWLOCK)
+			WHERE	tbl.winlostdate = @winlostdate;
+
+			SELECT	@rowcount = @@ROWCOUNT;
+
+			COMMIT TRANSACTION;
+
+			RETURN;
+		END;  --- end of deleting translog14
+
+		IF	@deletedTarget = 'bettransLC14' --- delete bettransLC14
+		BEGIN;
+			SELECT	@rowcount = 0;
+
+			BEGIN TRANSACTION;
+
+			DELETE	TOP(2500)
+			FROM	dbo.bettransLC14 AS tbl WITH (ROWLOCK)
+			WHERE	tbl.winlostdate = @winlostdate;
+
+			SELECT	@rowcount = @@ROWCOUNT;
+
+			COMMIT TRANSACTION;
+
+			RETURN;
+		END;  --- end of deleting bettransLC14
 	
-		IF @deletedTarget = 'bettransRNG14' --- delete bettransRNG14
-		BEGIN
-			SET @rc = 1
-			WHILE @RC > 0
-			BEGIN
-				BEGIN TRANSACTION
-				DELETE TOP (2500)
-				FROM bettransRNG14 WITH (ROWLOCK)
-				WHERE winlostdate = @winlostdate
+		IF	@deletedTarget = 'bettransRNG14' --- delete bettransRNG14
+		BEGIN;
+			SELECT	@rowcount = 0;
 
-				SET @rc = @@ROWCOUNT
-				COMMIT TRANSACTION
-			END
-			RETURN
-		END --- end of deleting bettransRNG14
+			BEGIN TRANSACTION;
 
-		IF @deletedTarget = 'others' --- for deleting all other small tables
+			DELETE	TOP(2500)
+			FROM	dbo.bettransRNG14 AS tbl WITH (ROWLOCK)
+			WHERE	tbl.winlostdate = @winlostdate;
+
+			SELECT	@rowcount = @@ROWCOUNT;
+
+			COMMIT TRANSACTION;
+
+			RETURN;
+		END; --- end of deleting bettransRNG14
+
+		IF	@deletedTarget = 'others' --- for deleting all other small tables
 		BEGIN
 			IF EXISTS (
-				SELECT TOP 1 1 
+				SELECT TOP 1 1
 				FROM dbo.sysobjects WHERE name = 'BetLucky3Result14'
-			) 
+			)
 			BEGIN
 				SET @rc = 1
 				WHILE @rc > 0
@@ -222,27 +228,24 @@ BEGIN
 					SET @rc = @@ROWCOUNT
 					COMMIT TRANSACTION
 				END
-			END	
-			IF EXISTS (select * from dbo.sysobjects where name = 'bettranssum') 
+			END
+			IF EXISTS (select * from dbo.sysobjects where name = 'bettranssum')
 			BEGIN
 				DELETE FROM bettranssum WHERE winlostdate = @winlostdate
 			END
 			RETURN
-		END --- end of deleting others tables	
+		END --- end of deleting others tables
 	END
 	ELSE-- Below is UN-ACCEPTED CASE
 	BEGIN
 		IF @Command = 'Except_DBTRANS' AND @@ServerName = 'DBTRANS'
-			PRINT 'DBTRANS Exception'	
+			PRINT 'DBTRANS Exception'
 		ELSE
 		BEGIN
 			PRINT 'Invalid input parameters'
 			RETURN
 		END
 	END
-	SET NOCOUNT OFF
-END 
-
- 
+END
 GO
 
