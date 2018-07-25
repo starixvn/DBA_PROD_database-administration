@@ -180,13 +180,29 @@ EXEC Task_Archive_Bet @winlostdate = @wldate, @DeletedTarget = ''betParlayDetail
 
 WAITFOR DELAY ''00:01:30''
 
-DELETE FROM Task_bettrans14_IP2Country WHERE winlostdate <= @wldate
-WAITFOR DELAY ''00:01:20''
-DELETE FROM Task_bettransRNG14_IP2Country WHERE winlostdate <= @wldate
-WAITFOR DELAY ''00:01:20''
-DELETE FROM Task_bettransLC14_IP2Country WHERE winlostdate <= @wldate
+WHILE 0 = 0
+BEGIN;
+	DELETE TOP(2500) FROM dbo.Task_bettrans14_IP2Country WITH (ROWLOCK) WHERE winlostdate <= @wldate;
+	IF @@ROWCOUNT = 0 BREAK;
+	WAITFOR DELAY ''00:00:00.180'';
+END;
+WAITFOR DELAY ''00:00:30'';
 
-WAITFOR DELAY ''00:01:30''
+WHILE 0 = 0
+BEGIN;
+	DELETE TOP(2500) FROM dbo.Task_bettransRNG14_IP2Country WITH (ROWLOCK) WHERE winlostdate <= @wldate;
+	IF @@ROWCOUNT = 0 BREAK;
+	WAITFOR DELAY ''00:00:00.180'';
+END;
+WAITFOR DELAY ''00:00:30'';
+
+WHILE 0 = 0
+BEGIN;
+	DELETE TOP(2500) FROM dbo.Task_bettransLC14_IP2Country WITH (ROWLOCK) WHERE winlostdate <= @wldate;
+	IF @@ROWCOUNT = 0 BREAK;
+	WAITFOR DELAY ''00:00:00.180'';
+END;
+WAITFOR DELAY ''00:00:30'';
 
 --- delete old data for NG2
 SELECT @wldate = MAX(winlostdate)
