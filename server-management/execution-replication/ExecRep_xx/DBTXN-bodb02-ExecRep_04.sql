@@ -1,0 +1,9 @@
+USE	bodb02;
+GO
+
+ALTER PROCEDURE [dbo].[ExecRep_04]
+AS
+	SELECT CURRENT_TIMESTAMP as CT
+
+GO
+
