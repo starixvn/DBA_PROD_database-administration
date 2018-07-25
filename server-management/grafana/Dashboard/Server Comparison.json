@@ -1,0 +1,3351 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_MICROSOFT_SQL SERVER",
+      "label": "Microsoft SQL Server",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "mssql",
+      "pluginName": "Microsoft SQL Server"
+    },
+    {
+      "name": "DS_SIMPLESQL",
+      "label": "SimpleSQL",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "grafana-simple-sql-datasource",
+      "pluginName": "SimpleSql"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "5.1.2"
+    },
+    {
+      "type": "datasource",
+      "id": "grafana-simple-sql-datasource",
+      "name": "SimpleSql",
+      "version": "0.0.2"
+    },
+    {
+      "type": "panel",
+      "id": "graph",
+      "name": "Graph",
+      "version": "5.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "mssql",
+      "name": "Microsoft SQL Server",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "id": null,
+  "iteration": 1529468268531,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "keepTime": true,
+      "tags": [
+        "SQL Server",
+        "Comparision"
+      ],
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "aliasColors": {
+        "% Processor Time": "#B7DBAB"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "height": "250",
+      "id": 17,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 3,
+      "links": [],
+      "minSpan": null,
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "/Processor[(]/g",
+          "yaxis": 1
+        },
+        {
+          "alias": "/Process[(]/g",
+          "dashLength": 8,
+          "dashes": true,
+          "linewidth": 1,
+          "spaceLength": 2,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawQuery": false,
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 003, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @counters = '% Privileged Time, % Processor Time, % User Time';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 003, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = '% Privileged Time, % Processor Time, % User Time';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "ok",
+          "fill": true,
+          "line": false,
+          "op": "lt",
+          "value": 20
+        },
+        {
+          "colorMode": "warning",
+          "fill": true,
+          "line": false,
+          "op": "gt",
+          "value": 20
+        },
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": false,
+          "op": "gt",
+          "value": 50
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "CPU - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": [
+          "total"
+        ]
+      },
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": "% usage time",
+          "logBase": 1,
+          "max": "100",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "percent",
+          "label": "% usage time",
+          "logBase": 1,
+          "max": "12800",
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "% Processor Time": "#B7DBAB"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "height": "250",
+      "id": 16,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 3,
+      "links": [],
+      "minSpan": null,
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [
+        {
+          "alias": "/Processor[(]/g",
+          "yaxis": 1
+        },
+        {
+          "alias": "/Process[(]/g",
+          "dashLength": 8,
+          "dashes": true,
+          "linewidth": 1,
+          "spaceLength": 2,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawQuery": false,
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 003, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @counters = '% Privileged Time, % Processor Time, % User Time';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 003, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = '% Privileged Time, % Processor Time, % User Time';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "ok",
+          "fill": true,
+          "line": false,
+          "op": "lt",
+          "value": 20
+        },
+        {
+          "colorMode": "warning",
+          "fill": true,
+          "line": false,
+          "op": "gt",
+          "value": 20
+        },
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": false,
+          "op": "gt",
+          "value": 50
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "CPU - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": [
+          "total"
+        ]
+      },
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": "% usage time",
+          "logBase": 1,
+          "max": "100",
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "percent",
+          "label": "% usage time",
+          "logBase": 1,
+          "max": "12800",
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "% Processor Time": "#B7DBAB"
+      },
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "height": "250",
+      "id": 18,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 3,
+      "links": [],
+      "minSpan": null,
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawQuery": false,
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @counters = 'Processor Queue Length';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = 'Processor Queue Length';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "Processor Queue Length - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": [
+          "total"
+        ]
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "Queue Length",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "percent",
+          "label": "% usage time",
+          "logBase": 1,
+          "max": "12800",
+          "min": "0",
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "% Processor Time": "#B7DBAB"
+      },
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "height": "250",
+      "id": 19,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 3,
+      "links": [],
+      "minSpan": null,
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawQuery": false,
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @counters = 'Processor Queue Length';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Processor Queue Length';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Processor Queue Length - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": [
+          "total"
+        ]
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "Queue Length",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "percent",
+          "label": "% usage time",
+          "logBase": 1,
+          "max": "12800",
+          "min": "0",
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "decimals": null,
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "height": "250",
+      "id": 6,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [
+        {
+          "alias": "SQL Compilations/sec",
+          "color": "#1F78C1"
+        },
+        {
+          "alias": "SQL Re-Compilations/sec",
+          "color": "#9AC48A"
+        },
+        {
+          "alias": "Batch Requests/sec",
+          "color": "#F2C96D"
+        },
+        {
+          "alias": "Transactions/sec",
+          "color": "#EA6460"
+        },
+        {
+          "alias": "User Connections",
+          "color": "#E5A8E2",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @counters = 'Transactions/sec, Batch Requests/sec, SQL Compilations/sec, SQL Re-Compilations/sec, User Connections';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = 'Transactions/sec, Batch Requests/sec, SQL Compilations/sec, SQL Re-Compilations/sec, User Connections';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "Statistics - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "decimals": null,
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "height": "250",
+      "id": 20,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "SQL Compilations/sec",
+          "color": "#1F78C1"
+        },
+        {
+          "alias": "SQL Re-Compilations/sec",
+          "color": "#9AC48A"
+        },
+        {
+          "alias": "Batch Requests/sec",
+          "color": "#F2C96D"
+        },
+        {
+          "alias": "Transactions/sec",
+          "color": "#EA6460"
+        },
+        {
+          "alias": "User Connections",
+          "color": "#E5A8E2",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @counters = 'Transactions/sec, Batch Requests/sec, SQL Compilations/sec, SQL Re-Compilations/sec, User Connections';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Transactions/sec, Batch Requests/sec, SQL Compilations/sec, SQL Re-Compilations/sec, User Connections';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Statistics - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "height": "250",
+      "id": 7,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [
+        {
+          "alias": "Granted Workspace Memory (KB)",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @counters = 'Available KBytes, Granted Workspace Memory (KB)';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = 'Available KBytes, Granted Workspace Memory (KB)';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "Available Memory - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "deckbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "deckbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "height": "250",
+      "id": 21,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "Granted Workspace Memory (KB)",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @counters = 'Available KBytes, Granted Workspace Memory (KB)';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Available KBytes, Granted Workspace Memory (KB)';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Available Memory - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "deckbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "deckbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "height": "250",
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [
+        {
+          "alias": "Pages/sec",
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @counters = 'Pages/sec, Page Faults/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = 'Pages/sec, Page Faults/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "Memory Page - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "height": "250",
+      "id": 22,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "Pages/sec",
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @counters = 'Pages/sec, Page Faults/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Pages/sec, Page Faults/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Memory Page - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "Disk Write Bytes/sec": "#FCE2DE"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 35
+      },
+      "height": "250",
+      "id": 9,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "Disk Reads/sec",
+          "color": "#70DBED",
+          "yaxis": 1
+        },
+        {
+          "alias": "Disk Writes/sec",
+          "color": "#F29191",
+          "yaxis": 1
+        },
+        {
+          "alias": "Disk Read Bytes/sec",
+          "color": "#6ED0E0",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "Disk Write Bytes/sec",
+          "color": "#E24D42",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @counters = 'Disk Reads/sec, Disk Writes/sec, Disk Read Bytes/sec, Disk Write Bytes/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = 'Disk Reads/sec, Disk Writes/sec, Disk Read Bytes/sec, Disk Write Bytes/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "Disk Operation - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "Disk Write Bytes/sec": "#FCE2DE"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 35
+      },
+      "height": "250",
+      "id": 23,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "Disk Reads/sec",
+          "color": "#70DBED",
+          "yaxis": 1
+        },
+        {
+          "alias": "Disk Writes/sec",
+          "color": "#F29191",
+          "yaxis": 1
+        },
+        {
+          "alias": "Disk Read Bytes/sec",
+          "color": "#6ED0E0",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "Disk Write Bytes/sec",
+          "color": "#E24D42",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @counters = 'Disk Reads/sec, Disk Writes/sec, Disk Read Bytes/sec, Disk Write Bytes/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Disk Reads/sec, Disk Writes/sec, Disk Read Bytes/sec, Disk Write Bytes/sec';",
+          "type": "timeseries",
+          "utc": "localtime"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Disk Operation - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 42
+      },
+      "height": "250",
+      "id": 24,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "Current Disk Queue Length - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 42
+      },
+      "height": "250",
+      "id": 25,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @object = 'PhysicalDisk', @counters = 'Current Disk Queue Length';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Current Disk Queue Length - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 49
+      },
+      "height": "250",
+      "id": 12,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "Page Splits/sec",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "Forwarded Records/sec",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "Log Flushes/sec",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @counters = 'Page Splits/sec, Forwarded Records/sec, Full Scans/sec, Index Searches/sec, Log Flushes/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @counters = 'Page Splits/sec, Forwarded Records/sec, Full Scans/sec, Index Searches/sec, Log Flushes/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "SQL Server I/O - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 49
+      },
+      "height": "250",
+      "id": 26,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "Page Splits/sec",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "Forwarded Records/sec",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        },
+        {
+          "alias": "Log Flushes/sec",
+          "dashLength": 9,
+          "dashes": true,
+          "fill": 0,
+          "linewidth": 2,
+          "spaceLength": 3,
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @counters = 'Page Splits/sec, Forwarded Records/sec, Full Scans/sec, Index Searches/sec, Log Flushes/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @counters = 'Page Splits/sec, Forwarded Records/sec, Full Scans/sec, Index Searches/sec, Log Flushes/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "SQL Server I/O - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 56
+      },
+      "height": "250",
+      "id": 14,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 002, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @object= 'Network Interface', @counters = 'Bytes Received/sec, Bytes Sent/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 002, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @object= 'Network Interface', @counters = 'Bytes Received/sec, Bytes Sent/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "Network Bytes Total/sec - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 56
+      },
+      "height": "250",
+      "id": 27,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 002, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @object= 'Network Interface', @counters = 'Bytes Received/sec, Bytes Sent/sec';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard @paneltype = 002, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @object= 'Network Interface', @counters = 'Bytes Received/sec, Bytes Sent/sec';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Network Bytes Total/sec - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "% Processor Time": "#B7DBAB"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 63
+      },
+      "height": "250",
+      "id": 28,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "minSpan": null,
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawQuery": false,
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @waitgroup = 'CXPACKET';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'CXPACKET';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "CXPACKET - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": [
+          "total"
+        ]
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "velocityms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "% Processor Time": "#B7DBAB"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 63
+      },
+      "height": "250",
+      "id": 29,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "minSpan": null,
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawQuery": false,
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @waitgroup = 'CXPACKET';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'CXPACKET';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "CXPACKET - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": [
+          "total"
+        ]
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "velocityms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "decimals": null,
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 70
+      },
+      "height": "250",
+      "id": 30,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @waitgroup = 'CPU-MEMORY';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'CPU-MEMORY';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "CPU-MEMORY - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "decimals": null,
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 70
+      },
+      "height": "250",
+      "id": 31,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @waitgroup = 'CPU-MEMORY';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'CPU-MEMORY';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "CPU-MEMORY - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "Disk Write Bytes/sec": "#FCE2DE"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 77
+      },
+      "height": "250",
+      "id": 32,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @waitgroup = 'LOCK';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'LOCK';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "LOCK - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "Disk Write Bytes/sec": "#FCE2DE"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 77
+      },
+      "height": "250",
+      "id": 33,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @waitgroup = 'LOCK';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'LOCK';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "LOCK - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 84
+      },
+      "height": "250",
+      "id": 34,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @waitgroup = 'LATCH';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'LATCH';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "LATCH - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 84
+      },
+      "height": "250",
+      "id": 35,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @waitgroup = 'LATCH';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'LATCH';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "LATCH - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 91
+      },
+      "height": "250",
+      "id": 36,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @waitgroup = 'I/O';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'I/O';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "I/O - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "deckbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 91
+      },
+      "height": "250",
+      "id": 37,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @waitgroup = 'I/O';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'I/O';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "I/O - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "deckbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 98
+      },
+      "height": "250",
+      "id": 38,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @waitgroup = 'OTHER';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'OTHER';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "OTHER - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 98
+      },
+      "height": "250",
+      "id": 39,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @waitgroup = 'OTHER';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'OTHER';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "OTHER - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 105
+      },
+      "height": "250",
+      "id": 40,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$past_server_name', @waitgroup = 'EXTERNAL';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$past_server_name', @waitgroup = 'EXTERNAL';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": "$diff",
+      "title": "EXTERNAL - $past_server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_MICROSOFT_SQL SERVER}",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 105
+      },
+      "height": "250",
+      "id": 41,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "alias": "",
+          "cmdtype": "sql",
+          "format": "time_series",
+          "rawSql": "DECLARE @timefrom DATETIME = $__timeFrom()\r\n    ,   @timeto DATETIME = $__timeTo()\r\n    ;\r\n\r\nEXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = @timefrom, @timeto = @timeto, @servers = '$server_name', @waitgroup = 'EXTERNAL';",
+          "refId": "A",
+          "target": "EXECUTE dbo.vnDBA_sp_Grafana_GetDataDashboard_WS @paneltype = 001, @timefrom = '$from', @timeto = '$to', @servers = '$server_name', @waitgroup = 'EXTERNAL';",
+          "type": "timeseries",
+          "utc": "utc"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "EXTERNAL - $server_name",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "ops",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    }
+  ],
+  "schemaVersion": 16,
+  "style": "dark",
+  "tags": [
+    "SQL Server",
+    "Comparision"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {},
+        "datasource": "${DS_SIMPLESQL}",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Left Server",
+        "multi": false,
+        "name": "past_server_name",
+        "options": [],
+        "query": "EXECUTE dbo.vnDBA_sp_Grafana_GetTemplateValues @templatetype = 0;",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {},
+        "datasource": "${DS_SIMPLESQL}",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Right Server",
+        "multi": false,
+        "name": "server_name",
+        "options": [],
+        "query": "EXECUTE dbo.vnDBA_sp_Grafana_GetTemplateValues @templatetype = 0;",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {},
+        "datasource": "${DS_SIMPLESQL}",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Timeshift",
+        "multi": false,
+        "name": "diff",
+        "options": [],
+        "query": "SELECT CAST(ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) - 1 AS VARCHAR) + 'w' FROM (VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) a(x) CROSS JOIN (VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) b(x)",
+        "refresh": 1,
+        "regex": "",
+        "sort": 3,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {
+    "nowDelay": "",
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Server Comparison V2",
+  "uid": "uKiT6uniz",
+  "version": 6
+}

@@ -1,10 +1,6 @@
-USE [StarixDB]
+USE StarixDB;
 GO
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-ALTER PROCEDURE	[dbo].[vnDBA_sp_Grafana_GetDataDashboard_WS]
+ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetDataDashboard_WS
 						@paneltype		SMALLINT
 					,	@timefrom		DATETIME
 					,	@timeto			DATETIME
@@ -12,6 +8,7 @@ ALTER PROCEDURE	[dbo].[vnDBA_sp_Grafana_GetDataDashboard_WS]
 					,	@ex_servers		NVARCHAR(MAX)	= NULL
 					,	@waitgroup		NVARCHAR(128)	= NULL
 					,	@waittypes		NVARCHAR(MAX)	= NULL
+					,	@weekdiff		SMALLINT		= 0
 AS
 /*
 	Creator:	20171106@Billy
@@ -20,6 +17,9 @@ AS
 	
 	Revisions:
 		- 20170918@Billy:	Initial - [Redmine: #86054]
+		- 20180103@Billy:	Change value scale to milliseconds per second - [Redmine: #89022]
+		- 20180108@Billy:	Support Performance Counter list - [Redmine: #89141]
+		- 20180507@Billy:	Grafana 5.1 integration - [Redmine: #94602]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -29,12 +29,12 @@ AS
 		- @timefrom:		The UTC time to get data from
 		- @timeto:			The UTC time to get data to
 
-		- @servers:			List of servers to select data from, seperated by comma 「,」 and can be enclosed with curly brackets 「{}」
+		- @servers:			List of servers to select data from, seperated by comma  ,  and can be enclosed with curly brackets  {} 
 								NULL			All available servers
 
 		- @waitgroup:		The group of wait type need to be selected
 
-		- @waittypes:		List of counters need to be selected, seperated by comma 「,」 and can be enclosed with curly brackets 「{}」
+		- @waittypes:		List of counters need to be selected, seperated by comma  ,  and can be enclosed with curly brackets  {} 
 								At least one of these 2 parameters (@waitgroup, @waittypes) have to be not null
 */
 BEGIN
@@ -82,8 +82,8 @@ BEGIN
 
 
 	-- Convert UTC time to Server time --
-	SELECT	@timefrom	= DATEADD(HOUR, @server_zone, @timefrom)
-		,	@timeto		= DATEADD(HOUR, @server_zone, @timeto)
+	SELECT	@timefrom	= DATEADD(WEEK, -@weekdiff, DATEADD(HOUR, @server_zone, @timefrom))
+		,	@timeto		= DATEADD(WEEK, -@weekdiff, DATEADD(HOUR, @server_zone, @timeto))
 		;
 
 
@@ -101,11 +101,11 @@ BEGIN
 		SELECT	@servers = CASE WHEN RIGHT(@servers, 1) = '}' THEN SUBSTRING(@servers, 1, LEN(@servers) - 1) ELSE @servers END;
 	
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @servers, 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @servers, 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @servers, cte.finish + 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @servers, cte.finish + 1) = 0 THEN LEN(@servers) + 1 ELSE CHARINDEX(',', @servers, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@servers)
 		)
@@ -121,11 +121,11 @@ BEGIN
 		SELECT	@ex_servers = CASE WHEN RIGHT(@ex_servers, 1) = '}' THEN SUBSTRING(@ex_servers, 1, LEN(@ex_servers) - 1) ELSE @ex_servers END;
 			
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @ex_servers, 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @ex_servers, 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @ex_servers, cte.finish + 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @ex_servers, cte.finish + 1) = 0 THEN LEN(@ex_servers) + 1 ELSE CHARINDEX(',', @ex_servers, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@ex_servers)
 		)
@@ -136,6 +136,27 @@ BEGIN
 	END;
 
 
+	-- Update if match clustered physical machine --
+	UPDATE	#servers
+	SET		ServerName =	CASE ServerName	WHEN N'DBTRANS1'	THEN N'DBTRANS'
+											WHEN N'DBTRANS2'	THEN N'DBTRANS'
+											WHEN N'DBCUST1'		THEN N'DBCUST'
+											WHEN N'DBCUST2'		THEN N'DBCUST'
+											WHEN N'DB021'		THEN N'DB02'
+											WHEN N'DB022'		THEN N'DB02'
+											WHEN N'DBTP1'		THEN N'DBTP'
+											WHEN N'DBTP2'		THEN N'DBTP'
+																ELSE ServerName
+							END;
+
+	-- Delete unmatch Wait Statistics server list --
+	DELETE	tmp
+	FROM		#servers AS tmp WITH (TABLOCK)
+	LEFT JOIN	dbo.vnDBA_Wait_Servers AS ws WITH (NOLOCK)
+			ON	tmp.ServerName = ws.ServerName
+	WHERE	ws.ServerName IS NULL;
+
+
 	-- Parse wait types --
 	IF	@waittypes IS NOT NULL
 	BEGIN;
@@ -143,11 +164,11 @@ BEGIN
 		SELECT	@waittypes = CASE WHEN RIGHT(@waittypes, 1) = '}' THEN SUBSTRING(@waittypes, 1, LEN(@waittypes) - 1) ELSE @waittypes END;
 	
 		WITH cte AS (
-			SELECT	'start'		= CAST(1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @waittypes, 1) = 0 THEN LEN(@waittypes) + 1 ELSE CHARINDEX(',', @waittypes, 1) END
+			SELECT	[start]		= CAST(1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @waittypes, 1) = 0 THEN LEN(@waittypes) + 1 ELSE CHARINDEX(',', @waittypes, 1) END
 			UNION ALL
-			SELECT	'start'		= CAST(cte.finish + 1 AS INT)
-				,	'finish'	= CASE WHEN CHARINDEX(',', @waittypes, cte.finish + 1) = 0 THEN LEN(@waittypes) + 1 ELSE CHARINDEX(',', @waittypes, cte.finish + 1) END
+			SELECT	[start]		= CAST(cte.finish + 1 AS INT)
+				,	[finish]	= CASE WHEN CHARINDEX(',', @waittypes, cte.finish + 1) = 0 THEN LEN(@waittypes) + 1 ELSE CHARINDEX(',', @waittypes, cte.finish + 1) END
 			FROM	cte
 			WHERE	cte.finish < LEN(@waittypes)
 		)
@@ -174,27 +195,27 @@ BEGIN
 				ON	m.WaitType = w.WaitType
 		WHERE	m.Report <> @waitgroup;
 	END;
-	
+
 
 	-- Get data --
 
 	IF	@paneltype = 001
 	-- Graph chart panel -- Wait Time --
 	BEGIN;
-		SELECT	'Time'		= DATEADD(HOUR, -@server_zone, wc.CalculateDate)
-			,	'Metric'	= w.WaitType
-			,	'Value'		= SUM(wc.CalcWaitTime_ms)
+		SELECT	[time]		= DATEADD(HOUR, -@server_zone, wc.CalculateDate)
+			,	[metric]	= w.WaitType
+			,	[value]		= SUM(wc.CalcWaitTime_ms_p_s)
 		FROM		#waittypes AS w WITH (NOLOCK)
 		CROSS JOIN	#servers AS s WITH (NOLOCK)
 		CROSS APPLY	(
-			SELECT	_w.CalculateDate, _w.CalcWaitTime_ms
+			SELECT	_w.CalculateDate, 'CalcWaitTime_ms_p_s' = CAST(_w.CalcWaitTime_ms * 1000.0 / _w.Calc_msTicks AS DECIMAL(19, 1))
 			FROM	dbo.vnDBA_Wait_Captured AS _w WITH (NOLOCK)
 			WHERE	_w.ServerName = s.ServerName
 				AND	_w.WaitType = w.WaitType
 				AND	_w.CalculateDate BETWEEN @timefrom AND @timeto
 		) AS wc
 		GROUP BY	wc.CalculateDate, w.WaitType
-		ORDER BY	'Time', 'Metric'
+		ORDER BY	[time], [metric]
 		OPTION (FORCE ORDER);
 	END;
 	
@@ -203,4 +224,6 @@ BEGIN
 	DROP TABLE	#servers;
 	DROP TABLE	#waittypes;
 END;
+GO
+GRANT EXECUTE ON dbo.vnDBA_sp_Grafana_GetDataDashboard_WS TO vnGrafana AS dbo;
 GO
