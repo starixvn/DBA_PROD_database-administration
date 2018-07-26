@@ -16,7 +16,7 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE	@WaitFor		NVARCHAR(MAX);
+	DECLARE	@WaitFor	VARCHAR(50);
 
 	IF @DeletedTarget = 'betParlayDetail'
 	BEGIN
@@ -66,10 +66,6 @@ BEGIN
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
-			-- Dynamic Delay Time --
-			SELECT	@WaitFor = N'';
-			SELECT	@WaitFor = @WaitFor + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
-
 			DELETE	TOP(10000)
 			FROM	dbo.Task_bettrans14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
@@ -77,7 +73,9 @@ BEGIN
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			EXECUTE	sys.sp_executesql @Query = @WaitFor;
+			-- Dynamic Delay Time --
+			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('IP2Country');
+			WAITFOR DELAY @WaitFor;
 		END;
 
 		RETURN;
@@ -87,10 +85,6 @@ BEGIN
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
-			-- Dynamic Delay Time --
-			SELECT	@WaitFor = N'';
-			SELECT	@WaitFor = @WaitFor + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
-
 			DELETE	TOP(10000)
 			FROM	dbo.Task_bettransRNG14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
@@ -98,7 +92,9 @@ BEGIN
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			EXECUTE	sys.sp_executesql @Query = @WaitFor;
+			-- Dynamic Delay Time --
+			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('IP2Country');
+			WAITFOR DELAY @WaitFor;
 		END;
 
 		RETURN;
@@ -108,10 +104,6 @@ BEGIN
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
-			-- Dynamic Delay Time --
-			SELECT	@WaitFor = N'';
-			SELECT	@WaitFor = @WaitFor + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
-
 			DELETE	TOP(10000)
 			FROM	dbo.Task_bettransLC14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
@@ -119,7 +111,9 @@ BEGIN
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			EXECUTE	sys.sp_executesql @Query = @WaitFor;
+			-- Dynamic Delay Time --
+			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('IP2Country');
+			WAITFOR DELAY @WaitFor;
 		END;
 
 		RETURN;
