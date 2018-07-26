@@ -16,7 +16,7 @@ BEGIN
 						WHEN @KeyId = 'Key7' THEN '00:00:00:030'
 						WHEN @KeyId = 'Key8' THEN '00:00:00:100'
 						WHEN @KeyId = 'Key9' THEN '00:00:00:120'
-						WHEN @KeyId = 'IP2Country' THEN '00:00:00.020'
+						WHEN @KeyId = 'IP2Country' THEN '00:00:00.030'
 						WHEN @KeyId = 'FriRoutine' THEN '00:00:00.180'
 						ELSE '00:00:00:280' END)
 END
