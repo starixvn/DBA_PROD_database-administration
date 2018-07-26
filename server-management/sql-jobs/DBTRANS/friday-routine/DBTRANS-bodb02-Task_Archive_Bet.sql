@@ -62,14 +62,14 @@ BEGIN
 		EXEC dbo.ExecRep_09 @recommend = 0, @winlostdate = @winlostdate, @parlay = 29, @tableName = 'betParlayResult'
 	END
 	
-	-- Dynamic Delay Time --
-	SELECT	@WaitFor = N'';
-	SELECT	@WaitFor = @WaitFor + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
-
 	IF	@DeletedTarget = 'Task_bettrans14_IP2Country'
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
+			-- Dynamic Delay Time --
+			SELECT	@WaitFor = N'';
+			SELECT	@WaitFor = @WaitFor + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
+
 			DELETE	TOP(10000)
 			FROM	dbo.Task_bettrans14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
@@ -87,6 +87,10 @@ BEGIN
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
+			-- Dynamic Delay Time --
+			SELECT	@WaitFor = N'';
+			SELECT	@WaitFor = @WaitFor + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
+
 			DELETE	TOP(10000)
 			FROM	dbo.Task_bettransRNG14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
@@ -104,6 +108,10 @@ BEGIN
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
+			-- Dynamic Delay Time --
+			SELECT	@WaitFor = N'';
+			SELECT	@WaitFor = @WaitFor + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
+
 			DELETE	TOP(10000)
 			FROM	dbo.Task_bettransLC14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
