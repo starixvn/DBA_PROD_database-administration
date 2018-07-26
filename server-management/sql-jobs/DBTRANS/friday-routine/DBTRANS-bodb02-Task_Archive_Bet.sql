@@ -14,7 +14,10 @@ AS
 		- 20180725@Billy:	Change the way of deleting data of IP2Country tables - [Redmine: #98857]
 */
 BEGIN
-	SET NOCOUNT ON 
+	SET NOCOUNT ON;
+
+	DECLARE	@Query		NVARCHAR(MAX);
+
 	IF @DeletedTarget = 'betParlayDetail'
 	BEGIN
 		
@@ -58,19 +61,23 @@ BEGIN
 		-- call execRep SP
 		EXEC dbo.ExecRep_09 @recommend = 0, @winlostdate = @winlostdate, @parlay = 29, @tableName = 'betParlayResult'
 	END
+	
+	-- Dynamic Delay Time --
+	SELECT	@Query = N'';
+	SELECT	@Query = @Query + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
 
 	IF	@DeletedTarget = 'Task_bettrans14_IP2Country'
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
-			DELETE	TOP(2500)
+			DELETE	TOP(10000)
 			FROM	dbo.Task_bettrans14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
 
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			WAITFOR DELAY '00:00:00.180';
+			EXECUTE	sys.sp_executesql @Query = @Query;
 		END;
 
 		RETURN;
@@ -80,14 +87,14 @@ BEGIN
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
-			DELETE	TOP(2500)
+			DELETE	TOP(10000)
 			FROM	dbo.Task_bettransRNG14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
 
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			WAITFOR DELAY '00:00:00.180';
+			EXECUTE	sys.sp_executesql @Query = @Query;
 		END;
 
 		RETURN;
@@ -97,14 +104,14 @@ BEGIN
 	BEGIN;
 		WHILE 0 = 0
 		BEGIN;
-			DELETE	TOP(2500)
+			DELETE	TOP(10000)
 			FROM	dbo.Task_bettransLC14_IP2Country WITH (ROWLOCK) 
 			WHERE	winlostdate <= @winlostdate;
 
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			WAITFOR DELAY '00:00:00.180';
+			EXECUTE	sys.sp_executesql @Query = @Query;
 		END;
 
 		RETURN;
