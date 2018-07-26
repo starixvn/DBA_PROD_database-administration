@@ -16,7 +16,7 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE	@Query		NVARCHAR(MAX);
+	DECLARE	@WaitFor		NVARCHAR(MAX);
 
 	IF @DeletedTarget = 'betParlayDetail'
 	BEGIN
@@ -63,8 +63,8 @@ BEGIN
 	END
 	
 	-- Dynamic Delay Time --
-	SELECT	@Query = N'';
-	SELECT	@Query = @Query + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
+	SELECT	@WaitFor = N'';
+	SELECT	@WaitFor = @WaitFor + N'WAITFOR DELAY ''' + dbo.f_BU_GetDelayTime('IP2Country') + N''';';
 
 	IF	@DeletedTarget = 'Task_bettrans14_IP2Country'
 	BEGIN;
@@ -77,7 +77,7 @@ BEGIN
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			EXECUTE	sys.sp_executesql @Query = @Query;
+			EXECUTE	sys.sp_executesql @Query = @WaitFor;
 		END;
 
 		RETURN;
@@ -94,7 +94,7 @@ BEGIN
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			EXECUTE	sys.sp_executesql @Query = @Query;
+			EXECUTE	sys.sp_executesql @Query = @WaitFor;
 		END;
 
 		RETURN;
@@ -111,7 +111,7 @@ BEGIN
 			IF	@@ROWCOUNT = 0
 				BREAK;
 			
-			EXECUTE	sys.sp_executesql @Query = @Query;
+			EXECUTE	sys.sp_executesql @Query = @WaitFor;
 		END;
 
 		RETURN;
