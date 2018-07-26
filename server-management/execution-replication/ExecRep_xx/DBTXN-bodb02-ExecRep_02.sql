@@ -132,8 +132,8 @@ BEGIN
 			BEGIN TRANSACTION;
 
 			DELETE	TOP(2500)
-			FROM	dbo.sum_winloss AS tbl WITH (ROWLOCK)
-			WHERE	tbl.winlostdate <= @winlostdate;
+			FROM	dbo.sum_winloss WITH (ROWLOCK)
+			WHERE	winlostdate <= @winlostdate;
 
 			SELECT	@rowcount = @@ROWCOUNT;
 
@@ -149,8 +149,8 @@ BEGIN
 			BEGIN TRANSACTION;
 
 			DELETE	TOP(2500)
-			FROM	dbo.bettransG14 AS tbl WITH (ROWLOCK)
-			WHERE	tbl.winlostdate = @winlostdate;
+			FROM	dbo.bettransG14 WITH (ROWLOCK)
+			WHERE	winlostdate = @winlostdate;
 
 			SELECT	@rowcount = @@ROWCOUNT;
 
@@ -166,8 +166,8 @@ BEGIN
 			BEGIN TRANSACTION;
 
 			DELETE	TOP(2500)
-			FROM	dbo.translog14 AS tbl WITH (ROWLOCK)
-			WHERE	tbl.winlostdate = @winlostdate;
+			FROM	dbo.translog14 WITH (ROWLOCK)
+			WHERE	winlostdate = @winlostdate;
 
 			SELECT	@rowcount = @@ROWCOUNT;
 
@@ -183,8 +183,8 @@ BEGIN
 			BEGIN TRANSACTION;
 
 			DELETE	TOP(2500)
-			FROM	dbo.bettransLC14 AS tbl WITH (ROWLOCK)
-			WHERE	tbl.winlostdate = @winlostdate;
+			FROM	dbo.bettransLC14 WITH (ROWLOCK)
+			WHERE	winlostdate = @winlostdate;
 
 			SELECT	@rowcount = @@ROWCOUNT;
 
@@ -200,8 +200,8 @@ BEGIN
 			BEGIN TRANSACTION;
 
 			DELETE	TOP(2500)
-			FROM	dbo.bettransRNG14 AS tbl WITH (ROWLOCK)
-			WHERE	tbl.winlostdate = @winlostdate;
+			FROM	dbo.bettransRNG14 WITH (ROWLOCK)
+			WHERE	winlostdate = @winlostdate;
 
 			SELECT	@rowcount = @@ROWCOUNT;
 
