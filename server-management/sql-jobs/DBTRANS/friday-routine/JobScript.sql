@@ -1061,5 +1061,3 @@ IF	@@TRANCOUNT > 0
 -- Jump point -- Finish --
 EndSave:
 GO
-/*<info serverAlias="DBTXN-msdb" executers="" viewers="" isFunction="0" isNested="0"></info>*/
-/*CREATE PROCEDURE dbo.Thisisascript GO*/
