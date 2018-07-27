@@ -777,3 +777,5 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 END;
+GO
+/*<info serverAlias="DBCHECK-CheckResultDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/

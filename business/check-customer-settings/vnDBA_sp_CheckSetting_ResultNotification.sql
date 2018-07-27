@@ -10,7 +10,7 @@ AS
 /*
 	Creator:	20170411@Billy
 	Task:		Notify Auto Check Settings is finished - [Redmine: #74664]
-	Database:	DBDWCSS.StarixDB
+	Database:	DBCHECK.CheckResultDB
 	
 	Revisions:	
 		- 20170620@Billy:	Add check status result - [Redmine: #00000]
@@ -822,4 +822,4 @@ Check Setting Result:' + ISNULL(N'
 END;
 
 GO
-
+/*<info serverAlias="DBCHECK-CheckResultDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/

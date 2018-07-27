@@ -56,3 +56,4 @@ ADD SIGNATURE TO OBJECT::dbo.SB_CheckSettingTargetQueueActivator
 BY CERTIFICATE CheckSettingAuthenticationCertificate
 WITH PASSWORD = '[{Cr0ssD@t@b@s31e6e1}]';
 GO
+/*<info serverAlias="DBCHECK-CheckResultDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/

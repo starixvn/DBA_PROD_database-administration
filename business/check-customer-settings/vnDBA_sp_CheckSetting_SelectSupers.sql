@@ -70,3 +70,5 @@ BEGIN;
 		AND	ci.Enabled = 1;
 
 END;
+GO
+/*<info serverAlias="DBCHECK-CheckResultDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/
