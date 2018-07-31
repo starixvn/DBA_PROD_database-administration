@@ -1,3 +1,10 @@
+/*
+	Creator:	20180718@Billy
+	Task:		Certificate for cross database authentication - [Redmine: #00000]
+	Server:		DBCHECK.CheckResultDB
+*/
+
+
 USE	CheckResultDB;
 GO
 
