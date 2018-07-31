@@ -1,3 +1,10 @@
+/*
+	Creator:	20180718@Billy
+	Task:		Failed log table for Check Settings service broker - [Redmine: #00000]
+	Server:		DBCHECK.CheckResultDB
+*/
+
+
 USE	CheckResultDB;
 GO
 
