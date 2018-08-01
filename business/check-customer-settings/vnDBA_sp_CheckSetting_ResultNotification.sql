@@ -1,4 +1,4 @@
-﻿USE	CheckResultDB;
+USE	CheckResultDB;
 GO
 
 ALTER PROCEDURE	dbo.vnDBA_sp_CheckSetting_ResultNotification
@@ -18,6 +18,7 @@ AS
 		- 20180102@Billy:	Send failed checksum to 「DB JOB MONITOR」 room - [Redmine: #88932]
 		- 20180202@Billy:	Get SportName from DBPRO - [Redmine: #00000]
 		- 20180720@Billy:	Integrate check commission - [Redmine: #00000]
+		- 20180801@Billy:	Update filter of commission result - [Redmine: #99249]
 */
 BEGIN
     SET NOCOUNT ON;
@@ -273,16 +274,34 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 			ON	c.SportType = s.SportType
 	WHERE	NOT EXISTS	(	SELECT	1 
 							FROM	CheckResultDB.dbo.IgnoredCust AS ic WITH (NOLOCK) 
-							WHERE	ic.CustId = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+							WHERE	ic.CustId =	CASE	WHEN ic.Allline = 0 THEN cus.CustId 
 														ELSE CASE	WHEN RoleID = 4 THEN cus.srecommend 
 																	WHEN RoleID = 3 THEN cus.mrecommend
 																	WHEN RoleID = 2 THEN cus.recommend
 																	ELSE cus.CustId
 															 END
-											 END
+												END
 								AND	ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
 								AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE c.sporttype END
 						)
+		AND	NOT EXISTS	(	SELECT	1 
+							FROM	CheckCustDB.dbo.CustNoComm AS cc WITH (NOLOCK) 
+							WHERE	cc.CustId =	CASE	WHEN cus.RoleID = 4 THEN cus.srecommend 
+														WHEN cus.RoleID = 3 THEN cus.mrecommend
+														WHEN cus.RoleID = 2 THEN cus.recommend
+														ELSE cus.CustId
+												END
+						)
+		AND	NOT EXISTS	(	SELECT	1 
+							FROM	CheckCustDB.dbo.CustNoComm AS cc WITH (NOLOCK) 
+							WHERE	cc.CustId =	CASE	WHEN cus1.RoleID = 4 THEN cus1.srecommend 
+														WHEN cus1.RoleID = 3 THEN cus1.mrecommend
+														WHEN cus1.RoleID = 2 THEN cus1.recommend
+														ELSE cus1.CustId
+												END
+						)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus.username = pbc.username)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus1.username = pbc.username)
 	GROUP BY r.RuleName, c.RuleId, s.SportName, c.SportType, c.BetType;
 
 	SELECT	@countComm = SUM(Total)
@@ -316,7 +335,25 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 												 END
 									AND	RuleId = CASE WHEN RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
 									AND	sporttype = CASE WHEN sporttype = 0 THEN sporttype ELSE c.sporttype END
-							);
+							)
+			AND	NOT EXISTS	(	SELECT	1 
+								FROM	CheckCustDB.dbo.CustNoComm AS cc WITH (NOLOCK) 
+								WHERE	cc.CustId =	CASE	WHEN cus.RoleID = 4 THEN cus.srecommend 
+															WHEN cus.RoleID = 3 THEN cus.mrecommend
+															WHEN cus.RoleID = 2 THEN cus.recommend
+															ELSE cus.CustId
+													END
+							)
+			AND	NOT EXISTS	(	SELECT	1 
+								FROM	CheckCustDB.dbo.CustNoComm AS cc WITH (NOLOCK) 
+								WHERE	cc.CustId =	CASE	WHEN cus1.RoleID = 4 THEN cus1.srecommend 
+															WHEN cus1.RoleID = 3 THEN cus1.mrecommend
+															WHEN cus1.RoleID = 2 THEN cus1.recommend
+															ELSE cus1.CustId
+													END
+							)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus.username = pbc.username)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus1.username = pbc.username);
 	END;
 
 

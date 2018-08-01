@@ -10,6 +10,7 @@ AS
 	
 	Revisions:
 		- 20180718@Billy:	Initial - [Redmine: #00000]
+		- 20180801@Billy:	Update cust super non-DCS list - [Redmine: #99249]
 		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -22,12 +23,14 @@ BEGIN;
 	TRUNCATE TABLE	dbo.Credit_Supers;
 
 	INSERT INTO	dbo.Credit_Supers (CustId)
-	SELECT	DISTINCT
-			ci.custid
-	FROM	CheckCustDB.dbo.custInfo AS ci WITH (NOLOCK)
-	WHERE	ci.RoleID = 4 
-		AND	NOT EXISTS (SELECT custid from CheckCustDB.dbo.Dep_CustSuper AS dcs WITH (NOLOCK) WHERE ci.CustId = dcs.CustId)
-		AND	ci.Enabled = 1;
+	SELECT	ci.custid
+	FROM		CheckCustDB.dbo.custInfo AS ci WITH (NOLOCK)
+	INNER JOIN	CheckCustDB.dbo.custSuper AS s WITH (NOLOCK)
+			ON	ci.custid = s.custid
+	WHERE	ci.RoleID = 4  
+		AND	NOT EXISTS (SELECT custid FROM CheckCustDB.dbo.Dep_CustSuper AS dcs WITH (NOLOCK) WHERE ci.custid = dcs.CustId)
+		AND	ci.Enabled = 1
+		AND	s.IsInternal = 0;
 
 	-- Select for DCS --
 	TRUNCATE TABLE	dbo.Credit_DCS;
