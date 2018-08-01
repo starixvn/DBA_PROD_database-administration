@@ -1,6 +1,8 @@
 USE	CheckResultDB;
 GO
-
+SET ANSI_NULLS ON;
+SET ANSI_WARNINGS ON;
+GO
 ALTER PROCEDURE	dbo.vnDBA_sp_CheckSetting_ResultNotification
 					@to					VARCHAR(MAX)	= 'pontus@starixsoft.com'
 				,	@cc					VARCHAR(MAX)	= ''
