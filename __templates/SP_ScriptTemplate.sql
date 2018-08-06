@@ -7,7 +7,7 @@ AS
 /*
 	Creator:	yyyymmdd@Creator
 	Task:		Description - [Redmine: #00000]
-	Database:	AliasServer.DBName
+	Database:	DBTEST.AdventureWorks2008R2
 	
 	Revisions:
 		- yyyymmdd@Creator:	Initial - [Redmine: #00000]
