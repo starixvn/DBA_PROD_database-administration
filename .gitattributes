@@ -2,8 +2,7 @@
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
 * text=auto
-
-*.sql text working-tree-encoding=UTF-8 eol=crlf
+*.sql text eol=CRLF encoding=utf-8
 
 ###############################################################################
 # Set default behavior for command prompt diff.
