@@ -1,7 +1,7 @@
 USE	CheckResultDB;
 GO
 SET ANSI_NULLS ON;
-SET ANSI_WARNINGS ON;
+SET	QUOTED_IDENTIFIER ON;
 GO
 ALTER PROCEDURE	dbo.vnDBA_sp_CheckSetting_ResultNotification
 					@to					VARCHAR(MAX)	= 'pontus@starixsoft.com'
@@ -20,7 +20,8 @@ AS
 		- 20180102@Billy:	Send failed checksum to 「DB JOB MONITOR」 room - [Redmine: #88932]
 		- 20180202@Billy:	Get SportName from DBPRO - [Redmine: #00000]
 		- 20180720@Billy:	Integrate check commission - [Redmine: #00000]
-		- 20180801@Billy:	Update filter of commission result - [Redmine: #99249]
+		- 20180801@Elodie:	Update filter of commission result - [Redmine: #99249]
+		- 20180806@Elodie:	Update filter of commission result - [Redmine: #99249]
 */
 BEGIN
     SET NOCOUNT ON;
@@ -286,22 +287,14 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 								AND	ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
 								AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE c.sporttype END
 						)
-		AND	NOT EXISTS	(	SELECT	1 
-							FROM	CheckCustDB.dbo.CustNoComm AS cc WITH (NOLOCK) 
-							WHERE	cc.CustId =	CASE	WHEN cus.RoleID = 4 THEN cus.srecommend 
-														WHEN cus.RoleID = 3 THEN cus.mrecommend
-														WHEN cus.RoleID = 2 THEN cus.recommend
-														ELSE cus.CustId
-												END
-						)
-		AND	NOT EXISTS	(	SELECT	1 
-							FROM	CheckCustDB.dbo.CustNoComm AS cc WITH (NOLOCK) 
-							WHERE	cc.CustId =	CASE	WHEN cus1.RoleID = 4 THEN cus1.srecommend 
-														WHEN cus1.RoleID = 3 THEN cus1.mrecommend
-														WHEN cus1.RoleID = 2 THEN cus1.recommend
-														ELSE cus1.CustId
-												END
-						)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.mrecommend = cnc.CustID)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.recommend = cnc.CustID)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.custid = cnc.CustID)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.srecommend = cnc.CustID)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.mrecommend = cnc.CustID)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.recommend = cnc.CustID)
+		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.custid = cnc.CustID)
 		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus.username = pbc.username)
 		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus1.username = pbc.username)
 	GROUP BY r.RuleName, c.RuleId, s.SportName, c.SportType, c.BetType;
@@ -328,32 +321,24 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 				ON	c.SportType = s.SportType
 		WHERE	NOT EXISTS	(	SELECT	1 
 								FROM	CheckResultDB.dbo.IgnoredCust ic WITH (NOLOCK) 
-								WHERE	CustId = CASE	WHEN Allline = 0 THEN cus.CustId 
-														ELSE CASE	WHEN RoleID = 4 THEN cus.srecommend 
-																	WHEN RoleID = 3 THEN cus.mrecommend
-																	WHEN RoleID = 2 THEN cus.recommend
-																	ELSE cus.CustId
-															 END
-												 END
-									AND	RuleId = CASE WHEN RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
-									AND	sporttype = CASE WHEN sporttype = 0 THEN sporttype ELSE c.sporttype END
+								WHERE	ic.CustId = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+															ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+																		WHEN ic.RoleID = 3 THEN cus.mrecommend
+																		WHEN ic.RoleID = 2 THEN cus.recommend
+																		ELSE cus.CustId
+																 END
+													 END
+									AND	ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
+									AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE c.sporttype END
 							)
-			AND	NOT EXISTS	(	SELECT	1 
-								FROM	CheckCustDB.dbo.CustNoComm AS cc WITH (NOLOCK) 
-								WHERE	cc.CustId =	CASE	WHEN cus.RoleID = 4 THEN cus.srecommend 
-															WHEN cus.RoleID = 3 THEN cus.mrecommend
-															WHEN cus.RoleID = 2 THEN cus.recommend
-															ELSE cus.CustId
-													END
-							)
-			AND	NOT EXISTS	(	SELECT	1 
-								FROM	CheckCustDB.dbo.CustNoComm AS cc WITH (NOLOCK) 
-								WHERE	cc.CustId =	CASE	WHEN cus1.RoleID = 4 THEN cus1.srecommend 
-															WHEN cus1.RoleID = 3 THEN cus1.mrecommend
-															WHEN cus1.RoleID = 2 THEN cus1.recommend
-															ELSE cus1.CustId
-													END
-							)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.mrecommend = cnc.CustID)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.recommend = cnc.CustID)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.custid = cnc.CustID)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.srecommend = cnc.CustID)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.mrecommend = cnc.CustID)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.recommend = cnc.CustID)
+			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.custid = cnc.CustID)
 			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus.username = pbc.username)
 			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus1.username = pbc.username);
 	END;

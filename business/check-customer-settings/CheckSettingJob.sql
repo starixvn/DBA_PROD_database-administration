@@ -4,6 +4,7 @@
 	Server:		DBDWCSS
 	Revision:
 		- 20180727@Billy:	Initiate on GIT - [Redmine: #98673]
+		- 20180802@Billy:	Add clean up table Commission result step - [Redmine: #99249]
 */
 
 SET NOCOUNT ON;
@@ -247,6 +248,8 @@ TRUNCATE TABLE CheckPTResult_Credit;
 TRUNCATE TABLE dbo.CheckStatusResult;
 
 TRUNCATE TABLE dbo.CheckStatusResult_DCS;
+
+TRUNCATE TABLE dbo.CheckCommResult_Credit;
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
