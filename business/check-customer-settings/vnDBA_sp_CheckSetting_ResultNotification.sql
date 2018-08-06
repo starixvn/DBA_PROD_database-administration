@@ -20,7 +20,8 @@ AS
 		- 20180102@Billy:	Send failed checksum to 「DB JOB MONITOR」 room - [Redmine: #88932]
 		- 20180202@Billy:	Get SportName from DBPRO - [Redmine: #00000]
 		- 20180720@Billy:	Integrate check commission - [Redmine: #00000]
-		- 20180801@Billy:	Update filter of commission result - [Redmine: #99249]
+		- 20180801@Elodie:	Update filter of commission result - [Redmine: #99249]
+		- 20180806@Elodie:	Update filter of commission result - [Redmine: #99249]
 */
 BEGIN
     SET NOCOUNT ON;
