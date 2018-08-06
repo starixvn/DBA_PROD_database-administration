@@ -3,7 +3,7 @@
 ###############################################################################
 * text=auto
 
-*.sql text eol=crlf
+*.sql text working-tree-encoding=UTF-8 eol=crlf
 
 ###############################################################################
 # Set default behavior for command prompt diff.
