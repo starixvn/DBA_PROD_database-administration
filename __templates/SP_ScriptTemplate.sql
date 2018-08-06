@@ -22,6 +22,6 @@ BEGIN;
 	
 END;
 GO
-GRANT VIEW DEFINITION ON dbo.SPName TO dbo AS dbo;
+GRANT VIEW DEFINITION ON dbo.SPTemplateName TO dbo AS dbo;
 GO
 /*<info serverAlias="DBTEST-AdventureWorks2008R2" executers="" viewers="" isFunction="0" isNested="0"></info>*/
