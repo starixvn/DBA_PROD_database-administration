@@ -1,7 +1,7 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-ALTER PROCEDURE		dbo.SPName
+ALTER PROCEDURE		dbo.SPTemplateName
 						@parameter		NVARCHAR(MAX)
 AS
 /*
@@ -24,4 +24,4 @@ END;
 GO
 GRANT VIEW DEFINITION ON dbo.SPName TO dbo AS dbo;
 GO
-/*<info serverAlias="AliasServer-DBName" executers="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBTEST-AdventureWorks2008R2" executers="" viewers="" isFunction="0" isNested="0"></info>*/
