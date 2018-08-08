@@ -22,6 +22,7 @@ AS
 		- 20180720@Billy:	Integrate check commission - [Redmine: #00000]
 		- 20180801@Elodie:	Update filter of commission result - [Redmine: #99249]
 		- 20180806@Elodie:	Update filter of commission result - [Redmine: #99249]
+		- 20180807@Elodie:	Update filter of results - [Redmine: #99249]
 */
 BEGIN
     SET NOCOUNT ON;
@@ -153,6 +154,54 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 		VALUES	(@LogDate, 'N/A', 'N/A');
 	END;
 
+	-- Cleanup ignored results --
+	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckPTResult_Credit AS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
+			ON	r.CustIdA = cus.CustId
+	INNER JOIN	dbo.IgnoredCust ic WITH (NOLOCK)
+			ON	ic.custid = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+									ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+												WHEN ic.RoleID = 3 THEN cus.mrecommend
+												WHEN ic.RoleID = 2 THEN cus.recommend
+												ELSE cus.CustId
+											END
+							END
+			AND ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE r.ruleid END
+			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
+
+	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckCommResult_Credit AS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
+			ON	r.CustIdA = cus.CustId
+	INNER JOIN	dbo.IgnoredCust ic WITH (NOLOCK)
+			ON	ic.custid = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+									ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+												WHEN ic.RoleID = 3 THEN cus.mrecommend
+												WHEN ic.RoleID = 2 THEN cus.recommend
+												ELSE cus.CustId
+											END
+							END
+			AND ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE r.ruleid END
+			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
+
+	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckCommResult_Credit AS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
+			ON	r.CustIdA = cus.CustId
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus1 WITH (NOLOCK)
+			ON	r.CustIdB = cus1.CustId
+	WHERE	EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.mrecommend = cnc.CustID)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.recommend = cnc.CustID)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.custid = cnc.CustID)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.srecommend = cnc.CustID)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.mrecommend = cnc.CustID)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.recommend = cnc.CustID)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.custid = cnc.CustID)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus.username = pbc.username)
+		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus1.username = pbc.username);
+
 
 	-- Get PT result --
 	INSERT INTO	#CheckResultPTAgg (RuleName, RuleId, SportName, SportType, BetType, IsLive, IsDeposit, Total)
@@ -166,18 +215,6 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 			ON	c.CustIdB = cus1.CustId
 	LEFT JOIN	@Sports AS s
 			ON	c.SportType = s.SportType
-	WHERE	NOT EXISTS	(	SELECT	1 
-							FROM	CheckResultDB.dbo.IgnoredCust AS ic WITH (NOLOCK) 
-							WHERE	ic.CustId = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
-														ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
-																	WHEN ic.RoleID = 3 THEN cus.mrecommend
-																	WHEN ic.RoleID = 2 THEN cus.recommend
-																	ELSE cus.CustId
-															 END
-											 END
-								AND	ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
-								AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE c.sporttype END
-						)
 	GROUP BY r.RuleName, c.RuleId, s.SportName, c.SportType, c.BetType, c.IsLive;
 
 	SELECT	@countPT = SUM(Total)
@@ -199,19 +236,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 		INNER JOIN	CheckCustDB.dbo.custInfo AS cus1 WITH (NOLOCK)
 				ON	c.CustIdB = cus1.CustId
 		LEFT JOIN	@Sports AS s
-				ON	c.SportType = s.SportType
-		WHERE	NOT EXISTS	(	SELECT	1 
-								FROM	CheckResultDB.dbo.IgnoredCust AS ic WITH (NOLOCK) 
-								WHERE	ic.CustId = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
-															ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
-																		WHEN ic.RoleID = 3 THEN cus.mrecommend
-																		WHEN ic.RoleID = 2 THEN cus.recommend
-																		ELSE cus.CustId
-																 END
-												 END
-									AND	ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
-									AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE c.sporttype END
-							);
+				ON	c.SportType = s.SportType;
 	END;
 
 
@@ -275,19 +300,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 			ON	c.CustIdB = cus1.CustId
 	LEFT JOIN	@Sports AS s
 			ON	c.SportType = s.SportType
-	WHERE	NOT EXISTS	(	SELECT	1 
-							FROM	CheckResultDB.dbo.IgnoredCust AS ic WITH (NOLOCK) 
-							WHERE	ic.CustId =	CASE	WHEN ic.Allline = 0 THEN cus.CustId 
-														ELSE CASE	WHEN RoleID = 4 THEN cus.srecommend 
-																	WHEN RoleID = 3 THEN cus.mrecommend
-																	WHEN RoleID = 2 THEN cus.recommend
-																	ELSE cus.CustId
-															 END
-												END
-								AND	ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
-								AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE c.sporttype END
-						)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
+	WHERE	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
 		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.mrecommend = cnc.CustID)
 		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.recommend = cnc.CustID)
 		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.custid = cnc.CustID)
@@ -319,19 +332,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 				ON	c.CustIdB = cus1.CustId
 		LEFT JOIN	@Sports s
 				ON	c.SportType = s.SportType
-		WHERE	NOT EXISTS	(	SELECT	1 
-								FROM	CheckResultDB.dbo.IgnoredCust ic WITH (NOLOCK) 
-								WHERE	ic.CustId = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
-															ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
-																		WHEN ic.RoleID = 3 THEN cus.mrecommend
-																		WHEN ic.RoleID = 2 THEN cus.recommend
-																		ELSE cus.CustId
-																 END
-													 END
-									AND	ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE c.ruleid END
-									AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE c.sporttype END
-							)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
+		WHERE	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
 			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.mrecommend = cnc.CustID)
 			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.recommend = cnc.CustID)
 			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.custid = cnc.CustID)
@@ -786,7 +787,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 	-- Send letstalk -- Mode: 2 --
 	IF	@mode & 2 <> 0
 	BEGIN
-		SELECT	@html = N''
+		SELECT	@html = N'';
 		SELECT	@html = @html + N'
 Check Setting Result:' + ISNULL(N'
 
