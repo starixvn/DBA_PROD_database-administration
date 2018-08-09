@@ -21,8 +21,8 @@ AS
 		- 20180202@Billy:	Get SportName from DBPRO - [Redmine: #00000]
 		- 20180720@Billy:	Integrate check commission - [Redmine: #00000]
 		- 20180801@Elodie:	Update filter of commission result - [Redmine: #99249]
-		- 20180806@Elodie:	Update filter of commission result - [Redmine: #99249]
-		- 20180807@Elodie:	Update filter of results - [Redmine: #99249]
+		- 20180806@Elodie:	Exclude ignored cust from table result - [Redmine: #73556]
+		- 20180807@Billy:	Fix bug of rendering result - [Redmine: #99249]
 */
 BEGIN
     SET NOCOUNT ON;
@@ -171,6 +171,36 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
 
 	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckStatusResult AS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
+			ON	r.CustIdA = cus.CustId
+	INNER JOIN	dbo.IgnoredCust AS ic WITH (NOLOCK)
+			ON	ic.custid = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+									ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+												WHEN ic.RoleID = 3 THEN cus.mrecommend
+												WHEN ic.RoleID = 2 THEN cus.recommend
+												ELSE cus.CustId
+											END
+							END
+			AND ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE r.ruleid END
+			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
+
+	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckStatusResult_DCS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK) ON r.CustIdA = cus.CustId
+	INNER JOIN	dbo.IgnoredCust ic WITH (NOLOCK)
+			ON	ic.custid = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+									ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+												WHEN ic.RoleID = 3 THEN cus.mrecommend
+												WHEN ic.RoleID = 2 THEN cus.recommend
+												ELSE cus.CustId
+											END
+							END
+			AND ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE r.ruleid END
+			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
+
+
+	DELETE	r WITH (TABLOCK)
 	FROM		dbo.CheckCommResult_Credit AS r
 	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
 			ON	r.CustIdA = cus.CustId
@@ -300,16 +330,6 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 			ON	c.CustIdB = cus1.CustId
 	LEFT JOIN	@Sports AS s
 			ON	c.SportType = s.SportType
-	WHERE	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.mrecommend = cnc.CustID)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.recommend = cnc.CustID)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.custid = cnc.CustID)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.srecommend = cnc.CustID)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.mrecommend = cnc.CustID)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.recommend = cnc.CustID)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.custid = cnc.CustID)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus.username = pbc.username)
-		AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus1.username = pbc.username)
 	GROUP BY r.RuleName, c.RuleId, s.SportName, c.SportType, c.BetType;
 
 	SELECT	@countComm = SUM(Total)
@@ -331,17 +351,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 		INNER JOIN	CheckCustDB.dbo.custInfo AS cus1 WITH (NOLOCK)
 				ON	c.CustIdB = cus1.CustId
 		LEFT JOIN	@Sports s
-				ON	c.SportType = s.SportType
-		WHERE	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.srecommend = cnc.CustID)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.mrecommend = cnc.CustID)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.recommend = cnc.CustID)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus.custid = cnc.CustID)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.srecommend = cnc.CustID)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.mrecommend = cnc.CustID)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.recommend = cnc.CustID)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.CustNoComm AS cnc WITH (NOLOCK) WHERE cus1.custid = cnc.CustID)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus.username = pbc.username)
-			AND	NOT EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus1.username = pbc.username);
+				ON	c.SportType = s.SportType;
 	END;
 
 
@@ -379,7 +389,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 							,	NULL
 							,	[div/@style]	= N'background-color:' + CASE ISNULL(@countComm, 0) WHEN 0 THEN N'blue;' ELSE N'red;' END + s.style
 							,	[div/h2]		= N'Commission'
-							,	[div/h3]		= CASE ISNULL(@countStatus, 0) WHEN 0 THEN N'Success' ELSE N'Failure' END
+							,	[div/h3]		= CASE ISNULL(@countComm, 0) WHEN 0 THEN N'Success' ELSE N'Failure' END
 						FROM	(
 							SELECT	[style]			= N'color:white;text-align:center;width:33%;display:table-cell;'
 						) s
