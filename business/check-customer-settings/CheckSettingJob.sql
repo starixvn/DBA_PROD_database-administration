@@ -243,13 +243,7 @@ BEGIN;
 						,	@database_name				= N'CheckResultDB'
 						,	@flags						= 0
 						,	@command					= N'
-TRUNCATE TABLE CheckPTResult_Credit;
-
-TRUNCATE TABLE dbo.CheckStatusResult;
-
-TRUNCATE TABLE dbo.CheckStatusResult_DCS;
-
-TRUNCATE TABLE dbo.CheckCommResult_Credit;
+EXECUTE dbo.vnDBA_sp_CheckSetting_ClearResult;
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
