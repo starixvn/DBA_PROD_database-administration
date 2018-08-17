@@ -615,7 +615,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 									,	TYPE
 								)
 							,	NULL
-							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, SportType, BetType)
+							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, IsDeposit, SportType, BetType, IsLive)
 										,	NULL
 										,	[td]		= RuleName
 										,	NULL
@@ -633,7 +633,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 										,	NULL
 										,	[td]		= CASE IsDeposit WHEN 1 THEN 'Deposit' ELSE 'Credit' END
 									FROM	#CheckResultPTAgg
-									ORDER BY RuleId, SportType, BetType
+									ORDER BY RuleId, IsDeposit, SportType, BetType, IsLive
 									FOR XML PATH ('tr')
 									,	TYPE
 								)
@@ -674,7 +674,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 									,	TYPE
 								)
 							,	NULL
-							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, CustId_A, SportType, BetType)
+							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, IsDeposit, CustId_A, SportType, BetType, IsLive)
 										,	NULL
 										,	[td]		= RuleName
 										,	NULL
@@ -700,7 +700,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 										,	NULL
 										,	[td]		= CASE IsDeposit WHEN 1 THEN 'Deposit' ELSE 'Credit' END
 									FROM	#CheckResultPT
-									ORDER BY RuleId, CustId_A, SportType, BetType
+									ORDER BY RuleId, IsDeposit, CustId_A, SportType, BetType, IsLive
 									FOR XML PATH ('tr')
 									,	TYPE
 								)
@@ -745,7 +745,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 									,	TYPE
 								)
 							,	NULL
-							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, SportType, BetType)
+							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, IsDeposit, IsDCS, SportType, BetType)
 										,	NULL
 										,	[td]		= RuleName
 										,	NULL
@@ -763,7 +763,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 										,	NULL
 										,	[td]		= CASE IsDeposit WHEN 1 THEN 'Deposit' ELSE 'Credit' END
 									FROM	#CheckResultStatusAgg
-									ORDER BY RuleId, SportType, BetType
+									ORDER BY RuleId, IsDeposit, IsDCS, SportType, BetType
 									FOR XML PATH ('tr')
 									,	TYPE
 								)
@@ -997,7 +997,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 									,	TYPE
 								)
 							,	NULL
-							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, SportType, BetType)
+							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, IsDeposit, IsDCS, SportType, BetType)
 										,	NULL
 										,	[td]		= RuleName
 										,	NULL
@@ -1015,7 +1015,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 										,	NULL
 										,	[td]		= CASE IsDeposit WHEN 1 THEN 'Deposit' ELSE 'Credit' END
 									FROM	#CheckResultBetLimitAgg
-									ORDER BY RuleId, SportType, BetType
+									ORDER BY RuleId, IsDeposit, IsDCS, SportType, BetType
 									FOR XML PATH ('tr')
 									,	TYPE
 								)
@@ -1125,7 +1125,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 									,	TYPE
 								)
 							,	NULL
-							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, SportType, BetType)
+							,	(	SELECT	[td]		= ROW_NUMBER() OVER(ORDER BY RuleId, IsDeposit, SportType, BetType)
 										,	NULL
 										,	[td]		= RuleName
 										,	NULL
@@ -1141,7 +1141,7 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 										,	NULL
 										,	[td]		= CASE IsDeposit WHEN 1 THEN 'Deposit' ELSE 'Credit' END
 									FROM	#CheckResultStakeLevelAgg
-									ORDER BY RuleId, SportType, BetType
+									ORDER BY RuleId, IsDeposit, SportType, BetType
 									FOR XML PATH ('tr')
 									,	TYPE
 								)
