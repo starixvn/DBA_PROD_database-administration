@@ -94,9 +94,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check PT 3rd Products Credit -- 2 threads --
+	-- Check PT 3rd Products Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 2;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -148,9 +148,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check PT Game Credit -- 1 threads --
+	-- Check PT Game Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -456,9 +456,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Commission 3rd Products Credit -- 2 threads --
+	-- Check Commission 3rd Products Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 2;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -510,9 +510,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Commission Game Credit -- 2 threads --
+	-- Check Commission Game Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 2;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -564,9 +564,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Commission DCS Credit -- 1 threads --
+	-- Check Commission DCS Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -780,9 +780,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Bet Limit Credit -- 1 threads --
+	-- Check Bet Limit Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -834,9 +834,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Bet Limit 3rd Products Credit -- 1 threads --
+	-- Check Bet Limit 3rd Products Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -888,9 +888,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Bet Limit Keno Credit -- 1 threads --
+	-- Check Bet Limit Keno Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -911,7 +911,7 @@ BEGIN
 
 	IF @CustId IS NULL BREAK;
 
-	EXECUTE dbo.DBA_CheckKenoBetLimit_Credit @srecommend = @CustId, @SportType = 0, @RuleId = 0;
+	EXECUTE dbo.DBA_CheckKenoBetLimit_Credit @srecommend = @CustId, @RuleId = 0;
 
 	UPDATE dbo.Credit_Supers
 	SET BetLimitKeno = 1
@@ -942,9 +942,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Bet Limit DCS Credit -- 1 threads --
+	-- Check Bet Limit DCS Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -996,9 +996,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Stake Level Credit -- 1 threads --
+	-- Check Stake Level Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -1050,9 +1050,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Stake Level DCS Credit -- 1 threads --
+	-- Check Stake Level DCS Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
@@ -1104,9 +1104,9 @@ WHERE	VarKey = N''' + @key + N''';
 		END;
 	END;
 
-	-- Check Stake Level Credit -- 1 threads --
+	-- Check Stake Level Credit -- 3 threads --
 	BEGIN;
-		SELECT	@threads	= 1;
+		SELECT	@threads	= 3;
 		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
 		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
 		WHERE	VarKey = @key;
