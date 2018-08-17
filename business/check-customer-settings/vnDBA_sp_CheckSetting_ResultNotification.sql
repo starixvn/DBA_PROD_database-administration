@@ -1295,7 +1295,7 @@ Check Setting Result:' + ISNULL(N'
 		) AS xsl(xml);
 
 		SELECT	@subject	= N'vnDBA : Automation Check CustDB'
-			,	@case		= CASE WHEN ISNULL(@countPT, 0) + ISNULL(@countStatus, 0) + ISNULL(@countComm, 0) = 0 THEN 1 ELSE 2 END
+			,	@case		= CASE WHEN ISNULL(@countPT, 0) + ISNULL(@countStatus, 0) + ISNULL(@countComm, 0) + ISNULL(@countBetLimit, 0) + ISNULL(@countStakeLevel, 0) = 0 THEN 1 ELSE 2 END
 			;
 
 		EXECUTE DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage
