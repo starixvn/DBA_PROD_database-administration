@@ -1243,7 +1243,11 @@ Check Setting Result:' + ISNULL(N'
 
 - Status:' + xst.xml.value('.[1]', 'NVARCHAR(MAX)'), N'') + ISNULL(N'
 
-- Comm:' + xcm.xml.value('.[1]', 'NVARCHAR(MAX)'), N'')
+- Commission:' + xcm.xml.value('.[1]', 'NVARCHAR(MAX)'), N'') + ISNULL(N'
+
+- Bet Limit:' + xbl.xml.value('.[1]', 'NVARCHAR(MAX)'), N'') + ISNULL(N'
+
+- Stake Level:' + xsl.xml.value('.[1]', 'NVARCHAR(MAX)'), N'')
 		FROM	(
 			SELECT	N'
     ' + CASE pt.IsDeposit WHEN 0 THEN N'Cre - ' WHEN 1 THEN N'Dep - ' ELSE N'' END + CAST(SUM(pt.Total) AS NVARCHAR)
@@ -1270,7 +1274,25 @@ Check Setting Result:' + ISNULL(N'
 			ORDER BY cm.IsDeposit
 			FOR XML PATH ('')
 			,	TYPE
-		) AS xcm(xml);
+		) AS xcm(xml)
+		CROSS APPLY	(
+			SELECT	N'
+    ' + CASE bl.IsDeposit WHEN 0 THEN N'Cre - ' WHEN 1 THEN N'Dep - ' ELSE N'' END + CAST(SUM(bl.Total) AS NVARCHAR)
+			FROM	#CheckResultBetLimitAgg AS bl WITH (NOLOCK)
+			GROUP BY bl.IsDeposit
+			ORDER BY bl.IsDeposit
+			FOR XML PATH ('')
+			,	TYPE
+		) AS xbl(xml)
+		CROSS APPLY	(
+			SELECT	N'
+    ' + CASE sl.IsDeposit WHEN 0 THEN N'Cre - ' WHEN 1 THEN N'Dep - ' ELSE N'' END + CAST(SUM(sl.Total) AS NVARCHAR)
+			FROM	#CheckResultStakeLevelAgg AS sl WITH (NOLOCK)
+			GROUP BY sl.IsDeposit
+			ORDER BY sl.IsDeposit
+			FOR XML PATH ('')
+			,	TYPE
+		) AS xsl(xml);
 
 		SELECT	@subject	= N'vnDBA : Automation Check CustDB'
 			,	@case		= CASE WHEN ISNULL(@countPT, 0) + ISNULL(@countStatus, 0) + ISNULL(@countComm, 0) = 0 THEN 1 ELSE 2 END
