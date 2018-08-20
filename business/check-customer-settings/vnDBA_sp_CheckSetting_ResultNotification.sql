@@ -291,6 +291,66 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus.username = pbc.username)
 		OR	EXISTS (SELECT 1 FROM CheckCustDB.dbo.PhoneBettingCustomerList AS pbc WITH (NOLOCK) WHERE cus1.username = pbc.username);
 
+	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckBetLimitResult AS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
+			ON	r.CustIdA = cus.CustId
+	INNER JOIN	dbo.IgnoredCust ic WITH (NOLOCK)
+			ON	ic.custid = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+									ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+												WHEN ic.RoleID = 3 THEN cus.mrecommend
+												WHEN ic.RoleID = 2 THEN cus.recommend
+												ELSE cus.CustId
+											END
+							END
+			AND ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE r.ruleid END
+			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
+
+	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckBetLimitResult_DCS AS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
+			ON	r.CustIdA = cus.CustId
+	INNER JOIN	dbo.IgnoredCust ic WITH (NOLOCK)
+			ON	ic.custid = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+									ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+												WHEN ic.RoleID = 3 THEN cus.mrecommend
+												WHEN ic.RoleID = 2 THEN cus.recommend
+												ELSE cus.CustId
+											END
+							END
+			AND ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE r.ruleid END
+			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
+
+	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckResultStakeLevel_Credit AS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
+			ON	r.CustIdA = cus.CustId
+	INNER JOIN	dbo.IgnoredCust ic WITH (NOLOCK)
+			ON	ic.custid = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+									ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+												WHEN ic.RoleID = 3 THEN cus.mrecommend
+												WHEN ic.RoleID = 2 THEN cus.recommend
+												ELSE cus.CustId
+											END
+							END
+			AND ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE r.ruleid END
+			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
+
+	DELETE	r WITH (TABLOCK)
+	FROM		dbo.CheckResultStakeLevel_Deposit AS r
+	INNER JOIN	CheckCustDB.dbo.custInfo AS cus WITH (NOLOCK)
+			ON	r.CustIdA = cus.CustId
+	INNER JOIN	dbo.IgnoredCust ic WITH (NOLOCK)
+			ON	ic.custid = CASE	WHEN ic.Allline = 0 THEN cus.CustId 
+									ELSE CASE	WHEN ic.RoleID = 4 THEN cus.srecommend 
+												WHEN ic.RoleID = 3 THEN cus.mrecommend
+												WHEN ic.RoleID = 2 THEN cus.recommend
+												ELSE cus.CustId
+											END
+							END
+			AND ic.RuleId = CASE WHEN ic.RuleId = 0 THEN ic.RuleId ELSE r.ruleid END
+			AND	ic.sporttype = CASE WHEN ic.sporttype = 0 THEN ic.sporttype ELSE r.sporttype END;
+
 
 	--	BEGIN STEP :
 	--		Get PT result
