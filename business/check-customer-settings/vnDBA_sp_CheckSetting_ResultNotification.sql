@@ -614,23 +614,23 @@ FROM	bodb02.dbo.Sports WITH (NOLOCK);
 				,	(	SELECT	[@style]		= N'display:table;width:95%;border-spacing:10px;margin:0 auto;'
 							,	[div/@style]	= N'background-color:' + CASE ISNULL(@countPT, 0) WHEN 0 THEN N'blue;' ELSE N'red;' END + s.style
 							,	[div/h2]		= N'PT'
-							,	[div/h3]		= CASE ISNULL(@countPT, 0) WHEN 0 THEN N'Success' ELSE N'Failure' END
+							,	[div/h3]		= CASE ISNULL(@countPT, 0) WHEN 0 THEN N'Success' ELSE CAST(@countPT AS NVARCHAR) END
 							,	NULL
 							,	[div/@style]	= N'background-color:' + CASE ISNULL(@countStatus, 0) WHEN 0 THEN N'blue;' ELSE N'red;' END + s.style
 							,	[div/h2]		= N'Status'
-							,	[div/h3]		= CASE ISNULL(@countStatus, 0) WHEN 0 THEN N'Success' ELSE N'Failure' END
+							,	[div/h3]		= CASE ISNULL(@countStatus, 0) WHEN 0 THEN N'Success' ELSE CAST(@countStatus AS NVARCHAR) END
 							,	NULL
 							,	[div/@style]	= N'background-color:' + CASE ISNULL(@countComm, 0) WHEN 0 THEN N'blue;' ELSE N'red;' END + s.style
 							,	[div/h2]		= N'Commission'
-							,	[div/h3]		= CASE ISNULL(@countComm, 0) WHEN 0 THEN N'Success' ELSE N'Failure' END
+							,	[div/h3]		= CASE ISNULL(@countComm, 0) WHEN 0 THEN N'Success' ELSE CAST(@countComm AS NVARCHAR) END
 							,	NULL
 							,	[div/@style]	= N'background-color:' + CASE ISNULL(@countBetLimit, 0) WHEN 0 THEN N'blue;' ELSE N'red;' END + s.style
 							,	[div/h2]		= N'Bet Limit'
-							,	[div/h3]		= CASE ISNULL(@countBetLimit, 0) WHEN 0 THEN N'Success' ELSE N'Failure' END
+							,	[div/h3]		= CASE ISNULL(@countBetLimit, 0) WHEN 0 THEN N'Success' ELSE CAST(@countBetLimit AS NVARCHAR) END
 							,	NULL
 							,	[div/@style]	= N'background-color:' + CASE ISNULL(@countStakeLevel, 0) WHEN 0 THEN N'blue;' ELSE N'red;' END + s.style
 							,	[div/h2]		= N'Stake Level'
-							,	[div/h3]		= CASE ISNULL(@countStakeLevel, 0) WHEN 0 THEN N'Success' ELSE N'Failure' END
+							,	[div/h3]		= CASE ISNULL(@countStakeLevel, 0) WHEN 0 THEN N'Success' ELSE CAST(@countStakeLevel AS NVARCHAR) END
 						FROM	(
 							SELECT	[style]			= N'color:white;text-align:center;width:20%;display:table-cell;'
 						) s
