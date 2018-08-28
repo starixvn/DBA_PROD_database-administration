@@ -22,7 +22,7 @@ DECLARE @ReturnCode		INT
 
 -- Input --
 DECLARE	@category		NVARCHAR(128)	= N'[Uncategorized (Local)]'
-	,	@jobname		NVARCHAR(128)	= N'archive rptStatement_Old from rptStatement'
+	,	@jobname		NVARCHAR(128)	= N'bodb_Report: Weekly Archive Into rptStatementOld'
 	,	@description	NVARCHAR(512)	= N'
 No description available.'
 	,	@emailoperator	NVARCHAR(128)	= N'vnDBA'
