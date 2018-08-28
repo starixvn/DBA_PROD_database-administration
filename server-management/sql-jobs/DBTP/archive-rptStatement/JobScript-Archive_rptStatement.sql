@@ -150,53 +150,57 @@ BEGIN;
 						,	@command					= N'
 DECLARE	@InputDate	DATETIME;
 DECLARE	@TempDate	DATETIME;
-DECLARE	@count		INT;
+DECLARE	@Count		INT;
 DECLARE	@DateName	VARCHAR(10);
 
-IF	@InputDate IS NULL  
-BEGIN  
-	SELECT	TOP 1
-			@InputDate = DATEADD(DAY, 7, winlostdate)  
-	FROM	bodb02.dbo.bettrans WITH (NOLOCK)  
-	WHERE	matchid = 0 
-		AND	bettype = 20000  
-	ORDER BY transid;
+DECLARE	@MBUDay		AS TABLE (BalanceUpDay SMALLDATETIME, MoveBetsDay SMALLDATETIME);
+
+IF	@InputDate IS NULL
+BEGIN;
+	INSERT INTO @MBUDay(BalanceUpDay, MoveBetsDay)
+	EXECUTE	bodb02.dbo.Age_SelBalanceUpDay;
+
+	SELECT	@InputDate = BalanceUpDay
+	FROM	@MBUDay;
 END;
 
---SELECT @InputDate = CONVERT(DATE,DATEADD (ww,-1,GETDATE())) -- BalanceupDate
-SELECT	@DateName = DATENAME(dw,CONVERT(DATE,DATEADD (ww,-1,GETDATE())))
+SELECT	@TempDate = DATEADD(DAY, 1, MAX(WinlostDate))
+FROM	dbo.rptStatement_Old WITH (NOLOCK)
+WHERE	CustID < 1000;
+
+IF	@InputDate = @TempDate
+	RAISERROR(''BalanceUp is not run yet!!!!!'', 16, 1) WITH NOWAIT;
+
+SELECT	@DateName = DATENAME(WEEKDAY, CONVERT(DATE, DATEADD(WEEK, -1, GETDATE())));
 
 IF	@DateName = ''Thursday''
-BEGIN
+BEGIN;
 	SELECT	@count = -7;
-	WHILE	@count < 0 
-	BEGIN
-		SET	@TempDate = DATEADD(DAY, @count, @InputDate);
-		EXECUTE	dbo.Task_archive_rptStatement_Insert @TempDate;	
-		--SELECT	@TempDate;
+	WHILE	@count < 0
+	BEGIN;
+		SELECT	@TempDate = DATEADD(DAY, @Count, @InputDate);
+		EXECUTE	dbo.Task_archive_rptStatement_Insert @TempDate;
 		SELECT	@count = @count + 1;
 	END;
 END;
 ELSE IF	@DateName = ''Friday''
 BEGIN
-	SELECT	@InputDate = DATEADD(DAY, -7, @InputDate);
-	SELECT	@TempDate = MIN(WinlostDate)
-	FROM	rptStatement WITH (NOLOCK);
-	WHILE	@TempDate < @InputDate
-	BEGIN
+	SELECT	@count = -7;
+	WHILE	@count < 0
+	BEGIN;
+		SELECT	@TempDate = DATEADD(DAY, @Count, @InputDate);
 		EXECUTE	dbo.Task_archive_rptStatement_Delete @TempDate;
-		--SELECT @TempDate;
-		SELECT	@TempDate = DATEADD(DAY, 1, @TempDate);
+		SELECT	@count = @count + 1;
 	END;
-END;
+END
 ELSE
-	RAISERROR(''Invalid BalanceUp Date'', 16, 1);
+	RAISERROR (''Invalid BalanceUp Date!!!!!'', 16, 1) WITH NOWAIT;
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP %d ADDED';
+	SELECT	@msg = N'STEP %d UPDATED';
 	RAISERROR(@msg, 0, 0, @loop) WITH NOWAIT;
 END;
 
