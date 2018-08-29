@@ -154,6 +154,7 @@ DECLARE	@Count		INT;
 DECLARE	@DateName	VARCHAR(10);
 
 DECLARE	@MBUDay		AS TABLE (BalanceUpDay SMALLDATETIME, MoveBetsDay SMALLDATETIME);
+DECLARE	@VerifyData	AS TABLE (CustId INT, WinlostDate DATE);
 
 IF	@InputDate IS NULL
 BEGIN;
@@ -164,11 +165,27 @@ BEGIN;
 	FROM	@MBUDay;
 END;
 
-SELECT	@TempDate = DATEADD(DAY, 1, MAX(WinlostDate))
-FROM	dbo.rptStatement_Old WITH (NOLOCK)
-WHERE	CustID < 1000;
+WITH tally AS (
+	SELECT	[rn] = ROW_NUMBER() OVER(ORDER BY (SELECT NULL))
+	FROM	(VALUES (1), (2), (3), (4), (5), (6), (7)) AS a(x)
+)
+INSERT INTO	@VerifyData (CustId, WinlostDate)
+SELECT	vd.CustId, vd.WinlostDate
+FROM	tally AS tmp
+CROSS APPLY	(
+	SELECT	TOP(1)
+			_rst.CustId, _rst.WinlostDate
+	FROM	dbo.rptStatement AS _rst WITH (NOLOCK)
+	WHERE	_rst.WinlostDate = DATEADD(DAY, tmp.rn - 1, @InputDate)
+) AS vd;
 
-IF	@InputDate = @TempDate
+IF	EXISTS (
+		SELECT	TOP(1) 1
+		FROM		dbo.rptStatement_Old AS rso WITH (NOLOCK)
+		INNER JOIN	@VerifyData AS vd
+				ON	rso.CustId = vd.CustId
+				AND	rso.WinlostDate = vd.WinlostDate
+	)
 	RAISERROR(''BalanceUp is not run yet!!!!!'', 16, 1) WITH NOWAIT;
 
 SELECT	@DateName = DATENAME(WEEKDAY, CONVERT(DATE, DATEADD(WEEK, -1, GETDATE())));
