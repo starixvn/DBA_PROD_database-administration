@@ -24,4 +24,4 @@ BEGIN
 		END
 END
 GO
-/*<info serverAlias="DBRPT-bodb_Report" executers="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBRPT-bodb_Report" executers="" viewers="" isFunction="0" isNested="1"></info>*/
