@@ -56,7 +56,10 @@ BEGIN;
 					ON	rso.CustId = vd.CustId
 					AND	rso.WinlostDate = vd.WinlostDate
 		)
+	BEGIN;
 		RAISERROR('BalanceUp is not run yet!!!!!', 16, 1) WITH NOWAIT;
+		RETURN;
+	END;
 
 	SELECT	@DateName = DATENAME(WEEKDAY, CONVERT(DATE, DATEADD(WEEK, -1, GETDATE())));
 
@@ -81,7 +84,10 @@ BEGIN;
 		END;
 	END
 	ELSE
+	BEGIN;
 		RAISERROR ('Invalid BalanceUp Date!!!!!', 16, 1) WITH NOWAIT;
+		RETURN;
+	END;
 END;
 GO
 /*<info serverAlias="DBRPT-bodb_Report" executers="" viewers="" isFunction="0" isNested="0"></info>*/
