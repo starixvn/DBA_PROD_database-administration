@@ -59,6 +59,11 @@ BEGIN;
 END;
 
 -- Add job --
+SELECT	@jobId	= job.job_id
+FROM	msdb.dbo.sysjobs AS job WITH (NOLOCK)
+WHERE	job.name = @jobname;
+
+IF	@@ROWCOUNT = 0 AND @jobId IS NULL
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_add_job
 							@job_name					= @jobname
