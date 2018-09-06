@@ -17,6 +17,7 @@ AS
 		- 20170207@Billy:	Initialization - [Redmine: #70016]
 		- 20180102@Billy:	Add CaseId option - [Redmine: #88932]
 		- 20180202@Billy:	Support Skype notification - [Redmine: #90474]
+		- 20180906@Billy:	Support new Skype notification - [Redmine: #101021]
 
 	Parameters:
 		@ServerName			: The name of server where job's message comes from
@@ -28,17 +29,15 @@ BEGIN
 	SET NOCOUNT ON;
 
 	-- Declare variables & temporary schemas --
-	CREATE TABLE	#JobRoom (
-						JobName			VARCHAR(100)
-					,	TargetName		VARCHAR(128)
-					,	SkypeGroupId	INT
-					);
-
+	DECLARE	@JobRoom	AS TABLE (
+							JobName			VARCHAR(100)
+						,	TargetName		VARCHAR(128)
+						,	SkypeGroupId	INT
+						);
 
 	-- If @JobId and @JobName are both NULL, we cannot identify the job, RETURN --
 	IF	@JobId IS NULL AND @JobName IS NULL
 		RETURN;
-
 
 	-- If @CaseId is invalid, set default 1 --
 	IF	ISNULL(@CaseId, 0) = 0
@@ -46,13 +45,12 @@ BEGIN
 		SELECT	@CaseId = 1;
 	END;
 
-
 	-- Get JobName and TargetName --
 	IF	@JobId IS NOT NULL
 	BEGIN
-		INSERT INTO	#JobRoom
-			(	   JobName, TargetName                                    ,    SkypeGroupId)
-		SELECT	lj.JobName, lr.RoomName + '.' + CAST(lr.RoomId AS VARCHAR), lj.SkypeGroupId
+		INSERT INTO	@JobRoom
+			(	   JobName, TargetName                                    , SkypeGroupId)
+		SELECT	lj.JobName, lr.RoomName + '.' + CAST(lr.RoomId AS VARCHAR), NULL
 		FROM		dbo.DBA_LetstalkJobs	AS lj WITH (NOLOCK)
 		INNER JOIN	dbo.DBA_LetstalkRooms	AS lr WITH (NOLOCK)
 				ON	lj.RoomId = lr.RoomId
@@ -65,9 +63,9 @@ BEGIN
 	END;
 	ELSE
 	BEGIN
-		INSERT INTO	#JobRoom
-			(	   JobName, TargetName                                    ,    SkypeGroupId)
-		SELECT	lj.JobName, lr.RoomName + '.' + CAST(lr.RoomId AS VARCHAR), lj.SkypeGroupId
+		INSERT INTO	@JobRoom
+			(	   JobName, TargetName                                    , SkypeGroupId)
+		SELECT	lj.JobName, lr.RoomName + '.' + CAST(lr.RoomId AS VARCHAR), NULL
 		FROM		dbo.DBA_LetstalkJobs	AS lj WITH (NOLOCK)
 		INNER JOIN	dbo.DBA_LetstalkRooms	AS lr WITH (NOLOCK)
 				ON	lj.RoomId = lr.RoomId
@@ -79,17 +77,12 @@ BEGIN
 		;
 	END;
 
-
 	-- Insert new message to notify --
 	INSERT INTO	dbo.DBA_LetstalkNotifications
 		(	ServerName , Title     , MsgInfo , LogDate  , MessageType,    TargetName, isNoticed,    SkypeGroupId)
 	SELECT	@ServerName, jr.JobName, @Message, GETDATE(), 'JOB'      , jr.TargetName, 0        , jr.SkypeGroupId
-	FROM	#JobRoom AS jr
+	FROM	@JobRoom AS jr
 	;
-
-
-	-- Cleanup temporary tables --
-	DROP TABLE	#JobRoom;
 END;
 GO
 /*<info serverAlias="DBMON-MonDBDW" executers="MonDB_User" viewers="" isFunction="0" isNested="0"></info>*/
