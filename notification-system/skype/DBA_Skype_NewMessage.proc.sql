@@ -7,16 +7,15 @@ ALTER PROCEDURE	dbo.DBA_Skype_NewMessage
 					,	@JobName			VARCHAR(100)	= NULL
 					,	@Message			NVARCHAR(4000)
 					,	@CaseId				TINYINT			= 1
+					,	@isSimple			BIT				= 0
 AS
 /*
-	Creator:	20170207@Billy
-	Task:		Letstalk Notification - Insert new message to notify in Letstalk - Type: JOB - [Redmine: #70016]
+	Creator:	20180906@Billy
+	Task:		Letstalk Notification - Insert new message to notify in Letstalk - Type: JOB - [Redmine: #101021]
 	Database:	DBMON.MonDBDW
 	
 	Revisions:
-		- 20170207@Billy:	Initialization - [Redmine: #70016]
-		- 20180102@Billy:	Add CaseId option - [Redmine: #88932]
-		- 20180202@Billy:	Support Skype notification - [Redmine: #90474]
+		- 20180906@Billy:	Initialization - [Redmine: #101021]
 
 	Parameters:
 		@ServerName			: The name of server where job's message comes from
@@ -30,8 +29,7 @@ BEGIN
 	-- Declare variables & temporary schemas --
 	DECLARE	@JobRoom	AS TABLE (
 							JobName			VARCHAR(100)
-						,	TargetName		VARCHAR(128)
-						,	SkypeGroupId	INT
+						,	SkypeGroupId	VARCHAR(256)
 						);
 
 	-- If @JobId and @JobName are both NULL, we cannot identify the job, RETURN --
@@ -48,40 +46,37 @@ BEGIN
 	IF	@JobId IS NOT NULL
 	BEGIN
 		INSERT INTO	@JobRoom
-			(	   JobName, TargetName                                    ,    SkypeGroupId)
-		SELECT	lj.JobName, lr.RoomName + '.' + CAST(lr.RoomId AS VARCHAR), lj.SkypeGroupId
+			(	   JobName,    SkypeGroupId)
+		SELECT	lj.JobName, sg.SkypeGroupId
 		FROM		dbo.DBA_LetstalkJobs	AS lj WITH (NOLOCK)
-		INNER JOIN	dbo.DBA_LetstalkRooms	AS lr WITH (NOLOCK)
-				ON	lj.RoomId = lr.RoomId
+		INNER JOIN	dbo.DBA_SkypeGroup		AS sg WITH (NOLOCK)
+				ON	lj.SkypeGroupId = sg.GroupId
 		WHERE	lj.ServerName = @ServerName
 			AND	lj.JobId = @JobId		-- Find by @JobId
 			AND	lj.Level >= 3			-- Important Level >= 3
-			AND	lr.isActive = 1			-- Letstalk Room is active
 			AND	lj.CaseId = @CaseId		-- Find by @CaseId
 		;
 	END;
 	ELSE
 	BEGIN
 		INSERT INTO	@JobRoom
-			(	   JobName, TargetName                                    ,    SkypeGroupId)
-		SELECT	lj.JobName, lr.RoomName + '.' + CAST(lr.RoomId AS VARCHAR), lj.SkypeGroupId
+			(	   JobName,    SkypeGroupId)
+		SELECT	lj.JobName, sg.SkypeGroupId
 		FROM		dbo.DBA_LetstalkJobs	AS lj WITH (NOLOCK)
-		INNER JOIN	dbo.DBA_LetstalkRooms	AS lr WITH (NOLOCK)
-				ON	lj.RoomId = lr.RoomId
+		INNER JOIN	dbo.DBA_SkypeGroup		AS sg WITH (NOLOCK)
+				ON	lj.SkypeGroupId = sg.GroupId
 		WHERE	lj.ServerName = @ServerName
 			AND	lj.JobName = @JobName	-- Find by @JobName
 			AND	lj.Level >= 3			-- Important Level >= 3
-			AND	lr.isActive = 1			-- Letstalk Room is active
 			AND	lj.CaseId = @CaseId		-- Find by @CaseId
 		;
 	END;
 
 	-- Insert new message to notify --
-	INSERT INTO	dbo.DBA_LetstalkNotifications
-		(	ServerName , Title     , MsgInfo , LogDate  , MessageType,    TargetName, isNoticed,    SkypeGroupId)
-	SELECT	@ServerName, jr.JobName, @Message, GETDATE(), 'JOB'      , jr.TargetName, 0        , jr.SkypeGroupId
-	FROM	@JobRoom AS jr
-	;
+	INSERT INTO	dbo.DBA_SkypeNotifications
+		(	ServerName,     Title  , MsgInfo , LogDate  ,    SkypeGroupId,         isSimple    , isNoticed)
+	SELECT	@ServerName, jr.JobName, @Message, GETDATE(), jr.SkypeGroupId, ISNULL(@isSimple, 0), 0
+	FROM	@JobRoom AS jr;
 END;
 GO
 /*<info serverAlias="DBMON-MonDBDW" executers="MonDB_User" viewers="" isFunction="0" isNested="0"></info>*/

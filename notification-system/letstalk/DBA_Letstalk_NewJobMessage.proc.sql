@@ -7,6 +7,7 @@ ALTER PROCEDURE	dbo.DBA_Letstalk_NewJobMessage
 					,	@JobName			VARCHAR(100)	= NULL
 					,	@Message			NVARCHAR(4000)
 					,	@CaseId				TINYINT			= 1
+					,	@isSimple			BIT				= 0
 AS
 /*
 	Creator:	20170207@Billy
@@ -81,8 +82,10 @@ BEGIN
 	INSERT INTO	dbo.DBA_LetstalkNotifications
 		(	ServerName , Title     , MsgInfo , LogDate  , MessageType,    TargetName, isNoticed,    SkypeGroupId)
 	SELECT	@ServerName, jr.JobName, @Message, GETDATE(), 'JOB'      , jr.TargetName, 0        , jr.SkypeGroupId
-	FROM	@JobRoom AS jr
-	;
+	FROM	@JobRoom AS jr;
+
+	-- Insert new message for Skype notification --
+	EXECUTE	dbo.DBA_Skype_NewMessage @ServerName = @ServerName, @JobId = @JobId, @JobName = @JobName, @Message = @Message, @CaseId = @CaseId, @isSimple = @isSimple;
 END;
 GO
 /*<info serverAlias="DBMON-MonDBDW" executers="MonDB_User" viewers="" isFunction="0" isNested="0"></info>*/
