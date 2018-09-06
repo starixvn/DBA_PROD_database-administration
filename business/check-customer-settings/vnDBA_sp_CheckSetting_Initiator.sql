@@ -1,5 +1,3 @@
-USE	CheckResultDB;
-GO
 SET ANSI_NULLS ON;
 SET	QUOTED_IDENTIFIER ON;
 GO
@@ -971,6 +969,60 @@ BEGIN
 	SET BetLimitDCS = 1
 	WHERE CustId = @CustId
 	AND BetLimitDCS = 2;
+END;
+
+UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
+SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) - 1
+WHERE	VarKey = N''' + @key + N''';
+';
+		
+		WHILE	@threads > 0
+		BEGIN;
+			BEGIN DIALOG CONVERSATION	@dialog
+			FROM SERVICE	CheckSettingInitiator
+			TO SERVICE		'CheckSettingTarget'
+			ON CONTRACT		CheckSettingContract
+			WITH	ENCRYPTION	= OFF
+				,	LIFETIME	= 172800
+				;
+
+			SEND ON CONVERSATION @dialog MESSAGE TYPE CheckSettingMessage (@Message);
+
+			END CONVERSATION @dialog;
+
+			SELECT	@threads = @threads - 1;
+		END;
+	END;
+	
+	-- Check Bet Limit Deposit -- 3 threads --
+	BEGIN;
+		SELECT	@threads	= 3;
+		UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
+		SET		VarValue	= ISNULL(CAST(VarValue AS SMALLINT), 0) + @threads
+		WHERE	VarKey = @key;
+
+		SELECT	@Message	= N'';
+		SELECT	@Message	= @Message + N'
+SET NOCOUNT ON;
+
+DECLARE @CustId INT;
+
+WHILE 0 = 0
+BEGIN
+	SELECT @CustId = NULL;
+	UPDATE TOP(1) dbo.Deposit_Supers
+	SET @CustId = CustId
+	, BetLimit = 2
+	WHERE BetLimit = 0;
+
+	IF @CustId IS NULL BREAK;
+
+	EXECUTE dbo.DBA_CheckBetLimit_Dep @srecommend = @CustId, @RuleId = 0;
+
+	UPDATE dbo.Deposit_Supers
+	SET BetLimit = 1
+	WHERE CustId = @CustId
+	AND BetLimit = 2;
 END;
 
 UPDATE	dbo.vnDBA_Service_Variables WITH (ROWLOCK)
