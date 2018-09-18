@@ -1,6 +1,10 @@
 /*<info serverAlias="DB06-MonDB,DB052-MonDB,DB053-MonDB,DB05-MonDB" executers="bodbAdminNet,vnteam,vndba" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 USE [MonDB]
 GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 ALTER PROCEDURE [vndba_sp_trace_WebApp]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
@@ -21,6 +25,7 @@ AS
 		
 		Revisions:
 			20161202@Daniel: Support more site
+			20180912@Daniel: Support DBCUST.NAP_UserControl
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -82,7 +87,7 @@ BEGIN
 		END
 		
 	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2')
-		SET @DatabaseNameLike = 'custDB'
+		SELECT @DatabaseNameLike = 'custDB', @DatabaseNameLike2 = 'NAP_UserControl'
 	ELSE IF @Site = 'AFF'
 		SET @DatabaseNameLike = 'Affiliate_%'
 	ELSE IF @Site = 'FPS'
