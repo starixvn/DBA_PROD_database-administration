@@ -1,4 +1,3 @@
-/*<info serverAlias="DB06-MonDB,DB052-MonDB,DB053-MonDB,DB05-MonDB" executers="bodbAdminNet,vnteam,vndba" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 USE [MonDB]
 GO
 SET ANSI_NULLS ON
@@ -26,6 +25,7 @@ AS
 		Revisions:
 			20161202@Daniel: Support more site
 			20180912@Daniel: Support DBCUST.NAP_UserControl
+			20180917@Daniel: Support Core .NET service app
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -103,10 +103,9 @@ BEGIN
 	IF (@@SERVERNAME IN('DB052', 'DB054') AND @Site = 'NAP')
 		SET @DatabaseNameLike2 = 'bk'
 
-
 	EXEC vndba_sp_Trace
 		@TraceTimer = @TraceTimer,
-		@AppNameLike = '.Net SqlClient Data Provider',
+		@AppNameLike = '%.Net SqlClient Data Provider',
 		@LoginNameLike = @LoginNameLike,
 		@DatabaseNameLike = @DatabaseNameLike,
 		@DatabaseNameLike2 = @DatabaseNameLike2,
