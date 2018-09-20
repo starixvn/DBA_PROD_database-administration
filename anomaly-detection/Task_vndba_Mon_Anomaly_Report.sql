@@ -25,16 +25,18 @@ BEGIN
 		--@fromDate = dateadd(hour, -24, GetDate()), 
 		--@toDate = GetDate()
 		@type = 0, @topBy = 'All',
-		@fromDate = '2018-9-16', 
-		@toDate = GetDate()
+		@fromDate = dateadd(day, -2, GetDate()), @toDate = GetDate()
+		--@fromDate = dateadd(month, -1, GetDate()), @toDate = GetDate()
 
 	insert @ServerList(ServerName, DBName)
 	select 'DBTRANS', 'bodb02' union all
-	select 'DBTRANS', 'IntgTransDB' union all
+	--select 'DBTRANS', 'IntgTransDB' union all
 
 	select 'DBCUST', 'custdb' union all 
-	select 'DBCUST', 'SiteConfig' union all 
-	select 'DBCUST', 'NAP_UserControl' union all
+	--select 'DBCUST', 'SiteConfig' union all 
+	--select 'DBCUST', 'NAP_UserControl' union all
+
+	select 'DB02', 'bodb02' union all 
 
 	select 'DB042', 'bodb02' union all
 
@@ -47,11 +49,11 @@ BEGIN
 	select 'DB052', 'bodb_CustomerLog' union all
 
 	select 'DB053', 'bodb02' union all 
-	select 'DB053', 'bodb_AGE' union all
-	select 'DB053', 'bodb_ChatBot' union all
+	--select 'DB053', 'bodb_AGE' union all
+	--select 'DB053', 'bodb_ChatBot' union all
 
 	select 'DB054', 'bodb02' union all 
-	select 'DB054', 'bodb_AGE' union all 
+	--select 'DB054', 'bodb_AGE' union all 
 
 	select 'DB06', 'bodb02' union all 
 	select 'DB06', 'bodb_Report' union all 
@@ -70,7 +72,7 @@ BEGIN
 			@toDate = @toDate, 
 			@TopBy = @topBy, 
 			@type = @type
-			,@MailTo = 'daniel.truong@starixsoft.com'
+			,@MailTo = 'pontus@starixsoft.com'
 		--End process item
 		
 		delete @ServerList where [ID] = @ID

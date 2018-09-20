@@ -192,7 +192,7 @@ BEGIN
 				, @body_format ='HTML'
 				, @sensitivity = 'Personal'
 				, @importance = 'Normal'
-				, @copy_recipients = 'daniel.truong@starixsoft.com'
+				, @copy_recipients = ''
 				, @subject = @subject
 				, @profile_name = @profile_name
 		END
@@ -256,7 +256,7 @@ BEGIN
 			, @body_format ='HTML'
 			, @sensitivity = 'Personal'
 			, @importance = 'Normal'
-			, @copy_recipients = 'daniel.truong@starixsoft.com'
+			, @copy_recipients = ''
 			, @subject = @subject
 			, @profile_name = @profile_name
 	END
