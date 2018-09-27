@@ -106,7 +106,7 @@ BEGIN;
 				) AS _r
 				CROSS APPLY	(
 					SELECT	N'
->  - ' + _rm.Emoticon + N' ' + _rm.ObjectName + N'[' + CONVERT(NVARCHAR(32), _rm.CounterName, 121) + N'] = ' + CONVERT(NVARCHAR(32), _rm.CounterValue)
+    \- ' + _rm.Emoticon + N' ' + _rm.ObjectName + N'[' + CONVERT(NVARCHAR(32), _rm.CounterName, 121) + N'] = ' + CONVERT(NVARCHAR(32), _rm.CounterValue)
 					FROM	@result AS _rm
 					WHERE	_rm.MachineName = _r.MachineName
 						AND	_rm.IsLetstalk = 1
@@ -137,7 +137,7 @@ BEGIN;
 
 		IF	EXISTS (SELECT 1 FROM @result WHERE IsLetstalk = 0)
 		BEGIN;
-			SELECT	@message = N'SYSTEM ALERT - ' + CONVERT(NVARCHAR, @alertTime, 120) + rs.str
+			SELECT	@message = N'(bell) SYSTEM ALERT - ' + CONVERT(NVARCHAR, @alertTime, 120) + rs.str
 			FROM	(
 				SELECT	N'
 
@@ -150,7 +150,7 @@ BEGIN;
 				) AS _r
 				CROSS APPLY	(
 					SELECT	N'
->  - ' + _rm.Emoticon + N' ' + _rm.ObjectName + N'[' + CONVERT(NVARCHAR(32), _rm.CounterName, 121) + N'] = ' + CONVERT(NVARCHAR(32), _rm.CounterValue)
+    \- ' + _rm.Emoticon + N' ' + _rm.ObjectName + N'[' + CONVERT(NVARCHAR(32), _rm.CounterName, 121) + N'] = ' + CONVERT(NVARCHAR(32), _rm.CounterValue)
 					FROM	@result AS _rm
 					WHERE	_rm.MachineName = _r.MachineName
 						AND	_rm.IsLetstalk = 0
