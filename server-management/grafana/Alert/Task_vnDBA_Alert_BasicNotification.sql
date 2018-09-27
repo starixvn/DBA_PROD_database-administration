@@ -87,10 +87,10 @@ BEGIN;
 			AND	d.CounterTime > DATEADD(SECOND, -30, GETDATE())
 			AND	ex.MachineName IS NULL;
 
-		IF	EXISTS (SELECT 1 FROM @result)
-		BEGIN;
-			SELECT	@alertTime = GETDATE();
+		SELECT	@alertTime = GETDATE();
 
+		IF	EXISTS (SELECT 1 FROM @result WHERE IsLetstalk = 1)
+		BEGIN;
 			SELECT	@message = N'SYSTEM ALERT - ' + CONVERT(NVARCHAR, @alertTime, 120) + rs.str
 			FROM	(
 				SELECT	N'
@@ -128,7 +128,13 @@ BEGIN;
 					,	@Message	= @message
 					,	@isSimple	= 1
 					;
-					
+
+			SELECT	@message = N'Alerted - ' + CONVERT(NVARCHAR(32), GETDATE(), 121);
+			RAISERROR(@message, 0, 0) WITH NOWAIT;
+		END;
+
+		IF	EXISTS (SELECT 1 FROM @result WHERE IsLetstalk = 0)
+		BEGIN;
 			SELECT	@message = N'SYSTEM ALERT - ' + CONVERT(NVARCHAR, @alertTime, 120) + rs.str
 			FROM	(
 				SELECT	N'
@@ -167,13 +173,12 @@ BEGIN;
 					,	@isSimple	= 1
 					;
 
-			SELECT	@message = N'Alerted - ' + CONVERT(NVARCHAR(32), GETDATE(), 121);
+			SELECT	@message = N'Alerted Skype - ' + CONVERT(NVARCHAR(32), GETDATE(), 121);
 			RAISERROR(@message, 0, 0) WITH NOWAIT;
-
-			DELETE @result;
 		END;
 
 		WAITFOR DELAY '00:00:10.000';
+		DELETE @result;
 	END;
 END;
 GO
