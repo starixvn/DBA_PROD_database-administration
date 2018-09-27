@@ -29,6 +29,7 @@ BEGIN;
 			,	CounterName		VARCHAR(1024)
 			,	Threshold		DECIMAL(19,9)
 			,	IsLetstalk		BIT
+			,	Emoticon		VARCHAR(50)
 			);
 
 	DECLARE	@excluded AS TABLE (
@@ -42,11 +43,12 @@ BEGIN;
 			,	CounterTime		DATETIME
 			,	CounterValue	DECIMAL(19,2)
 			,	IsLetstalk		BIT
+			,	Emoticon		VARCHAR(50)
 			)
 
-	INSERT INTO @capturing (ObjectName, CounterName, Threshold, IsLetstalk)
-	VALUES	('SQLServer:General Statistics', 'Processes blocked', 2, 0)
-		,	('Processor', '% Processor Time', 60, 1)
+	INSERT INTO @capturing (ObjectName, CounterName, Threshold, IsLetstalk, Emoticon)
+	VALUES	('SQLServer:General Statistics', 'Processes blocked', 2, 0, '(confidential)')
+		,	('Processor', '% Processor Time', 60, 1, '(aokijump)')
 		;
 
 	INSERT INTO	@excluded (MachineName)
@@ -62,8 +64,8 @@ BEGIN;
 
 	WHILE	0 = 0
 	BEGIN;
-		INSERT INTO	@result (MachineName, ObjectName, CounterName, CounterTime, CounterValue, IsLetstalk)
-		SELECT	c.MachineName, c.ObjectName, c.CounterName, d.CounterTime, d.MaxCounterValue, input.IsLetstalk
+		INSERT INTO	@result (MachineName, ObjectName, CounterName, CounterTime, CounterValue, IsLetstalk, Emoticon)
+		SELECT	c.MachineName, c.ObjectName, c.CounterName, d.CounterTime, d.MaxCounterValue, input.IsLetstalk, input.Emoticon
 		FROM		@capturing AS input
 		INNER JOIN	dbo.CounterDetails AS c WITH (NOLOCK)
 				ON	input.ObjectName = c.ObjectName
@@ -91,7 +93,7 @@ BEGIN;
 
 		IF	EXISTS (SELECT 1 FROM @result WHERE IsLetstalk = 1)
 		BEGIN;
-			SELECT	@message = N'SYSTEM ALERT - ' + CONVERT(NVARCHAR, @alertTime, 120) + rs.str
+			SELECT	@message = N'(bell) SYSTEM ALERT - ' + CONVERT(NVARCHAR, @alertTime, 120) + rs.str
 			FROM	(
 				SELECT	N'
 
@@ -104,7 +106,7 @@ BEGIN;
 				) AS _r
 				CROSS APPLY	(
 					SELECT	N'
-    - ' + _rm.ObjectName + N'[' + CONVERT(NVARCHAR(32), _rm.CounterName, 121) + N'] = ' + CONVERT(NVARCHAR(32), _rm.CounterValue)
+>  - ' + _rm.Emoticon + N' ' + _rm.ObjectName + N'[' + CONVERT(NVARCHAR(32), _rm.CounterName, 121) + N'] = ' + CONVERT(NVARCHAR(32), _rm.CounterValue)
 					FROM	@result AS _rm
 					WHERE	_rm.MachineName = _r.MachineName
 						AND	_rm.IsLetstalk = 1
@@ -148,7 +150,7 @@ BEGIN;
 				) AS _r
 				CROSS APPLY	(
 					SELECT	N'
-    - ' + _rm.ObjectName + N'[' + CONVERT(NVARCHAR(32), _rm.CounterName, 121) + N'] = ' + CONVERT(NVARCHAR(32), _rm.CounterValue)
+>  - ' + _rm.Emoticon + N' ' + _rm.ObjectName + N'[' + CONVERT(NVARCHAR(32), _rm.CounterName, 121) + N'] = ' + CONVERT(NVARCHAR(32), _rm.CounterValue)
 					FROM	@result AS _rm
 					WHERE	_rm.MachineName = _r.MachineName
 						AND	_rm.IsLetstalk = 0
