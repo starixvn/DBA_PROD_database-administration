@@ -69,7 +69,7 @@ INSERT INTO	dbo.DBA_Archive_DeviceSingleAssociation (SubscriberId, DeviceId)
 SELECT	@SubscriberId, DeviceId
 FROM	OPENQUERY(~~Server~~, N''
 DECLARE	@ArchiveDate DATETIME = ''''' + CONVERT(NVARCHAR, @ArchiveDate, 120) + N''''';
-SELECT	DeviceId, [AccountCnt] = COUNT(DISTINCT AccountId)
+SELECT	DeviceId
 FROM	~~Database~~.dbo.Associations WITH (NOLOCK)
 GROUP BY DeviceId
 HAVING	MAX(LastAccessedDate) < @ArchiveDate
