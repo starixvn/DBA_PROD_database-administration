@@ -1,10 +1,13 @@
+/*<info serverAlias="DB06-MonDB,DB052-MonDB,DB053-MonDB,DB05-MonDB" executers="bodbAdminNet,vnteam,vndba" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 USE [MonDB]
 GO
+
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-ALTER PROCEDURE [vndba_sp_trace_WebApp]
+
+CREATE PROCEDURE [vndba_sp_trace_WebApp]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
 	@TextDataLike NVARCHAR(256),
@@ -26,6 +29,7 @@ AS
 			20161202@Daniel: Support more site
 			20180912@Daniel: Support DBCUST.NAP_UserControl
 			20180917@Daniel: Support Core .NET service app
+			20181011@Daniel: Support more databases @DBCUST
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -69,7 +73,8 @@ BEGIN
 		RETURN
 	END
 
-	DECLARE @LoginNameLike NVARCHAR(30), @DatabaseNameLike NVARCHAR(30), @DatabaseNameLike2 NVARCHAR(30) = ''
+	DECLARE @LoginNameLike NVARCHAR(30), @DatabaseNameLike NVARCHAR(30), @DatabaseNameLike2 NVARCHAR(30) = '',
+			 @DatabaseNameLike3 NVARCHAR(30), @DatabaseNameLike4 NVARCHAR(30) = ''
 
 	SELECT 
 		@LoginNameLike = 
@@ -87,7 +92,10 @@ BEGIN
 		END
 		
 	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2')
-		SELECT @DatabaseNameLike = 'custDB', @DatabaseNameLike2 = 'NAP_UserControl'
+		SELECT @DatabaseNameLike = 'custDB', 
+			@DatabaseNameLike2 = 'NAP_UserControl',
+			@DatabaseNameLike3 = 'SiteConfig',
+			@DatabaseNameLike4 = 'bodb_Licensee'
 	ELSE IF @Site = 'AFF'
 		SET @DatabaseNameLike = 'Affiliate_%'
 	ELSE IF @Site = 'FPS'
@@ -109,6 +117,8 @@ BEGIN
 		@LoginNameLike = @LoginNameLike,
 		@DatabaseNameLike = @DatabaseNameLike,
 		@DatabaseNameLike2 = @DatabaseNameLike2,
+		@DatabaseNameLike3 = @DatabaseNameLike3,
+		@DatabaseNameLike4 = @DatabaseNameLike4,
 		@MinCPU = 0,
 		@TextDataLike = @TextDataLike,
 		@TextDataLike2 = @TextDataLike2,
@@ -119,5 +129,18 @@ BEGIN
 		@HasError = @HasError output,
 		@ErrorMsg = @ErrorMsg output
 END
+
+
+
+GO
+
+GRANT EXECUTE ON [vndba_sp_trace_WebApp] TO [bodbAdminNet] AS [dbo]
+GO
+
+GRANT EXECUTE ON [vndba_sp_trace_WebApp] TO [vnDBA] AS [dbo]
+GO
+
+GRANT EXECUTE ON [vndba_sp_trace_WebApp] TO [vnteam] AS [dbo]
+GO
 
 

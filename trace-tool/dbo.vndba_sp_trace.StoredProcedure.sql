@@ -1,12 +1,23 @@
 /*<info serverAlias="DB06-MonDB,DB052-MonDB,DB053-MonDB,DB05-MonDB" executers="bodbAdminNet,vnteam,vndba" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
-USE [MONDB]
+USE [MonDB]
 GO
-ALTER PROCEDURE [vndba_sp_trace]
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+CREATE PROCEDURE [vndba_sp_trace]
 	@TraceTimer INT = 30,
 	@AppNameLike NVARCHAR(30) = '',
 	@LoginNameLike NVARCHAR(30),
 	@DatabaseNameLike NVARCHAR(30),
-	@DatabaseNameLike2 NVARCHAR(30) = '',		
+	@DatabaseNameLike2 NVARCHAR(30) = '',
+	@DatabaseNameLike3 NVARCHAR(30) = '',
+	@DatabaseNameLike4 NVARCHAR(30) = '',	
 	@MinCPU INT = 0,
 	@TextDataLike NVARCHAR(256),
 	@TextDataLike2 NVARCHAR(256) = '',
@@ -25,6 +36,7 @@ AS
 		
 		Revisions:
 			20170712@Daniel: Add write column data
+			20181011@Daniel: Support more DB filter @DatabaseNameLike3/4
 		
 		Parameter's Explanation:
 		  . @TraceTimer: Set trace duration string in seconds, not allow set more than 30min/1800s
@@ -409,7 +421,24 @@ BEGIN
 		@comparison_operator = 6, --LIKE
 		@value = @DatabaseNameLike2
 END	
-
+IF (@DatabaseNameLike3 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 35,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @DatabaseNameLike3
+END
+IF (@DatabaseNameLike4 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 35,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @DatabaseNameLike4
+END	
 --Set trace filter on @MinCPU (18)
 IF (@MinCPU > 0)
 BEGIN
@@ -470,3 +499,11 @@ BEGIN
 END
 
 
+
+GO
+
+GRANT EXECUTE ON [vndba_sp_trace] TO [vnDBA] AS [dbo]
+GO
+
+GRANT EXECUTE ON [vndba_sp_trace] TO [vnteam] AS [dbo]
+GO
