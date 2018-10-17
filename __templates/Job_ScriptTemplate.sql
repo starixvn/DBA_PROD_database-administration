@@ -14,24 +14,24 @@ GO
 BEGIN TRANSACTION;
 
 DECLARE @ReturnCode		INT
-	,	@jobId			BINARY(16)
-	,	@loop			INT
-	,	@stepname		NVARCHAR(128)
-	,	@msg			NVARCHAR(MAX)
+	,	@JobId			BINARY(16)
+	,	@Loop			INT
+	,	@StepName		NVARCHAR(128)
+	,	@Msg			NVARCHAR(MAX)
 	;
 
 -- Input --
-DECLARE	@category		NVARCHAR(128)	= N''
-	,	@jobname		NVARCHAR(128)	= N''
-	,	@description	NVARCHAR(512)	= N''
-	,	@emailoperator	NVARCHAR(128)	= N''
-	,	@steps			INT				= 0
+DECLARE	@Category		NVARCHAR(128)	= N''
+	,	@JobName		NVARCHAR(128)	= N''
+	,	@Description	NVARCHAR(512)	= N''
+	,	@EmailOperator	NVARCHAR(128)	= N''
+	,	@Steps			INT				= 0
 	;
 
 SELECT	@ReturnCode		= 0;
 
-IF	ISNULL(@category, N'') = N''
-OR	ISNULL(@jobname, N'') = N''
+IF	ISNULL(@Category, N'') = N''
+OR	ISNULL(@JobName, N'') = N''
 BEGIN;
 	RAISERROR('Invalid Input!', 16, 1) WITH NOWAIT;
 	RETURN;
@@ -41,100 +41,107 @@ END;
 IF	NOT EXISTS (
 		SELECT	ctg.name
 		FROM	msdb.dbo.syscategories AS ctg WITH (NOLOCK)
-		WHERE	ctg.name = @category
+		WHERE	ctg.name = @Category
 			AND	ctg.category_class = 1
 	)
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_add_category
 							@class	= N'JOB'
 						,	@type	= N'LOCAL'
-						,	@name	= @category
+						,	@name	= @Category
 						;
 	
 	IF	@@ERROR <> 0 OR	@ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'CATEGORY ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'CATEGORY [%s] ADDED';
+	RAISERROR(@Msg, 0, 0, @Category) WITH NOWAIT;
 END;
 
 -- Add job --
-SELECT	@jobId	= job.job_id
+SELECT	@JobId	= job.job_id
 FROM	msdb.dbo.sysjobs AS job WITH (NOLOCK)
-WHERE	job.name = @jobname;
+WHERE	job.name = @JobName;
 
-IF	@@ROWCOUNT = 0 AND @jobId IS NULL
+IF	@@ROWCOUNT = 0 AND @JobId IS NULL
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_add_job
-							@job_name					= @jobname
-						,	@job_id						= @jobId OUTPUT
+							@job_name					= @JobName
+						,	@job_id						= @JobId OUTPUT
 						;
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'JOB ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'JOB [%s] ADDED';
+	RAISERROR(@Msg, 0, 0, @JobName) WITH NOWAIT;
+END;
+ELSE
+BEGIN;
+	SELECT	@Msg = N'~~ JOB EXISTS ~~';
+	RAISERROR(@Msg, 0, 0) WITH NOWAIT;
+	
+	GOTO QuitWithRollback;
 END;
 
 -- Init job steps --
 BEGIN;
-	SELECT	@loop	= 1
+	SELECT	@Loop	= 1
 		;
 
-	WHILE	@loop <= @steps
+	WHILE	@Loop <= @Steps
 	BEGIN;
-		SELECT	@stepname	= N'Step ' + CAST(@loop AS NVARCHAR);
+		SELECT	@StepName	= N'Step ' + CAST(@Loop AS NVARCHAR);
 
 		EXECUTE	@ReturnCode	= msdb.dbo.sp_add_jobstep
-								@job_id						= @jobId
-							,	@step_name					= @stepname
-							,	@step_id					= @loop
+								@job_id						= @JobId
+							,	@step_name					= @StepName
+							,	@step_id					= @Loop
 							;
 					
 		IF	@@ERROR <> 0 OR @ReturnCode <> 0
 			GOTO QuitWithRollback;
 
-		SELECT	@loop = @loop + 1;
+		SELECT	@Loop = @Loop + 1;
 	END;
 
-	SELECT	@msg = N'INITIATED ' + CAST(@steps AS NVARCHAR) + N' STEPS';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'INITIATED ' + CAST(@Steps AS NVARCHAR) + N' STEPS';
+	RAISERROR(@Msg, 0, 0) WITH NOWAIT;
 END;
 
 -- Define job --
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_job
-							@job_id						= @jobId
-						,	@new_name					= @jobname
+							@job_id						= @JobId
+						,	@new_name					= @JobName
 						,	@enabled					= 1
 						,	@notify_level_eventlog		= 0
 						,	@notify_level_email			= 2
 						,	@notify_level_netsend		= 0
 						,	@notify_level_page			= 0
 						,	@delete_level				= 0
-						,	@description				= @description
-						,	@category_name				= @category
+						,	@description				= @Description
+						,	@category_name				= @Category
 						,	@owner_login_name			= N'sa'
-						,	@notify_email_operator_name	= @emailoperator
+						,	@notify_email_operator_name	= @EmailOperator
 						;
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'JOB ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'JOB [%s] UPDATED';
+	RAISERROR(@Msg, 0, 0, @JobName) WITH NOWAIT;
 END;
 
 -- Define job steps --
 ---- Step 1 ----
 BEGIN;
-	SELECT	@loop = 1;
+	SELECT	@Loop = 1;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'CmdExec'
-						,	@step_id					= @loop
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -151,18 +158,18 @@ BEGIN;
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP %d ADDED';
-	RAISERROR(@msg, 0, 0, @loop) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d ADDED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 2 ----
 BEGIN;
-	SELECT	@loop = 2;
+	SELECT	@Loop = 2;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'TSQL'
-						,	@step_id					= @loop
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -179,28 +186,28 @@ BEGIN;
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP %d ADDED';
-	RAISERROR(@msg, 0, 0, @loop) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Job start at step ----
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_job
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@start_step_id				= 1
 						;
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'UPDATED START STEP';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'UPDATED START STEP';
+	RAISERROR(@Msg, 0, 0) WITH NOWAIT;
 END;
 
 -- Job schedule --
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_add_jobschedule
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@name						= N''
 						,	@enabled					= 1
 						,	@freq_type					= 8
@@ -218,28 +225,28 @@ BEGIN;
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'ADDED JOB SCHEDULE';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'ADDED JOB SCHEDULE';
+	RAISERROR(@Msg, 0, 0) WITH NOWAIT;
 END;
 
 -- Job server --
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_add_jobserver
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@server_name				= N'(local)'
 						;
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'JOB SERVER ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'JOB SERVER ADDED';
+	RAISERROR(@Msg, 0, 0) WITH NOWAIT;
 END;
 
 -- All success -- Commit changes --
 COMMIT TRANSACTION;
-SELECT	@msg = N'*** JOB CREATED SUCCESSFULLY ***';
-RAISERROR(@msg, 0, 0) WITH NOWAIT;
+SELECT	@Msg = N'*** JOB CREATED SUCCESSFULLY ***';
+RAISERROR(@Msg, 0, 0) WITH NOWAIT;
 GOTO EndSave;
 
 -- Jump point -- Failure --
