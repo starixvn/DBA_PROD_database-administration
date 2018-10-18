@@ -10,6 +10,7 @@ AS
 	DB: DB052.bodb02
 	
 	Revisions:
+		- 20121120@Viet:	Initialize - [Redmine: #000000]
 		
 	Paramters Explanation:
 */

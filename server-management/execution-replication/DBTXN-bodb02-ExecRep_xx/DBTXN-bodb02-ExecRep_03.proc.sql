@@ -6,7 +6,8 @@ ALTER PROCEDURE [dbo].[ExecRep_03]
 	@neweventdate smalldatetime
 AS
 /*
-20150121@Martin(DBTrans):Update Bettransm winlost date if exist when match eventdate changed.
+	Revisions:
+		20150121@Martin(DBTrans):Update Bettransm winlost date if exist when match eventdate changed.
 */
 BEGIN
 	IF @matchid <> 0

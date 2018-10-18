@@ -8,7 +8,9 @@ AS
 	Date: 20140418
 	Task: daily RNG Casino movement
 	DB: DBTRANS.BODB02
+
 	Revisions:
+		- 20140418@Victor:	Initialize - [Redmine: #000000]
 */
 BEGIN;
 	SET NOCOUNT ON

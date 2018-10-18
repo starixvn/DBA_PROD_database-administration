@@ -9,8 +9,9 @@ AS
 	Created: 20160908@Patrick
 	Task: Task - Record endtime for MovingBet & ArchivingBet Jobs
 	DB: DBTXN/bodb02
-	Revisions:
 
+	Revisions:
+		- 20160908@Patrick:	Initialize - [Redmine: #000000]
 */
 BEGIN
 	SET NOCOUNT ON

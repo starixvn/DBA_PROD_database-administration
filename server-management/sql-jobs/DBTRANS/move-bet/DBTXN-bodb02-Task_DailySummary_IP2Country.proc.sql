@@ -5,7 +5,18 @@ CREATE PROCEDURE [dbo].[Task_DailySummary_IP2Country]
 	@winlostdate smalldatetime,
 	@target varchar(20) = 'all'
 AS
-
+/*
+ 	Creator:	@
+ 	Task:		Description - [Redmine: #00000]
+ 	Database:	
+ 	
+ 	Revisions:
+ 		- yyyymmdd@Creator:	Initial - [Redmine: #00000]
+ 		
+ 	Developer's Notes:
+ 		- @Example:			NULL		- Explaination [DEFAULT]
+ 		
+ */
 CREATE TABLE #tmp1 (transid bigint PRIMARY KEY, winlostdate smalldatetime, IP varchar(15))
 CREATE TABLE #tmp2 (IP varchar(15) PRIMARY KEY, IPKey tinyint default 0, IPLong bigint default 0, countryShort varchar(2) default NULL)
 CREATE INDEX IX_cs ON #tmp2 (countryShort)

@@ -6,8 +6,9 @@ CREATE PROCEDURE [dbo].[Bet_ExecRep_08]
 	@neweventdate smalldatetime
 AS
 /*
-20150121@Martin(DBTrans):Update Bettransm winlost date if exist when match eventdate changed.
-20150904@Martin(DBTrans):From Victor's Project need, add translog and bettransg table need update winlostdate
+	Revisions:
+		20150121@Martin(DBTrans):Update Bettransm winlost date if exist when match eventdate changed.
+		20150904@Martin(DBTrans):From Victor's Project need, add translog and bettransg table need update winlostdate
 */
 BEGIN
 	IF @matchid <> 0

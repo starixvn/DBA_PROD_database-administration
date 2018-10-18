@@ -15,7 +15,8 @@ AS
 			7 : MatchReportDetail		no replication
 			8 : odds_maxbet				replicatoin [DB02_Odds_Small], [DB02_Sync_DR]
 
---20171018@change Clean up job use Replicaiton , execute from SP:DBA_CleanDataRelatedMatchandOddsTable
+	Revisions:
+		--20171018@change Clean up job use Replicaiton , execute from SP:DBA_CleanDataRelatedMatchandOddsTable
 */
 BEGIN
 

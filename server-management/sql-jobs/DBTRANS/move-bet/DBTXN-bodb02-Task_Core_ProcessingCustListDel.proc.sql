@@ -8,8 +8,9 @@ AS
 	Created: 20170914@Patrick
 	Task: Delete data on table ProcessingCustList
 	DB: DBTXN.BODB02
-	Revisions:   
- 
+
+	Revisions
+		- 20170914@Patrick:	Initialize - [Redmine: #000000]
  */
 BEGIN
 	SET NOCOUNT ON

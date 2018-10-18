@@ -23,6 +23,18 @@ CREATE PROCEDURE [dbo].[Bet_ExecRep_01]
 	@maxTransIDms varchar(2000) = '' OUTPUT,
 	@ticketCountms varchar(2000) = '' OUTPUT
 AS
+/*
+	Creator:	20101103@Joe
+	Task:		Description - [Redmine: #00000]
+	Database:	DBTXN.bodb02
+	
+	Revisions:
+		- 20101103@Joe:		Initial - [Redmine: #00000]
+		
+	Developer's Notes:
+		- @Example:			NULL		- Explaination [DEFAULT]
+		
+*/
 SET NOCOUNT ON
 
 IF @matchid IS NULL RETURN

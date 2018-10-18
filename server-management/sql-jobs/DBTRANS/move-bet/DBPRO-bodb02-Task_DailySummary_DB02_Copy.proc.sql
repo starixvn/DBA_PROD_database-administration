@@ -9,33 +9,35 @@ AS
 -- call by TransDB : Task_DailySummary
 
 -- move match/odds/outright/bingoBall/SS_GameState/VSOutright into [14] table
--- 20110802@Sylvia: Insert Dot_Admin_Assignment_Operator to archive
--- 20121014@Viet: add match.homeid2,match.awayid2
--- 20121031@Sylvia: 1.add odds.Resourceid, odds.ResultKey
---					2.add move SS_GameState table
--- 20130520@Victor: add move data into VSOutright14 table
--- 20140911@Lukas: add table MatchMaxbet14
--- 20141006@Lukas: remove table SS_GameState14
--- 20141024@Lukas: add table ResultDetail14
--- 20141225@Jamie: Add OtherInfo into ResultDetail14
--- 20150306@Cooper: Add MatchMaxbet.Spread into MatchMaxbet14
--- 20150506@Victor(DB02): Add ParentID to Match14 and Match_BK
--- 20150720@Sophia: Add ResultDetail3rd14 table
--- 20151225@Sophia: Add EventInfo3rd14 table for Cockfighting 
--- 20160302@Joychen: Add column  [cs99],[bal99] on odds For PH 
--- 20160421@Sophia: Add AutoPayoutResult, ProviderResultDetail tables [Redmine: #49958]
--- 20160715@Sylvia: add column autosuspend on outright/outright14
--- 20161024@Patrick: Instant integration [Redmine: #66157]
-			+ Add new identity field to AutoPayoutResult/AutoPayoutResult14 & ProviderResultDetail/ProviderResultDetail14
-			+ Add new IsConfirmed field to ProviderResultDetail/ProviderResultDetail14
-			+ Add new AutoSetting field to Match, Match14 & League
--- 20170721@Billy: Add odds3rd table - [Redmine: #80382]
--- 20171213@Sylvia: add columns EventID/Year on outright/outright14
--- 20171220@Billy:	Add Match3rd table - [Redmine: #88506]
--- 20180122@Billy:	Add [GameResultDate] column of [Match3rd] - [Redmine: #89833]
--- 20180328@Billy:	Add [ResourceId] column of [ResultDetail3rd] - [Redmine: #91959]
--- 20180405@Billy:	Add [cs04], [cs05], [ResourceId] columns of [Odds3rd] - [Redmine: #93175]
--- 20180514@Patrick: Copy data from active to [14] batch by batch
+
+	Revisions:
+		-- 20110802@Sylvia: Insert Dot_Admin_Assignment_Operator to archive
+		-- 20121014@Viet: add match.homeid2,match.awayid2
+		-- 20121031@Sylvia: 1.add odds.Resourceid, odds.ResultKey
+		--					2.add move SS_GameState table
+		-- 20130520@Victor: add move data into VSOutright14 table
+		-- 20140911@Lukas: add table MatchMaxbet14
+		-- 20141006@Lukas: remove table SS_GameState14
+		-- 20141024@Lukas: add table ResultDetail14
+		-- 20141225@Jamie: Add OtherInfo into ResultDetail14
+		-- 20150306@Cooper: Add MatchMaxbet.Spread into MatchMaxbet14
+		-- 20150506@Victor(DB02): Add ParentID to Match14 and Match_BK
+		-- 20150720@Sophia: Add ResultDetail3rd14 table
+		-- 20151225@Sophia: Add EventInfo3rd14 table for Cockfighting 
+		-- 20160302@Joychen: Add column  [cs99],[bal99] on odds For PH 
+		-- 20160421@Sophia: Add AutoPayoutResult, ProviderResultDetail tables [Redmine: #49958]
+		-- 20160715@Sylvia: add column autosuspend on outright/outright14
+		-- 20161024@Patrick: Instant integration [Redmine: #66157]
+					+ Add new identity field to AutoPayoutResult/AutoPayoutResult14 & ProviderResultDetail/ProviderResultDetail14
+					+ Add new IsConfirmed field to ProviderResultDetail/ProviderResultDetail14
+					+ Add new AutoSetting field to Match, Match14 & League
+		-- 20170721@Billy: Add odds3rd table - [Redmine: #80382]
+		-- 20171213@Sylvia: add columns EventID/Year on outright/outright14
+		-- 20171220@Billy:	Add Match3rd table - [Redmine: #88506]
+		-- 20180122@Billy:	Add [GameResultDate] column of [Match3rd] - [Redmine: #89833]
+		-- 20180328@Billy:	Add [ResourceId] column of [ResultDetail3rd] - [Redmine: #91959]
+		-- 20180405@Billy:	Add [cs04], [cs05], [ResourceId] columns of [Odds3rd] - [Redmine: #93175]
+		-- 20180514@Patrick: Copy data from active to [14] batch by batch
 */
 
 BEGIN
