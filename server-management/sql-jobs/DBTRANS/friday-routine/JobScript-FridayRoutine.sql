@@ -5,6 +5,7 @@
 	Revision:
 		- 20180725@Billy:	Initiate on GIT - [Redmine: #00000]
 		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
+		- 20181018@Billy:	Update Category - [Redmine: #103430]
 */
 
 SET NOCOUNT ON;
@@ -15,93 +16,134 @@ GO
 BEGIN TRANSACTION;
 
 DECLARE @ReturnCode		INT
-	,	@jobId			BINARY(16)
-	,	@steps			INT
-	,	@loop			INT
-	,	@stepname		NVARCHAR(128)
-	,	@msg			NVARCHAR(MAX)
+	,	@JobId			BINARY(16)
+	,	@Loop			INT
+	,	@StepName		NVARCHAR(128)
+	,	@Msg			NVARCHAR(MAX)
+	;
+	
+-- Input --
+DECLARE	@Category		NVARCHAR(128)	= N'MoveBet/BalanceUp'
+	,	@JobName		NVARCHAR(128)	= N'Joe : DBTRANS_bodb02 : Friday routine'
+	,	@Description	NVARCHAR(512)	= N'No description available.'
+	,	@EmailOperator	NVARCHAR(128)	= N'DBAAdmin'
+	,	@Steps			INT				= 9
 	;
 
 SELECT	@ReturnCode		= 0;
+
+IF	ISNULL(@Category, N'') = N''
+OR	ISNULL(@JobName, N'') = N''
+BEGIN;
+	RAISERROR('Invalid Input!', 16, 1) WITH NOWAIT;
+	RETURN;
+END;
 
 -- Add category --
 IF	NOT EXISTS (
 		SELECT	ctg.name
 		FROM	msdb.dbo.syscategories AS ctg WITH (NOLOCK)
-		WHERE	ctg.name = N'[Uncategorized (Local)]'
+		WHERE	ctg.name = @Category
 			AND	ctg.category_class = 1
 	)
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_add_category
 							@class	= N'JOB'
 						,	@type	= N'LOCAL'
-						,	@name	= N'[Uncategorized (Local)]'
+						,	@name	= @Category
 						;
 	
 	IF	@@ERROR <> 0 OR	@ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'CATEGORY ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'CATEGORY [%s] ADDED';
+	RAISERROR(@Msg, 0, 0, @Category) WITH NOWAIT;
 END;
 
 -- Add job --
+SELECT	@JobId	= job.job_id
+FROM	msdb.dbo.sysjobs AS job WITH (NOLOCK)
+WHERE	job.name = @JobName;
+
+IF	@@ROWCOUNT = 0 AND @JobId IS NULL
 BEGIN;
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_add_job
-							@job_name					= N'Joe : DBTRANS_bodb02 : Friday routine'
+							@job_name					= @JobName
+						,	@job_id						= @JobId OUTPUT
+						;
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'JOB [%s] ADDED';
+	RAISERROR(@Msg, 0, 0, @JobName) WITH NOWAIT;
+END;
+ELSE
+BEGIN;
+	SELECT	@Msg = N'~~ JOB EXISTS ~~';
+	RAISERROR(@Msg, 0, 0) WITH NOWAIT;
+	
+	GOTO QuitWithRollback;
+END;
+
+-- Init job steps --
+BEGIN;
+	SELECT	@Loop	= 1
+		;
+
+	WHILE	@Loop <= @Steps
+	BEGIN;
+		SELECT	@StepName	= N'Step ' + CAST(@Loop AS NVARCHAR);
+
+		EXECUTE	@ReturnCode	= msdb.dbo.sp_add_jobstep
+								@job_id						= @JobId
+							,	@step_name					= @StepName
+							,	@step_id					= @Loop
+							;
+					
+		IF	@@ERROR <> 0 OR @ReturnCode <> 0
+			GOTO QuitWithRollback;
+
+		SELECT	@Loop = @Loop + 1;
+	END;
+
+	SELECT	@Msg = N'INITIATED ' + CAST(@Steps AS NVARCHAR) + N' STEPS';
+	RAISERROR(@Msg, 0, 0) WITH NOWAIT;
+END;
+
+-- Define job --
+BEGIN;
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_job
+							@job_id						= @JobId
+						,	@new_name					= @JobName
 						,	@enabled					= 1
 						,	@notify_level_eventlog		= 0
 						,	@notify_level_email			= 3
 						,	@notify_level_netsend		= 0
 						,	@notify_level_page			= 0
 						,	@delete_level				= 0
-						,	@description				= N'No description available.'
-						,	@category_name				= N'[Uncategorized (Local)]'
+						,	@description				= @Description
+						,	@category_name				= @Category
 						,	@owner_login_name			= N'sa'
-						,	@notify_email_operator_name	= N'DBAAdmin'
-						,	@job_id						= @jobId OUTPUT
+						,	@notify_email_operator_name	= @EmailOperator
 						;
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'JOB ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
-END;
-
--- Init job steps --
-BEGIN;
-	SELECT	@steps	= 9
-		,	@loop	= 1
-		;
-
-	WHILE	@loop <= @steps
-	BEGIN;
-		SELECT	@stepname	= N'Step ' + CAST(@loop AS NVARCHAR);
-
-		EXECUTE	@ReturnCode	= msdb.dbo.sp_add_jobstep
-								@job_id						= @jobId
-							,	@step_name					= @stepname
-							,	@step_id					= @loop
-							;
-					
-		IF	@@ERROR <> 0 OR @ReturnCode <> 0
-			GOTO QuitWithRollback;
-
-		SELECT	@loop = @loop + 1;
-	END;
-
-	SELECT	@msg = N'INITIATED ' + CAST(@steps AS NVARCHAR) + N' STEPS';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'JOB [%s] UPDATED';
+	RAISERROR(@Msg, 0, 0, @JobName) WITH NOWAIT;
 END;
 
 -- Define job steps --
 ---- Step 1 ----
 BEGIN;
+	SELECT	@Loop = 1;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'Archive Event'
-						,	@step_id					= 1
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -208,16 +250,18 @@ WAITFOR DELAY ''00:01:30''
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 1 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 2 ----
 BEGIN;
+	SELECT	@Loop = 2;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'1'
-						,	@step_id					= 2
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -315,16 +359,18 @@ WAITFOR DELAY ''00:00:03'';
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 2 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 3 ----
 BEGIN;
+	SELECT	@Loop = 3;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'2'
-						,	@step_id					= 3
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -422,16 +468,18 @@ WAITFOR DELAY ''00:00:03'';
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 3 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 4 ----
 BEGIN;
+	SELECT	@Loop = 4;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'3'
-						,	@step_id					= 4
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -529,16 +577,18 @@ WAITFOR DELAY ''00:00:03'';
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 4 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 5 ----
 BEGIN;
+	SELECT	@Loop = 5;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'4'
-						,	@step_id					= 5
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -636,16 +686,18 @@ WAITFOR DELAY ''00:00:03'';
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 5 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 6 ----
 BEGIN;
+	SELECT	@Loop = 6;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'5'
-						,	@step_id					= 6
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -743,16 +795,18 @@ WAITFOR DELAY ''00:00:03'';
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 6 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 7 ----
 BEGIN;
+	SELECT	@Loop = 7;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'6'
-						,	@step_id					= 7
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -850,16 +904,18 @@ WAITFOR DELAY ''00:00:03'';
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 7 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 8 ----
 BEGIN;
+	SELECT	@Loop = 8;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'7'
-						,	@step_id					= 8
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -957,18 +1013,20 @@ WAITFOR DELAY ''00:00:03'';
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 8 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Step 9 ----
 BEGIN;
+	SELECT	@Loop = 9;
+
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
-							@job_id						= @jobId
+							@job_id						= @JobId
 						,	@step_name					= N'Last Round'
-						,	@step_id					= 9
+						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
-						,	@on_success_action			= 1
+						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 2
 						,	@on_fail_step_id			= 0
@@ -1015,8 +1073,8 @@ ORDER BY winlostdate;
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@msg = N'STEP 9 ADDED';
-	RAISERROR(@msg, 0, 0) WITH NOWAIT;
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
 ---- Job start at step ----
