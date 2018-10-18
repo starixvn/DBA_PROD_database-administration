@@ -1,7 +1,7 @@
-USE	bodb02;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 GO
-
-ALTER PROCEDURE [dbo].[ExecRep_09]
+CREATE PROCEDURE	[dbo].[ExecRep_09]
 	@recommend int,
 	@winlostdate smalldatetime,
 	@parlay tinyint = 0,
@@ -320,10 +320,6 @@ BEGIN
 	END
 END
 GO
-
-GRANT VIEW DEFINITION ON [dbo].[ExecRep_09] TO [ITVivi] AS [dbo]
+GRANT VIEW DEFINITION ON dbo.ExecRep_09 TO vnteam AS dbo;
 GO
-
-GRANT VIEW DEFINITION ON [dbo].[ExecRep_09] TO [vnteam] AS [dbo]
-GO
-/*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBTXN-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="1"></info>*/

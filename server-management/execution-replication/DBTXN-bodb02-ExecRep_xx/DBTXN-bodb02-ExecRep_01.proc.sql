@@ -4,6 +4,18 @@ GO
 ALTER PROCEDURE [dbo].[ExecRep_01] 
 	@Target VARCHAR(30) = 'DBTRANS' -- DBTRANS/REPLICATED
 AS
+/*
+	Creator:	@
+	Task:		Description - [Redmine: #00000]
+	Database:	DBTXN.bodb02
+	
+	Revisions:
+		- 00000000@Creator:	Initial - [Redmine: #00000]
+		
+	Developer's Notes:
+		- @Example:			NULL		- Explaination [DEFAULT]
+		
+*/
 BEGIN
 	IF @Target NOT IN ('DBTRANS', 'REPLICATED') RETURN
 	IF @Target = 'DBTRANS' AND @@SERVERNAME <> 'DBTRANS' RETURN

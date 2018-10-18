@@ -1,11 +1,23 @@
-USE	bodb02;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 GO
-
-ALTER PROCEDURE [dbo].[ExecRep_05]
+CREATE PROCEDURE [dbo].[ExecRep_05]
 (
 	@winlostdate datetime = ''
 )
 AS
+/*
+	Creator:	@
+	Task:		Description - [Redmine: #00000]
+	Database:	DBTXN.bodb02
+	
+	Revisions:
+		- 00000000@Creator:	Initial - [Redmine: #00000]
+		
+	Developer's Notes:
+		- @Example:			NULL		- Explaination [DEFAULT]
+		
+*/
 begin
 	set nocount on 
 	if @@servername not in ('DB05','DB052','DB053','DB054','DB06','DBTP','DBTRANS','DB230','DB231','DB232')

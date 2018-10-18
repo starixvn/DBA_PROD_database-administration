@@ -1,13 +1,25 @@
-USE	bodb02;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 GO
-
-ALTER PROCEDURE [dbo].[ExecRep_06]
+CREATE PROCEDURE [dbo].[ExecRep_06]
     @mrecommend int,
 	@srecommend int,
 	@srecommend_old int,
 	@ErrCode INT OUTPUT,
 	@ErrMsg VARCHAR(500) OUTPUT
 AS
+/*
+	Creator:	@
+	Task:		Description - [Redmine: #00000]
+	Database:	DBTXN.bodb02
+	
+	Revisions:
+		- 00000000@Creator:	Initial - [Redmine: #00000]
+		
+	Developer's Notes:
+		- @Example:			NULL		- Explaination [DEFAULT]
+		
+*/
 
 if NOT exists (select * from dbo.sysobjects where name = 'custinfo')
 BEGIN
