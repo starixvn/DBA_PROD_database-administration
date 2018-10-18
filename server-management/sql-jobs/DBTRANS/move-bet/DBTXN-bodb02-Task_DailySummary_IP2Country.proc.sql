@@ -11,7 +11,7 @@ AS
  	Database:	
  	
  	Revisions:
- 		- yyyymmdd@Creator:	Initial - [Redmine: #00000]
+ 		- 00000000@Creator:	Initial - [Redmine: #00000]
  		
  	Developer's Notes:
  		- @Example:			NULL		- Explaination [DEFAULT]
