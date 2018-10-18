@@ -1026,7 +1026,7 @@ BEGIN;
 						,	@step_name					= N'Last Round'
 						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
-						,	@on_success_action			= 3
+						,	@on_success_action			= 1
 						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 2
 						,	@on_fail_step_id			= 0
