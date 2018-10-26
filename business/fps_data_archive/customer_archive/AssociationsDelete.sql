@@ -1,0 +1,77 @@
+
+SET NOCOUNT ON;
+
+-- Declare variables --
+DECLARE	@SubscriberId	INT
+	,	@SubscriberKey	NVARCHAR(50)
+	,	@ServerName		NVARCHAR(128)
+	,	@DatabaseName	NVARCHAR(128)
+	;
+	
+DECLARE	@Query			NVARCHAR(MAX)
+	,	@OuterQuery		NVARCHAR(MAX)
+	,	@Execute		NVARCHAR(MAX)
+	,	@OuterExecute	NVARCHAR(MAX)
+	;
+
+DECLARE	@Subscribers	AS TABLE (
+							SubscriberId		INT
+						,	SubscriberKey		NVARCHAR(50)
+						,	ServerName			NVARCHAR(128)
+						,	DatabaseName		NVARCHAR(128)
+						,	IsDone				BIT
+						);
+
+
+-- Subscriber list --
+INSERT INTO	@Subscribers (SubscriberId, SubscriberKey, ServerName, DatabaseName, IsDone)
+SELECT	subs.SubscriberId, subs.SubsciberKey, subdb.ServerName, subdb.DbName, 0
+FROM		FPS_ADMIN.dbo.Subscribers AS subs WITH (NOLOCK)
+INNER JOIN	FPS_ADMIN.dbo.SubDBServers AS subdb WITH (NOLOCK)
+		ON	subs.SubscriberId = subdb.SubscriberId
+WHERE	subs.IsTest = 0
+	AND	subs.IsActive = 1
+ORDER BY subs.SubscriberId;
+
+
+-- Delete Associations --
+RAISERROR('Delete Associations', 0, 0) WITH NOWAIT;
+
+SELECT	@Query = N'';
+SELECT	@Query = @Query + N'
+DELETE	tbl WITH (ROWLOCK)
+FROM		dbo.Associations AS tbl
+INNER JOIN	OPENQUERY(FPSARCHIVE, N''
+SELECT	Ass_ID
+FROM	FPS_SUB_ARCHIVE_STAGING.trash.Associations WITH (NOLOCK)
+WHERE	SubscriberID = ~~SubscriberID~~;
+'') AS arc
+		ON	tbl.Ass_ID = arc.Ass_ID;
+';
+
+SELECT	@OuterQuery = N'';
+SELECT	@OuterQuery = @OuterQuery + N'
+EXECUTE	~~ServerName~~.~~DatabaseName~~.sys.sp_executesql @Query;
+';
+
+WHILE	0 = 0
+BEGIN;
+	UPDATE	TOP(1) subs
+	SET		@SubscriberId = subs.SubscriberId
+		,	@SubscriberKey = subs.SubscriberKey
+		,	@ServerName = subs.ServerName
+		,	@DatabaseName = subs.DatabaseName
+		,	IsDone = 1
+	FROM	@Subscribers AS subs
+	WHERE	subs.IsDone = 0;
+
+	IF	@@ROWCOUNT = 0
+		BREAK;
+
+	RAISERROR('	Running Subscriber %d - %s.%s ...', 0, 0, @SubscriberId, @ServerName, @DatabaseName) WITH NOWAIT;
+
+	SELECT	@Execute = REPLACE(REPLACE(REPLACE(REPLACE(@Query, N'~~ServerName~~', @ServerName), N'~~DatabaseName~~', @DatabaseName), N'~~SubscriberKey~~', @SubscriberKey), N'~~SubscriberId~~', @SubscriberId);
+	SELECT	@OuterExecute = REPLACE(REPLACE(REPLACE(REPLACE(@OuterQuery, N'~~ServerName~~', @ServerName), N'~~DatabaseName~~', @DatabaseName), N'~~SubscriberKey~~', @SubscriberKey), N'~~SubscriberId~~', @SubscriberId);
+
+	EXECUTE	sys.sp_executesql @OuterExecute, N'@Query NVARCHAR(MAX)', @Execute;
+END;

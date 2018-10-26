@@ -33,8 +33,8 @@ WHERE	subs.IsTest = 0
 ORDER BY subs.SubscriberId;
 
 
--- Copy association to archive database --
-RAISERROR('Copy Association', 0, 0) WITH NOWAIT;
+-- Copy Accounts to archive database --
+RAISERROR('Copy Accounts', 0, 0) WITH NOWAIT;
 
 SELECT	@Query = N'';
 SELECT	@Query = @Query + N'
