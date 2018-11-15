@@ -95,7 +95,6 @@ BEGIN
 		FROM	dbo.vnDBA_Perf_Counters WITH (NOLOCK);
 	END;
 END;
-END;
 GO
 GRANT EXECUTE ON dbo.vnDBA_sp_Grafana_GetTemplateValues TO vnGrafana AS dbo;
 GO
