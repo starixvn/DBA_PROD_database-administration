@@ -1,6 +1,7 @@
-USE StarixDB;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 GO
-ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetDataDashboard
+CREATE PROCEDURE	dbo.vnDBA_sp_Grafana_GetDataDashboard
 						@paneltype			SMALLINT
 					,	@timefrom			DATETIME
 					,	@timeto				DATETIME
@@ -31,6 +32,7 @@ AS
 		- 20180702@Billy:	Special handling for ticket latency - [Redmine: #00000]
 		- 20180703@Billy:	Add filter for metric - [Redmine: #00000]
 							Change panel type for Replication Panel - [Redmine: #00000]
+		- 20180709@Billy:	Add MAXRECURSION option - [Redmine: #00000]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -150,7 +152,8 @@ BEGIN
 		INNER JOIN	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
 				ON	c.MachineName = '\\' + s.ServerName
 				AND	s.isMonitored = 1
-		WHERE	c.MachineName <> '\\';
+		WHERE	c.MachineName <> '\\'
+		OPTION (MAXRECURSION 0);
 	END;
 
 	IF	@ex_servers IS NOT NULL
@@ -170,7 +173,8 @@ BEGIN
 		DELETE	s
 		FROM	@tservers AS s
 		INNER JOIN	cte
-				ON	s.ServerName = '\\' + LTRIM(RTRIM(SUBSTRING(@ex_servers, cte.start, cte.finish - cte.start)));
+				ON	s.ServerName = '\\' + LTRIM(RTRIM(SUBSTRING(@ex_servers, cte.start, cte.finish - cte.start)))
+		OPTION (MAXRECURSION 0);
 	END;
 
 	BEGIN;
@@ -189,7 +193,8 @@ BEGIN
 		INSERT INTO	@xlegends (Legend)
 		SELECT	LTRIM(RTRIM(SUBSTRING(@ex_legends, cte.start, cte.finish - cte.start)))
 		FROM	cte
-		WHERE	LTRIM(RTRIM(SUBSTRING(@ex_legends, cte.start, cte.finish - cte.start))) <> '';
+		WHERE	LTRIM(RTRIM(SUBSTRING(@ex_legends, cte.start, cte.finish - cte.start))) <> ''
+		OPTION (MAXRECURSION 0);
 	END;
 
 
@@ -211,7 +216,8 @@ BEGIN
 		INSERT INTO	#counters (CounterName)
 		SELECT	LTRIM(RTRIM(SUBSTRING(@counters, cte.start, cte.finish - cte.start)))
 		FROM	cte
-		WHERE	LTRIM(RTRIM(SUBSTRING(@counters, cte.start, cte.finish - cte.start))) <> '';
+		WHERE	LTRIM(RTRIM(SUBSTRING(@counters, cte.start, cte.finish - cte.start))) <> ''
+		OPTION (MAXRECURSION 0);
 	END;
 	
 
@@ -494,3 +500,4 @@ END;
 GO
 GRANT EXECUTE ON dbo.vnDBA_sp_Grafana_GetDataDashboard TO vnGrafana AS dbo;
 GO
+/*<info serverAlias="DBSTARIX-StarixDB" executers="vnGrafana" viewers="" isFunction="0" isNested="0"></info>*/
