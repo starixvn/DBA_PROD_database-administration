@@ -19,7 +19,7 @@ AS
 /*
 	Creator:	20170918@Billy
 	Task:		Get data for Grafana Dashboard - [Redmine: #83352]
-	Database:	DBDWCSS.StarixDB
+	Database:	DBSTARIX.StarixDB
 	
 	Revisions:
 		- 20170918@Billy:	Initial - [Redmine: #83352]
