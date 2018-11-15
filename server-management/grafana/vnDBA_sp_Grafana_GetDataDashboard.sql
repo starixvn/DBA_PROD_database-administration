@@ -33,6 +33,7 @@ AS
 		- 20180703@Billy:	Add filter for metric - [Redmine: #00000]
 							Change panel type for Replication Panel - [Redmine: #00000]
 		- 20180709@Billy:	Add MAXRECURSION option - [Redmine: #00000]
+		- 20181115@Billy:	Fix weekdiff point out of range - [Redmine: #104489]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -237,7 +238,7 @@ BEGIN
 	IF	@paneltype = 000
 	-- Graph chart panel -- Metric machine --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -262,7 +263,7 @@ BEGIN
 	IF	@paneltype = 001
 	-- Graph chart panel -- Metric counter --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -287,7 +288,7 @@ BEGIN
 	IF	@paneltype = 002
 	-- Graph chart panel -- Metric instance --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -312,7 +313,7 @@ BEGIN
 	IF	@paneltype = 003
 	-- Graph chart panel -- Metric object - counter - instance --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -338,7 +339,7 @@ BEGIN
 	IF	@paneltype = 10001
 	-- Graph chart panel -- Metric instance -- For DISTRIBUTION
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -369,7 +370,7 @@ BEGIN
 	IF	@paneltype = 10002
 	-- Graph chart panel -- For Ticket Latency
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, txn.CaptureTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, txn.CaptureTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= txn.LastTicketId - d.LastTicketId
 		FROM	(
@@ -395,7 +396,7 @@ BEGIN
 	IF	@paneltype = 010
 	-- Graph chart panel -- Metric machine - counter --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -480,7 +481,7 @@ BEGIN
 	IF	@paneltype = -1
 	-- Static value -- Total CPUs capacity --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, t.time)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, t.time))
 			,	[metric]	= N'%CPU Capacity' + @postfix
 			,	[value]		= ps.CPUs * 100
 		FROM		@tservers AS s
