@@ -1,5 +1,5 @@
 /*
-	Task: Insert job step copy data for DB052.bodb_Summary.sum_winloss_old (Setup Alpha HA on DB053)
+	Task: Insert job step copy data for DB052.bodb_Summary.sum_winloss_old (Setup Alpha HA on DB052)
 	Run at DBTRANS
 */
 
