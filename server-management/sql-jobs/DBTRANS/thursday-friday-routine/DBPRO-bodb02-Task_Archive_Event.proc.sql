@@ -388,7 +388,6 @@ BEGIN
 	END
 END
 GO
-
-GRANT VIEW DEFINITION ON [dbo].[Task_Archive_Event] TO [vnteam] AS [dbo]
+GRANT VIEW DEFINITION ON dbo.Task_Archive_Event TO vnteam AS dbo;
 GO
-
+/*<info serverAlias="DBPRO-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="0"></info>*/
