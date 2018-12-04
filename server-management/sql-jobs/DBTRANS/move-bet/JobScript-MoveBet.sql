@@ -4,6 +4,7 @@
 	Server:		DBTRANS
 	Revision:
 		- 20181018@Billy:	Initiate on GIT - [Redmine: #000000]
+		- 20181204@Billy:	Update code from PROD - Add new call to DB053 for step 4 - [Redmine: #000000]
 */
 
 SET NOCOUNT ON;
@@ -292,6 +293,7 @@ BEGIN;
 
 
 EXEC DB052.bodb02.dbo.Task_LicenseeBATransaction_Archive
+EXEC DB053.bodb02.dbo.Task_LicenseeBATransaction_Archive
 ----EXEC DB054.bodb02.dbo.Task_LicenseeBATransaction_Archive
 ';
 

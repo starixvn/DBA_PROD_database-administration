@@ -10,6 +10,8 @@ AS
 
 -- move match/odds/outright/bingoBall/SS_GameState/VSOutright into [14] table
 
+	Database:	DBPRO.bodb02
+
 	Revisions:
 		-- 20110802@Sylvia: Insert Dot_Admin_Assignment_Operator to archive
 		-- 20121014@Viet: add match.homeid2,match.awayid2
@@ -38,6 +40,7 @@ AS
 		-- 20180328@Billy:	Add [ResourceId] column of [ResultDetail3rd] - [Redmine: #91959]
 		-- 20180405@Billy:	Add [cs04], [cs05], [ResourceId] columns of [Odds3rd] - [Redmine: #93175]
 		-- 20180514@Patrick: Copy data from active to [14] batch by batch
+		-- 20181204@Billy:	Add [oddsES] & [ResultDetailES] tables - [Redmine: #105816]
 */
 
 BEGIN
@@ -320,7 +323,7 @@ SET NOCOUNT ON
 		
 		waitfor delay '00:00:01'
 	end
-	
+
 	-- 20171220@Billy -- New table [Match3rd_bk]
 	-- 20180122@Billy -- Add column [GameResultDate]
 	INSERT INTO	dbo.Match3rd14
@@ -328,6 +331,24 @@ SET NOCOUNT ON
 	SELECT	Match3rdId, League3rdId, HomeId, AwayId, EventDate, SportType, VendorMatchId, MatchNo, HasLive, EventStatus, VendorEventStatus, CreateTime, UpdateTime, VendorEventDate, GameResultDate
 	FROM	dbo.Match3rd WITH (NOLOCK)
 	WHERE	EventDate = @winlostdate;
+
+	-- 20181204@Billy -- New table [oddsES]
+	INSERT INTO	dbo.oddsES14
+		(	oddsid, matchid, bettype, switch, hdp1, hdp2, odds1a, odds2a, oddsspreada, autobookie, gapodds1, gapodds2, diffbalance, maxodds, minodds, oddsstatus, liveindicator, changetime, risk, stakerange
+		,	newoffersetup, livehomescore, liveawayscore, creator, com1, com2, csstatus, maxbet, autosuspend, stakerange2, risk2, site3, sporttype, tstamp, HasBeenLinked, Resourceid, Category, IncreaseMaxbet
+		,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId)
+	SELECT	oddsid, matchid, bettype, switch, hdp1, hdp2, odds1a, odds2a, oddsspreada, autobookie, gapodds1, gapodds2, diffbalance, maxodds, minodds, oddsstatus, liveindicator, changetime, risk, stakerange
+		,	newoffersetup, livehomescore, liveawayscore, creator, com1, com2, csstatus, maxbet, autosuspend, stakerange2, risk2, site3, sporttype, tstamp, HasBeenLinked, Resourceid, Category, IncreaseMaxbet
+		,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId
+	FROM	dbo.oddsES AS oes WITH (NOLOCK)
+	WHERE	EXISTS(SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE m.matchid = oes.matchid AND m.eventdate = @winlostdate);
+
+	-- 20181204@Billy -- New table [ResultDetailES]
+	INSERT INTO	dbo.ResultDetailES14
+		(	MatchID, ResourceID, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateBy, CreateDate, LastModifyBy, LastModifyDate, OtherInfo)
+	SELECT	MatchID, ResourceID, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateBy, CreateDate, LastModifyBy, LastModifyDate, OtherInfo
+	FROM	dbo.ResultDetailES AS rdes WITH (NOLOCK)
+	WHERE	EXISTS(SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE m.matchid = rdes.matchid AND m.eventdate = @winlostdate);
 
 	drop table #__tempData
 	drop table #__IdsList
