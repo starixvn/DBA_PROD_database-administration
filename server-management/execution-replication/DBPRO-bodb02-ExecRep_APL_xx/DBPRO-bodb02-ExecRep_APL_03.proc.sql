@@ -2,7 +2,8 @@ SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
 CREATE PROCEDURE	[dbo].[ExecRep_APL_03] (
-						@DeletedTarget		VARCHAR(100)	= ''
+						@winlostdate		DATETIME
+					,	@DeletedTarget		VARCHAR(100)	= ''
 					,	@ids				VARCHAR(MAX)	= ''
 					)
 AS
@@ -13,7 +14,6 @@ AS
 	Revisions:
 		- 20171221@Billy:	Add Match3rd14 table - [Redmine: #88506]
 		- 20181204@Billy:	Add [oddsES14] & [ResultDetailES14] tables - [Redmine: #105816]
-							Remove unused @winlostdate parameter - [Redmine: #000000]
 */
 BEGIN
 	SET NOCOUNT ON 
