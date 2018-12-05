@@ -43,7 +43,7 @@ BEGIN
 
 	IF @Action = 'copy'
 	BEGIN
-		INSERT INTO DBARC.bodb_archive.dbo.odds_bk
+		INSERT INTO DB06.bodb_archive.dbo.odds_bk
 			(	oddsid, matchid, bettype, switch, hdp1, hdp2, odds1a, odds2a, odds1b, odds2b, odds1c, odds2c, odds1e, odds2e, odds1f, odds2f, odds1d, odds2d, odds1hka, odds2hka, odds1hkb, odds2hkb, odds1hkc
 			,	odds2hkc, odds1hke, odds2hke, odds1hkf, odds2hkf, odds1hkd, odds2hkd, oddsspreada, oddsspreadb, oddsspreadd, oddsspreade, oddsspreadf, oddsspreadc, autobookie, gapodds1, gapodds2, maxstake1
 			,	maxstake2, minstake1, minstake2, diffbalance, maxodds, minodds, oddsstatus, liveindicator, changetime, risk, stakerange, newoffersetup, livehomescore, liveawayscore, creator, com1, comx, com2
@@ -60,7 +60,7 @@ BEGIN
 			,	tstamp, Resourceid, ResultKey, cs99, bal99
 		FROM	dbo.odds14 WHERE matchid in (select matchid from match14 where eventdate = @winlostdate)
 
-		INSERT INTO DBARC.bodb_archive.dbo.match_bk(matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore,
+		INSERT INTO DB06.bodb_archive.dbo.match_bk(matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore,
 				finalhomescore, finalawayscore, creator, matchcode, kickofftime, closedtime, showtime,
 				hthomescore, htawayscore, ruben, multiple, yenbet, exrisk, sporttype, tstamp,
 				homeid2, awayid2, DisplayMode, LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, GlobalShowTime, ParentID)
@@ -71,7 +71,7 @@ BEGIN
 				homeid2, awayid2, DisplayMode, LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, GlobalShowTime, ParentID
 			FROM match14 WHERE eventdate = @winlostdate
 
-		INSERT INTO DBARC.bodb_archive.dbo.bingoBall_bk
+		INSERT INTO DB06.bodb_archive.dbo.bingoBall_bk
 			([Matchid], [Seq], [Number], [UpdateTime])
 		SELECT
 			[Matchid], [Seq], [Number], [UpdateTime]
@@ -85,7 +85,7 @@ BEGIN
 		--FROM SS_GameState14
 		--WHERE MatchID in (SELECT MatchID from Match14 where eventdate = @winlostdate)
 
-		INSERT INTO DBARC.bodb_archive.dbo.outright_bk
+		INSERT INTO DB06.bodb_archive.dbo.outright_bk
 			(orid, leagueid, teamid, eventdate, kickofftime, oddsstatus, odds, maxbet, gapodds, matchcode, groupmatch, status, creator, bal, risk, 
 			DisplayMode, PlaceOdds, Placing, IsFavor, IsSCR, ProgramID, 
 			FOddsStatus, SCRTime, LeaguePatternID, TeamPatternID, ProgramDate, IsDeadHeat, autosuspend, EventID, Year)
@@ -96,7 +96,7 @@ BEGIN
 			FROM outright14 WHERE eventdate = @winlostdate
 
 
-		INSERT INTO DBARC.bodb_archive.dbo.VSOutright_bk
+		INSERT INTO DB06.bodb_archive.dbo.VSOutright_bk
 			(Orid, EventID, RacerNum, IsFavor, EventDate, KickoffTime, RacerID, HumanID, WinOdds, PlaceOdds, 
 			Lane, MaxBet, Placing, Creator, EventStatus )		
 		select 	
@@ -106,7 +106,7 @@ BEGIN
 
 		-- IF EDIT HERE (MatchRemark)
 		-- GO EDIT CODE IN LOWER SECTION, TOO (Extra Cleanup Match_Remark)
-		INSERT INTO DBARC.bodb_Archive.dbo.match_remark
+		INSERT INTO DB06.bodb_Archive.dbo.match_remark
 		(
 		[matchid], [calculate], [multiple], [calrefund], [refund], [calStatus], [IsTotalBetDenied_1], [IsTotalBetDenied_3], [IsTotalBetDenied_7], [IsTotalBetDenied_8],
 		[LiveTimer], [HomeRedCard], [AwayRedCard], [LivePeriod], [HedgeForecast], [IsTotalBetDenied_20], [IsTotalBetDenied_21], [IsNeutral], [StreamingID], [IsInternal], [IsHTCal],
@@ -121,54 +121,54 @@ BEGIN
 		FROM match_remark
 		WHERE MatchID in (SELECT MatchID from Match14 where eventdate = @winlostdate)
 
-		INSERT INTO DBARC.bodb_Archive.dbo.[MatchMaxbet_bk](MatchId, BetType, Maxbet, OperatorId, Spread)
+		INSERT INTO DB06.bodb_Archive.dbo.[MatchMaxbet_bk](MatchId, BetType, Maxbet, OperatorId, Spread)
 		SELECT MatchId, BetType, Maxbet, OperatorId, Spread
 		FROM matchMaxbet14 WITH(NOLOCK)
 		WHERE matchid IN (SELECT MatchID from Match14 where eventdate = @winlostdate)
 
-		INSERT INTO DBARC.bodb_Archive.dbo.ResultDetail_bk
+		INSERT INTO DB06.bodb_Archive.dbo.ResultDetail_bk
 			(	MatchId, ResourceId, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateDate, LastModifyDate, CreateBy, LastModifyBy, OtherInfo)
 		SELECT	MatchId, ResourceId, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateDate, LastModifyDate, CreateBy, LastModifyBy, OtherInfo
 		FROM	dbo.ResultDetail14 WITH (NOLOCK)
 		WHERE	MatchId IN (SELECT matchid FROM dbo.match14 WHERE eventdate = @winlostdate)
 
 			-- 20180328@Billy -- Add column [ResourceId]
-		INSERT INTO	DBARC.bodb_Archive.dbo.ResultDetail3rd_bk
+		INSERT INTO	DB06.bodb_Archive.dbo.ResultDetail3rd_bk
 			(	ResultID, VendorID, MatchID, GameID, Custom1, Custom2, Custom3, ResultStatusID, SettlementStatusID, GameResult, OtherInfo, CreateBy, CreateDate, LastModifyBy, LastModifyDate, ResourceId)
 		SELECT	ResultID, VendorID, MatchID, GameID, Custom1, Custom2, Custom3, ResultStatusID, SettlementStatusID, GameResult, OtherInfo, CreateBy, CreateDate, LastModifyBy, LastModifyDate, ResourceId
 		FROM	dbo.ResultDetail3rd14 WITH (NOLOCK)
 		WHERE	MatchId IN (SELECT matchid FROM dbo.match14 WITH (NOLOCK) WHERE eventdate = @winlostdate)
 
-		INSERT INTO DBARC.bodb_Archive.dbo.[EventInfo3rd_bk](EventInfo3rdId,ArenaID,FightNo,EventDate,HomeOwner,AwayOwner)
+		INSERT INTO DB06.bodb_Archive.dbo.[EventInfo3rd_bk](EventInfo3rdId,ArenaID,FightNo,EventDate,HomeOwner,AwayOwner)
 		SELECT EventInfo3rdId,ArenaID,FightNo,EventDate,HomeOwner,AwayOwner
 		FROM dbo.EventInfo3rd14 WITH(NOLOCK)
 		WHERE EventDate = @winlostdate
 
-		INSERT INTO DBARC.bodb_Archive.dbo.[AutoPayoutResult_bk] (AutoPayoutResultId, MatchId, CalculationType, SourceId, HomeValue, AwayValue, StatusId, TryCount, CreatedDate, ModifiedDate)
+		INSERT INTO DB06.bodb_Archive.dbo.[AutoPayoutResult_bk] (AutoPayoutResultId, MatchId, CalculationType, SourceId, HomeValue, AwayValue, StatusId, TryCount, CreatedDate, ModifiedDate)
 		SELECT 	AutoPayoutResultId, MatchId, CalculationType, SourceId, HomeValue, AwayValue, StatusId, TryCount, CreatedDate, ModifiedDate
 		FROM 	dbo.AutoPayoutResult14 WITH(NOLOCK)
 		WHERE 	matchid IN (SELECT MatchID from Match14 where eventdate = @winlostdate)
 
-		INSERT INTO DBARC.bodb_Archive.dbo.[ProviderResultDetail_bk] (ProviderResultDetailId, MatchId, SourceId, TypeId, HomeValue, AwayValue, CreatedDate, IsConfirmed)
+		INSERT INTO DB06.bodb_Archive.dbo.[ProviderResultDetail_bk] (ProviderResultDetailId, MatchId, SourceId, TypeId, HomeValue, AwayValue, CreatedDate, IsConfirmed)
 		SELECT  ProviderResultDetailId, MatchId, SourceId, TypeId, HomeValue, AwayValue, CreatedDate, IsConfirmed
 		FROM 	dbo.ProviderResultDetail14 WITH(NOLOCK)
 		WHERE 	matchid IN (SELECT MatchID from Match14 where eventdate = @winlostdate)
 
 		-- Odds3rd: [tstamp] and [ExtraInfo] are EXCLUDED
 			-- 20180405@Billy -- Add columns [cs04], [cs05], [ResourceId]	
-		INSERT INTO	DBARC.bodb_Archive.dbo.Odds3rd_bk
+		INSERT INTO	DB06.bodb_Archive.dbo.Odds3rd_bk
 			(	oddsid, matchid, odds3rdid, bettype, hdp1, hdp2, odds1a, odds2a, oddsstatus, changetime, creator, com1, comx, com2, cs00, cs01, cs10, cs11, cs02, cs12, cs22, cs21, cs20, cs30, cs31, cs32, cs33, cs23, cs13, cs03, cs99, sporttype, cs04, cs05, Resourceid)
 		SELECT	oddsid, matchid, odds3rdid, bettype, hdp1, hdp2, odds1a, odds2a, oddsstatus, changetime, creator, com1, comx, com2, cs00, cs01, cs10, cs11, cs02, cs12, cs22, cs21, cs20, cs30, cs31, cs32, cs33, cs23, cs13, cs03, cs99, sporttype, cs04, cs05, Resourceid
 		FROM	dbo.Odds3rd14 WITH (NOLOCK)
 		WHERE	matchid IN (SELECT matchid FROM dbo.match14 WHERE eventdate = @winlostdate);
 	
-		INSERT INTO DBARC.bodb_archive.dbo.Intg_OddsFeed_SettlementAction_bk
+		INSERT INTO DB06.bodb_archive.dbo.Intg_OddsFeed_SettlementAction_bk
 			( ActionId, LeagueId, MatchId, ActionType, HTHomeScore, HTAwayScore, FTHomeScore, FTAwayScore, CreateTime, OtherInfo )
 		SELECT  ActionId, LeagueId, MatchId, ActionType, HTHomeScore, HTAwayScore, FTHomeScore, FTAwayScore, CreateTime, OtherInfo 
 		FROM dbo.Intg_OddsFeed_SettlementAction WITH(NOLOCK)
 		WHERE matchid IN (SELECT matchid FROM dbo.match14 WHERE eventdate = @winlostdate);
 
-		INSERT INTO DBARC.bodb_archive.dbo.Intg_OddsFeed_SettlementAction_Outright_bk
+		INSERT INTO DB06.bodb_archive.dbo.Intg_OddsFeed_SettlementAction_Outright_bk
 			(ActionId, ActionType, OrId, LeagueId, TeamId, Status, IsDeadheat, Deadheat, CreateTime)
 		SELECT ActionId, ActionType, OrId, LeagueId, TeamId, Status, IsDeadheat, Deadheat, CreateTime
 		FROM dbo.Intg_OddsFeed_SettlementAction_Outright WITH(NOLOCk)
@@ -176,14 +176,14 @@ BEGIN
 
 			-- 20171221@Billy -- New table [Match3rd_bk]
 			-- 20180122@Billy -- Add column [GameResultDate]
-		INSERT INTO	DBARC.bodb_Archive.dbo.Match3rd_bk
+		INSERT INTO	DB06.bodb_Archive.dbo.Match3rd_bk
 			(	Match3rdId, League3rdId, HomeId, AwayId, EventDate, SportType, VendorMatchId, MatchNo, HasLive, EventStatus, VendorEventStatus, CreateTime, UpdateTime, VendorEventDate, GameResultDate)
 		SELECT	Match3rdId, League3rdId, HomeId, AwayId, EventDate, SportType, VendorMatchId, MatchNo, HasLive, EventStatus, VendorEventStatus, CreateTime, UpdateTime, VendorEventDate, GameResultDate
 		FROM	dbo.Match3rd14 WITH (NOLOCK)
 		WHERE	EventDate = @winlostdate;
 
 			-- 20181204@Billy:	New table [oddsES]
-		INSERT INTO	DBARC.bodb_Archive.dbo.oddsES_bk
+		INSERT INTO	DB06.bodb_Archive.dbo.oddsES_bk
 			(	oddsid, matchid, bettype, switch, hdp1, hdp2, odds1a, odds2a, oddsspreada, autobookie, gapodds1, gapodds2, diffbalance, maxodds, minodds, oddsstatus, liveindicator, changetime, risk, stakerange
 			,	newoffersetup, livehomescore, liveawayscore, creator, com1, com2, csstatus, maxbet, autosuspend, stakerange2, risk2, site3, sporttype, HasBeenLinked, Resourceid, Category, IncreaseMaxbet
 			,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId)
@@ -194,7 +194,7 @@ BEGIN
 		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE m.matchid = oes.matchid AND m.eventdate = @winlostdate);
 
 			-- 20181204@Billy:	New table [ResultDetailES]
-		INSERT INTO	DBARC.bodb_Archive.dbo.ResultDetailES_bk
+		INSERT INTO	DB06.bodb_Archive.dbo.ResultDetailES_bk
 			(	MatchID, ResourceID, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateBy, CreateDate, LastModifyBy, LastModifyDate, OtherInfo)
 		SELECT	MatchID, ResourceID, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateBy, CreateDate, LastModifyBy, LastModifyDate, OtherInfo
 		FROM	dbo.ResultDetailES14 AS rdes WITH (NOLOCK)
