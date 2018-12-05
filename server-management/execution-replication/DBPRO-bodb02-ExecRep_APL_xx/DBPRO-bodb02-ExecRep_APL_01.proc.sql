@@ -5,11 +5,11 @@ CREATE PROCEDURE [dbo].[ExecRep_APL_01]
 	@Winlostdate Datetime
 AS
 /*
-	Created by:Sophia
-	Date: 20130831
-	Task: Called by Task_DailySummary_DB02_Delete
-		  Delete Event by WinlostDate		
-	DB: DB02.BODB02 / SVRPRO.ProdDB
+	Created by:	Sophia
+	Date:		20130831
+	Task:		Called by Task_DailySummary_DB02_Delete
+				Delete Event by WinlostDate		
+	Database:	DBPRO.bodb02
 	Revisions:
 		- 20130809@viet: revise SP, then add to DB02_odds_info publication.
 		- 20140911@Lukas: add table MatchMaxbet 
@@ -20,6 +20,7 @@ AS
 		- 20160421@Sophia: Add AutoPayoutResult, ProviderResultDetail tables [Redmine: #49958]
 		- 20170721@Billy:	Add odds3rd table - [Redmine: #80382]
 		- 20171221@Billy:	Add Match3rd table - [Redmine: #88506]
+		- 20181204@Billy:	Add [oddsES] & [ResultDetailES] tables - [Redmine: #105816]
 */ 
 BEGIN
 
@@ -104,6 +105,24 @@ BEGIN
 		DELETE
 		FROM	dbo.Odds3rd WITH (ROWLOCK)
 		WHERE	matchid IN (SELECT matchid FROM dbo.match WITH (NOLOCK) WHERE eventdate = @Winlostdate);
+	END;
+
+	--	Delete oddsES
+		-- 20181204@Billy --
+	IF	OBJECT_ID('dbo.oddsES', 'U') IS NOT NULL
+	BEGIN;
+		DELETE	tbl WITH (ROWLOCK)
+		FROM	dbo.oddsES AS tbl
+		WHERE	EXISTS (SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE tbl.matchid = m.matchid AND m.eventdate = @Winlostdate);
+	END;
+
+	--	Delete ResultDetailES
+		-- 20181204@Billy --
+	IF	OBJECT_ID('dbo.ResultDetailES', 'U') IS NOT NULL
+	BEGIN;
+		DELETE	tbl WITH (ROWLOCK)
+		FROM	dbo.ResultDetailES AS tbl
+		WHERE	EXISTS (SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE tbl.matchid = m.matchid AND m.eventdate = @Winlostdate);
 	END;
 
 	-- delete match	
