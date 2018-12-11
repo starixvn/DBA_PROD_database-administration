@@ -4,6 +4,7 @@
 	Server:		DBTRANS
 	Revision:
 		- 20181211@Billy:	Initiate on GIT - [Redmine: #000000]
+		- 20181211@Billy:	Add archive Transfer_Coll step - [Redmine: #106220]
 */
 
 SET NOCOUNT ON;
@@ -683,8 +684,8 @@ BEGIN;
 DELETE FROM dbo.Task_ArchiveDate
 
 INSERT INTO dbo.Task_ArchiveDate
-SELECT DISTINCT TOP 7 winlostdate
-FROM dbo.bettrans14 (nolock)
+SELECT DISTINCT TOP(7) winlostdate
+FROM dbo.bettrans14 WITH (NOLOCK)
 ORDER BY winlostdate
 ';
 
@@ -717,7 +718,7 @@ BEGIN;
 						,	@command					= N'
 DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate
+SELECT winlostdate FROM dbo.task_archivedate WITH (NOLOCK)
 ORDER BY 1
 
 Declare @wldate smalldatetime
