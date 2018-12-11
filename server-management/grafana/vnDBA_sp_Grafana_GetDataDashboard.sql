@@ -127,7 +127,8 @@ BEGIN
 				c.MachineName, s.LogicalName
 		FROM		dbo.CounterDetails AS c WITH (NOLOCK)
 		INNER JOIN	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
-				ON	c.MachineName = '\\' + s.ServerName
+				ON	c.MachineName = '\\' + CAST(s.ServerName AS VARCHAR)
+				AND	s.DatabaseName = N''
 				AND	s.isMonitored = 1;
 	END;
 	ELSE
@@ -151,7 +152,8 @@ BEGIN
 			SELECT	[MachineName]	= '\\' + LTRIM(RTRIM(SUBSTRING(@servers, cte.start, cte.finish - cte.start)))
 		) AS c
 		INNER JOIN	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
-				ON	c.MachineName = '\\' + s.ServerName
+				ON	c.MachineName = '\\' + CAST(s.ServerName AS VARCHAR)
+				AND	s.DatabaseName = N''
 				AND	s.isMonitored = 1
 		WHERE	c.MachineName <> '\\'
 		OPTION (MAXRECURSION 0);
