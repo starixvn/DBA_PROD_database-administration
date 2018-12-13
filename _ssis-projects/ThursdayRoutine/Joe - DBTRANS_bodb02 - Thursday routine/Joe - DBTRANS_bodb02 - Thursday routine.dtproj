@@ -97,5 +97,15 @@
       <FullPath>Update-Statistics.dtsx</FullPath>
       <References />
     </DtsPackage>
+    <DtsPackage FormatVersion="-1">
+      <Name>DBTRANS-Archive_Sum_Winloss-DB052.dtsx</Name>
+      <FullPath>DBTRANS-Archive_Sum_Winloss-DB052.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>DBTRANS-Archive_Transfer_Coll-DB06.dtsx</Name>
+      <FullPath>DBTRANS-Archive_Transfer_Coll-DB06.dtsx</FullPath>
+      <References />
+    </DtsPackage>
   </DTSPackages>
 </Project>
