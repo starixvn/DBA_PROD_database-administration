@@ -1,6 +1,7 @@
-USE StarixDB;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 GO
-ALTER PROCEDURE	dbo.vnDBA_sp_Grafana_GetDataDashboard
+CREATE PROCEDURE	dbo.vnDBA_sp_Grafana_GetDataDashboard
 						@paneltype			SMALLINT
 					,	@timefrom			DATETIME
 					,	@timeto				DATETIME
@@ -18,7 +19,7 @@ AS
 /*
 	Creator:	20170918@Billy
 	Task:		Get data for Grafana Dashboard - [Redmine: #83352]
-	Database:	DBDWCSS.StarixDB
+	Database:	DBSTARIX.StarixDB
 	
 	Revisions:
 		- 20170918@Billy:	Initial - [Redmine: #83352]
@@ -31,6 +32,8 @@ AS
 		- 20180702@Billy:	Special handling for ticket latency - [Redmine: #00000]
 		- 20180703@Billy:	Add filter for metric - [Redmine: #00000]
 							Change panel type for Replication Panel - [Redmine: #00000]
+		- 20180709@Billy:	Add MAXRECURSION option - [Redmine: #00000]
+		- 20181115@Billy:	Fix weekdiff point out of range - [Redmine: #104489]
 
 	Developer's Notes:
 		- @paneltype:		Specify the way to select data based on panel type
@@ -124,7 +127,8 @@ BEGIN
 				c.MachineName, s.LogicalName
 		FROM		dbo.CounterDetails AS c WITH (NOLOCK)
 		INNER JOIN	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
-				ON	c.MachineName = '\\' + s.ServerName
+				ON	c.MachineName = '\\' + CAST(s.ServerName AS VARCHAR)
+				AND	s.DatabaseName = N''
 				AND	s.isMonitored = 1;
 	END;
 	ELSE
@@ -148,9 +152,11 @@ BEGIN
 			SELECT	[MachineName]	= '\\' + LTRIM(RTRIM(SUBSTRING(@servers, cte.start, cte.finish - cte.start)))
 		) AS c
 		INNER JOIN	dbo.vnDBA_Perf_Servers AS s WITH (NOLOCK)
-				ON	c.MachineName = '\\' + s.ServerName
+				ON	c.MachineName = '\\' + CAST(s.ServerName AS VARCHAR)
+				AND	s.DatabaseName = N''
 				AND	s.isMonitored = 1
-		WHERE	c.MachineName <> '\\';
+		WHERE	c.MachineName <> '\\'
+		OPTION (MAXRECURSION 0);
 	END;
 
 	IF	@ex_servers IS NOT NULL
@@ -170,7 +176,8 @@ BEGIN
 		DELETE	s
 		FROM	@tservers AS s
 		INNER JOIN	cte
-				ON	s.ServerName = '\\' + LTRIM(RTRIM(SUBSTRING(@ex_servers, cte.start, cte.finish - cte.start)));
+				ON	s.ServerName = '\\' + LTRIM(RTRIM(SUBSTRING(@ex_servers, cte.start, cte.finish - cte.start)))
+		OPTION (MAXRECURSION 0);
 	END;
 
 	BEGIN;
@@ -189,7 +196,8 @@ BEGIN
 		INSERT INTO	@xlegends (Legend)
 		SELECT	LTRIM(RTRIM(SUBSTRING(@ex_legends, cte.start, cte.finish - cte.start)))
 		FROM	cte
-		WHERE	LTRIM(RTRIM(SUBSTRING(@ex_legends, cte.start, cte.finish - cte.start))) <> '';
+		WHERE	LTRIM(RTRIM(SUBSTRING(@ex_legends, cte.start, cte.finish - cte.start))) <> ''
+		OPTION (MAXRECURSION 0);
 	END;
 
 
@@ -211,7 +219,8 @@ BEGIN
 		INSERT INTO	#counters (CounterName)
 		SELECT	LTRIM(RTRIM(SUBSTRING(@counters, cte.start, cte.finish - cte.start)))
 		FROM	cte
-		WHERE	LTRIM(RTRIM(SUBSTRING(@counters, cte.start, cte.finish - cte.start))) <> '';
+		WHERE	LTRIM(RTRIM(SUBSTRING(@counters, cte.start, cte.finish - cte.start))) <> ''
+		OPTION (MAXRECURSION 0);
 	END;
 	
 
@@ -231,7 +240,7 @@ BEGIN
 	IF	@paneltype = 000
 	-- Graph chart panel -- Metric machine --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -256,7 +265,7 @@ BEGIN
 	IF	@paneltype = 001
 	-- Graph chart panel -- Metric counter --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -281,7 +290,7 @@ BEGIN
 	IF	@paneltype = 002
 	-- Graph chart panel -- Metric instance --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -306,7 +315,7 @@ BEGIN
 	IF	@paneltype = 003
 	-- Graph chart panel -- Metric object - counter - instance --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -332,7 +341,7 @@ BEGIN
 	IF	@paneltype = 10001
 	-- Graph chart panel -- Metric instance -- For DISTRIBUTION
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -363,7 +372,7 @@ BEGIN
 	IF	@paneltype = 10002
 	-- Graph chart panel -- For Ticket Latency
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, txn.CaptureTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, txn.CaptureTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= txn.LastTicketId - d.LastTicketId
 		FROM	(
@@ -389,7 +398,7 @@ BEGIN
 	IF	@paneltype = 010
 	-- Graph chart panel -- Metric machine - counter --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, d.CounterTime)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, d.CounterTime))
 			,	[metric]	= m.metric + @postfix
 			,	[value]		= SUM(d.CounterValue)
 		FROM		#CounterDetails AS c WITH (NOLOCK)
@@ -474,7 +483,7 @@ BEGIN
 	IF	@paneltype = -1
 	-- Static value -- Total CPUs capacity --
 	BEGIN;
-		SELECT	[time]		= DATEADD(HOUR, -@server_zone, t.time)
+		SELECT	[time]		= DATEADD(WEEK, @weekdiff, DATEADD(HOUR, -@server_zone, t.time))
 			,	[metric]	= N'%CPU Capacity' + @postfix
 			,	[value]		= ps.CPUs * 100
 		FROM		@tservers AS s
@@ -494,3 +503,4 @@ END;
 GO
 GRANT EXECUTE ON dbo.vnDBA_sp_Grafana_GetDataDashboard TO vnGrafana AS dbo;
 GO
+/*<info serverAlias="DBSTARIX-StarixDB" executers="vnGrafana" viewers="" isFunction="0" isNested="0"></info>*/
