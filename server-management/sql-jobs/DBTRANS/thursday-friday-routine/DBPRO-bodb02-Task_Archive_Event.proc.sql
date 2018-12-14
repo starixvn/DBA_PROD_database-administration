@@ -37,6 +37,7 @@ AS
 		- 20180405@Billy:	Add [cs04], [cs05], [ResourceId] columns of [Odds3rd] - [Redmine: #93175]
 		- 20181204@Billy:	Add [oddsES] & [ResultDetailES] tables - [Redmine: #105816]
 							Add column list to [odds] table - [Redmine: #000000]
+		- 20181214@Billy	Fix duplicate PK in #DeletedList - [Redmine: #106358]
  */
 BEGIN
 	SET NOCOUNT ON;
@@ -344,9 +345,11 @@ BEGIN
 
 		---### Delete data for ResultDetailES14
 			-- 20181204@Billy -- New table ResultDetailES14
+			-- 20181214@Billy -- Fix duplicate PK in #DeletedList
 		TRUNCATE TABLE	#DeletedList;
 		INSERT INTO	#DeletedList (id, IsDone)
-		SELECT	rdes.MatchID, 0
+		SELECT	DISTINCT
+				rdes.MatchID, 0
 		FROM	dbo.ResultDetailES14 AS rdes WITH (NOLOCK)
 		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE rdes.matchid = m.matchid AND m.eventdate = @winlostdate);
 
