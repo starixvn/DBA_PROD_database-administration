@@ -8,8 +8,10 @@ IF	OBJECT_ID('dbo.sp_starix_tblspaceused') IS NOT NULL
 GO
 CREATE PROCEDURE	dbo.sp_starix_tblspaceused
 						@show_as_pages			BIT = 0
+					,	@include_queue			BIT = 0
 					,	@include_internal		BIT = 0
 					,	@include_system			BIT = 0
+WITH EXECUTE AS CALLER
 AS
 /*
 	Creator:	20181214@Billy
@@ -64,8 +66,10 @@ BEGIN;
 			,	[index_pages]		= CASE WHEN r.used_pages > r.pages THEN r.used_pages - r.pages ELSE 0 END
 			,	[unused_pages]		= CASE WHEN r.reserved_pages > r.used_pages THEN r.reserved_pages - r.used_pages ELSE 0 END
 		FROM	@result AS r
-		WHERE	r.type <> CASE @include_internal WHEN 1 THEN '' ELSE 'IT' END
+		WHERE	r.type <> CASE @include_queue WHEN 1 THEN '' ELSE 'SQ' END
+			AND	r.type <> CASE @include_internal WHEN 1 THEN '' ELSE 'IT' END
 			AND	r.type <> CASE @include_system WHEN 1 THEN '' ELSE 'S' END
+		ORDER BY r.type, r.name;
 	END;
 	ELSE
 	BEGIN;
@@ -78,8 +82,10 @@ BEGIN;
 			,	[index_kb]			= CASE WHEN r.used_pages > r.pages THEN r.used_pages - r.pages ELSE 0 END * 8
 			,	[unused_kb]			= CASE WHEN r.reserved_pages > r.used_pages THEN r.reserved_pages - r.used_pages ELSE 0 END * 8
 		FROM	@result AS r
-		WHERE	r.type <> CASE @include_internal WHEN 1 THEN '' ELSE 'IT' END
+		WHERE	r.type <> CASE @include_queue WHEN 1 THEN '' ELSE 'SQ' END
+			AND	r.type <> CASE @include_internal WHEN 1 THEN '' ELSE 'IT' END
 			AND	r.type <> CASE @include_system WHEN 1 THEN '' ELSE 'S' END
+		ORDER BY r.type, r.name;
 	END;
 END;
 GO
