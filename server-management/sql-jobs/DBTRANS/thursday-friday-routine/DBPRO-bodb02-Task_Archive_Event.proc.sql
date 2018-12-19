@@ -37,7 +37,8 @@ AS
 		- 20180405@Billy:	Add [cs04], [cs05], [ResourceId] columns of [Odds3rd] - [Redmine: #93175]
 		- 20181204@Billy:	Add [oddsES] & [ResultDetailES] tables - [Redmine: #105816]
 							Add column list to [odds] table - [Redmine: #000000]
-		- 20181214@Billy	Fix duplicate PK in #DeletedList - [Redmine: #106358]
+		- 20181214@Billy:	Fix duplicate PK in #DeletedList - [Redmine: #106358]
+		- 20181219@Billy:	Add [Tier] column of [match_remark] - [Redmine: #106648]
  */
 BEGIN
 	SET NOCOUNT ON;
@@ -107,20 +108,16 @@ BEGIN
 
 		-- IF EDIT HERE (MatchRemark)
 		-- GO EDIT CODE IN LOWER SECTION, TOO (Extra Cleanup Match_Remark)
+			-- 20181219@Billy -- Add column [Tier]
 		INSERT INTO DB06.bodb_Archive.dbo.match_remark
-		(
-		[matchid], [calculate], [multiple], [calrefund], [refund], [calStatus], [IsTotalBetDenied_1], [IsTotalBetDenied_3], [IsTotalBetDenied_7], [IsTotalBetDenied_8],
-		[LiveTimer], [HomeRedCard], [AwayRedCard], [LivePeriod], [HedgeForecast], [IsTotalBetDenied_20], [IsTotalBetDenied_21], [IsNeutral], [StreamingID], [IsInternal], [IsHTCal],
-		[LiveDeleteChecker], [HomeColor], [AwayColor], [ConfirmHT], [ConfirmFT], [PausePeriod], [TimerSuspend], [IsPending], [isUndecided], [StdDelBetCheck],
-		HomeSubstitutes,AwaySubstitutes,StartTeam,HomePenalty,AwayPenalty,HomeYellowCard,AwayYellowCard
-		)
-		SELECT
-		[matchid], [calculate], [multiple], [calrefund], [refund], [calStatus], [IsTotalBetDenied_1], [IsTotalBetDenied_3], [IsTotalBetDenied_7], [IsTotalBetDenied_8],
-		[LiveTimer], [HomeRedCard], [AwayRedCard], [LivePeriod], [HedgeForecast], [IsTotalBetDenied_20], [IsTotalBetDenied_21], [IsNeutral], [StreamingID], [IsInternal], [IsHTCal],
-		[LiveDeleteChecker], [HomeColor], [AwayColor], [ConfirmHT], [ConfirmFT], [PausePeriod], [TimerSuspend], [IsPending], [isUndecided], [StdDelBetCheck],
-		HomeSubstitutes,AwaySubstitutes,StartTeam,HomePenalty,AwayPenalty,HomeYellowCard,AwayYellowCard
-		FROM match_remark
-		WHERE MatchID in (SELECT MatchID from Match14 where eventdate = @winlostdate)
+			(	matchid, calculate, multiple, calrefund, refund, calStatus, IsTotalBetDenied_1, IsTotalBetDenied_3, IsTotalBetDenied_7, IsTotalBetDenied_8, LiveTimer, HomeRedCard, AwayRedCard
+			,	LivePeriod, HedgeForecast, IsTotalBetDenied_20, IsTotalBetDenied_21, IsNeutral, StreamingID, IsInternal, IsHTCal, LiveDeleteChecker, HomeColor, AwayColor, ConfirmHT, ConfirmFT
+			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier)
+		SELECT	matchid, calculate, multiple, calrefund, refund, calStatus, IsTotalBetDenied_1, IsTotalBetDenied_3, IsTotalBetDenied_7, IsTotalBetDenied_8, LiveTimer, HomeRedCard, AwayRedCard
+			,	LivePeriod, HedgeForecast, IsTotalBetDenied_20, IsTotalBetDenied_21, IsNeutral, StreamingID, IsInternal, IsHTCal, LiveDeleteChecker, HomeColor, AwayColor, ConfirmHT, ConfirmFT
+			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier
+		FROM	dbo.match_remark WITH (NOLOCK)
+		WHERE	MatchID IN (SELECT MatchID FROM dbo.match14 WHERE eventdate = @winlostdate)
 
 		INSERT INTO DB06.bodb_Archive.dbo.[MatchMaxbet_bk](MatchId, BetType, Maxbet, OperatorId, Spread)
 		SELECT MatchId, BetType, Maxbet, OperatorId, Spread
