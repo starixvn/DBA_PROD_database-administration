@@ -22,6 +22,7 @@ AS
 		- 20170914@Patrick: Integrate with Lucky3 [RedmineId: #83190]
 		- 20171004@Lukas:	Add @deletedTarget for deleting data for one by one table
 		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
+		- 20181106@Sophia:  Add delete Transfer_Coll [Redmine: #98621]
 */
 -- =======================
 -- Parameter check\control
@@ -209,6 +210,26 @@ BEGIN
 
 			RETURN;
 		END; --- end of deleting bettransRNG14
+
+		IF	@deletedTarget = 'Transfer_Coll' --- delete Transfer_Coll
+		BEGIN
+			IF EXISTS (SELECT 1 FROM sys.objects WHERE Object_Name(Object_ID) = 'Transfer_Coll')
+			BEGIN;
+				SELECT	@rowcount = 0;
+
+				BEGIN TRANSACTION;
+
+				DELETE	TOP(2500)
+				FROM	dbo.Transfer_Coll WITH (ROWLOCK)
+				WHERE	winlostdate = @winlostdate;
+
+				SELECT	@rowcount = @@ROWCOUNT;
+
+				COMMIT TRANSACTION;
+
+			RETURN;	
+			END
+		END; --- end of deleting Transfer_Coll
 
 		IF	@deletedTarget = 'others' --- for deleting all other small tables
 		BEGIN
