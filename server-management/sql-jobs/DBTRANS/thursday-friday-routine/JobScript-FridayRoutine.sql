@@ -6,6 +6,7 @@
 		- 20180725@Billy:	Initiate on GIT - [Redmine: #00000]
 		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
 		- 20181018@Billy:	Update Category - [Redmine: #103430]
+		- 20181218@Daniel:	Add table [Transfer_Coll] - [Redmine: #106220]
 */
 
 SET NOCOUNT ON;
@@ -351,7 +352,18 @@ BEGIN;
 	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
 	WAITFOR DELAY @WaitFor;
 END;
- 
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''Transfer_Coll'', @rowcount = @rowcount OUTPUT;
+
+	-- Dynamic Delay Time --
+	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
+	WAITFOR DELAY @WaitFor;
+END;
+
 EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
 WAITFOR DELAY ''00:00:03'';
 ';
@@ -460,7 +472,18 @@ BEGIN;
 	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
 	WAITFOR DELAY @WaitFor;
 END;
- 
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''Transfer_Coll'', @rowcount = @rowcount OUTPUT;
+
+	-- Dynamic Delay Time --
+	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
+	WAITFOR DELAY @WaitFor;
+END;
+
 EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
 WAITFOR DELAY ''00:00:03'';
 ';
@@ -569,7 +592,18 @@ BEGIN;
 	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
 	WAITFOR DELAY @WaitFor;
 END;
- 
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''Transfer_Coll'', @rowcount = @rowcount OUTPUT;
+
+	-- Dynamic Delay Time --
+	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
+	WAITFOR DELAY @WaitFor;
+END;
+
 EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
 WAITFOR DELAY ''00:00:03'';
 ';
@@ -678,7 +712,18 @@ BEGIN;
 	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
 	WAITFOR DELAY @WaitFor;
 END;
- 
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''Transfer_Coll'', @rowcount = @rowcount OUTPUT;
+
+	-- Dynamic Delay Time --
+	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
+	WAITFOR DELAY @WaitFor;
+END;
+
 EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
 WAITFOR DELAY ''00:00:03'';
 ';
@@ -787,7 +832,18 @@ BEGIN;
 	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
 	WAITFOR DELAY @WaitFor;
 END;
- 
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''Transfer_Coll'', @rowcount = @rowcount OUTPUT;
+
+	-- Dynamic Delay Time --
+	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
+	WAITFOR DELAY @WaitFor;
+END;
+
 EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
 WAITFOR DELAY ''00:00:03'';
 ';
@@ -896,7 +952,18 @@ BEGIN;
 	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
 	WAITFOR DELAY @WaitFor;
 END;
- 
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''Transfer_Coll'', @rowcount = @rowcount OUTPUT;
+
+	-- Dynamic Delay Time --
+	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
+	WAITFOR DELAY @WaitFor;
+END;
+
 EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
 WAITFOR DELAY ''00:00:03'';
 ';
@@ -1005,7 +1072,18 @@ BEGIN;
 	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
 	WAITFOR DELAY @WaitFor;
 END;
- 
+
+SELECT @rowcount = 1;
+WHILE @rowcount <> 0
+
+BEGIN;
+	EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''Transfer_Coll'', @rowcount = @rowcount OUTPUT;
+
+	-- Dynamic Delay Time --
+	SELECT	@WaitFor = dbo.f_BU_GetDelayTime(''FriRoutine'');
+	WAITFOR DELAY @WaitFor;
+END;
+
 EXECUTE dbo.ExecRep_02 @winlostdate = @wldate, @Command = ''ALL_DB'', @deletedTarget = ''others'';
 WAITFOR DELAY ''00:00:03'';
 ';
