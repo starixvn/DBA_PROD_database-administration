@@ -187,5 +187,20 @@
       <FullPath>odds3rd_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>oddsES_bk.dtsx</Name>
+      <FullPath>oddsES_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>ResultDetailES_bk.dtsx</Name>
+      <FullPath>ResultDetailES_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>Transfer_Coll_bk.dtsx</Name>
+      <FullPath>Transfer_Coll_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
   </DTSPackages>
 </Project>
