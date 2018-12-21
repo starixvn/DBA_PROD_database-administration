@@ -1,5 +1,6 @@
 /*
 	Task: Job archive BA transactions after Movebet done
+	Created 20181220@Daniel
 	Database: DB06/DBTP
 */
 
