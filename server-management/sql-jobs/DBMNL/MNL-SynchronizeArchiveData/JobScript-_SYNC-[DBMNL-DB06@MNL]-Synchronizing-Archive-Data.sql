@@ -4,6 +4,7 @@
 	Server:		DBMNL
 	Revision:
 		- 20181221@Billy:	Initiate on GIT - [Redmine: #000000]
+		- 20181221@Billy:	Add [oddsES_bk], [ResultDetailES_bk], [Transfer_Coll_bk] & Update [match_remark], [bettransRnG_bk] - [Redmine: #106070]
 */
 
 SET NOCOUNT ON;
