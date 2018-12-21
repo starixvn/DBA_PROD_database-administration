@@ -1104,8 +1104,8 @@ BEGIN;
 						,	@step_name					= N'OddsES_bk'
 						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
-						,	@on_success_action			= 4
-						,	@on_success_step_id			= 2
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 2
 						,	@on_fail_step_id			= 0
 						,	@retry_attempts				= 0

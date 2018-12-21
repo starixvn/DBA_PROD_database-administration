@@ -117,7 +117,7 @@ BEGIN;
 						,	@new_name					= @JobName
 						,	@enabled					= 1
 						,	@notify_level_eventlog		= 0
-						,	@notify_level_email			= 2
+						,	@notify_level_email			= 3
 						,	@notify_level_netsend		= 0
 						,	@notify_level_page			= 0
 						,	@delete_level				= 0
