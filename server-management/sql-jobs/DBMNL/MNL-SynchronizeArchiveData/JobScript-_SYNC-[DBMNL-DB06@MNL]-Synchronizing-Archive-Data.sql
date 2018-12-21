@@ -25,7 +25,7 @@ DECLARE	@Category		NVARCHAR(128)	= N'Archive Data Synchronization'
 	,	@JobName		NVARCHAR(128)	= N'_SYNC: [DBMNL-DB06@MNL] Synchonizing Archive Data'
 	,	@Description	NVARCHAR(512)	= N''
 	,	@EmailOperator	NVARCHAR(128)	= N'DBAAdmin'
-	,	@Steps			INT				= 37
+	,	@Steps			INT				= 40
 	;
 
 SELECT	@ReturnCode		= 0;
@@ -146,7 +146,7 @@ BEGIN;
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 4
-						,	@on_fail_step_id			= 36
+						,	@on_fail_step_id			= 39
 						,	@retry_attempts				= 0
 						,	@retry_interval				= 0
 						,	@os_run_priority			= 0
@@ -1067,6 +1067,90 @@ BEGIN;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
+						,	@step_name					= N'OddsES_bk'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\DBMNL_Sync_DB06\OddsES_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 35 ----
+BEGIN;
+	SELECT	@Loop = 35;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
+						,	@step_name					= N'ResultDetailES_bk'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\DBMNL_Sync_DB06\ResultDetailES_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 36 ----
+BEGIN;
+	SELECT	@Loop = 36;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
+						,	@step_name					= N'Transfer_Coll_bk'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\DBMNL_Sync_DB06\Transfer_Coll_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 37 ----
+BEGIN;
+	SELECT	@Loop = 37;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
 						,	@step_name					= N'Delete match_bk'
 						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
@@ -1089,9 +1173,9 @@ BEGIN;
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 35 ----
+---- Step 38 ----
 BEGIN;
-	SELECT	@Loop = 35;
+	SELECT	@Loop = 38;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -1125,9 +1209,9 @@ IF	@@ROWCOUNT <> 1
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 36 ----
+---- Step 39 ----
 BEGIN;
-	SELECT	@Loop = 36;
+	SELECT	@Loop = 39;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -1155,9 +1239,9 @@ EXECUTE dbo.Task_MNL_CheckRowcount;
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 37 ----
+---- Step 40 ----
 BEGIN;
-	SELECT	@Loop = 37;
+	SELECT	@Loop = 40;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId

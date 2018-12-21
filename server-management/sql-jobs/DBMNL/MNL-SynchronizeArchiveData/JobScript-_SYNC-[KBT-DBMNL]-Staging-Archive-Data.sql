@@ -25,7 +25,7 @@ DECLARE	@Category		NVARCHAR(128)	= N'Archive Data Synchronization'
 	,	@JobName		NVARCHAR(128)	= N'_SYNC: [KBT-DBMNL] Staging Archive Data'
 	,	@Description	NVARCHAR(512)	= N''
 	,	@EmailOperator	NVARCHAR(128)	= N'DBAAdmin'
-	,	@Steps			INT				= 37
+	,	@Steps			INT				= 40
 	;
 
 SELECT	@ReturnCode		= 0;
@@ -206,7 +206,7 @@ BEGIN;
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 4
-						,	@on_fail_step_id			= 37
+						,	@on_fail_step_id			= 40
 						,	@retry_attempts				= 0
 						,	@retry_interval				= 0
 						,	@os_run_priority			= 0
@@ -1102,8 +1102,8 @@ BEGIN;
 						,	@step_name					= N'Odds3rd_bk'
 						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
-						,	@on_success_action			= 4
-						,	@on_success_step_id			= 2
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 2
 						,	@on_fail_step_id			= 0
 						,	@retry_attempts				= 0
@@ -1124,6 +1124,90 @@ END;
 ---- Step 36 ----
 BEGIN;
 	SELECT	@Loop = 36;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
+						,	@step_name					= N'OddsES_bk'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\KBT_Staging_DBMNL\oddsES_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 37 ----
+BEGIN;
+	SELECT	@Loop = 37;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
+						,	@step_name					= N'ResultDetailES_bk'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\KBT_Staging_DBMNL\ResultDetailES_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 38 ----
+BEGIN;
+	SELECT	@Loop = 38;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
+						,	@step_name					= N'Transfer_Coll_bk'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\KBT_Staging_DBMNL\Transfer_Coll_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 39 ----
+BEGIN;
+	SELECT	@Loop = 39;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -1157,9 +1241,9 @@ IF	@@ROWCOUNT <> 1
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 37 ----
+---- Step 40 ----
 BEGIN;
-	SELECT	@Loop = 37;
+	SELECT	@Loop = 40;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
