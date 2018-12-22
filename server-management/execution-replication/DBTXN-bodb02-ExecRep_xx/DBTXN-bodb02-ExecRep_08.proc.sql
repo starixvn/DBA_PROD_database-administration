@@ -30,11 +30,14 @@ AS
 		- 20180117@Patrick: Integrate with Bonus
 		- 20180404@Patrick: Add more fields JackpotInfo, RefNo2, ContributionRate, BetStake, ContributionStake3rd on bettransRnG for OneRNG Jackpot
 		- 20181217@Patrick: Use local param variable to avoiding param sniffing [RedmineId: #106130]
+		- 20181222@Billy:   Remove Queue processing on DBTP - [Redmine: #000000]
 	 */
 	 
 DECLARE @__winlostdate SMALLDATETIME, @__recommend INT
 SELECT @__winlostdate = @winlostdate, @__recommend = @recommend
 
+	-- 20181222@Billy: Comment code due to replication issue from DBTP to DBMNL
+/*
 IF @@SERVERNAME = 'DBTP' AND @parlay = 0
 BEGIN
 	IF NOT EXISTS (SELECT 1 FROM dbo.ExecRep_Queue WHERE command = 'ExecRep_08' AND datevalue = @__winlostdate)
@@ -42,6 +45,7 @@ BEGIN
 		
 	RETURN
 END
+*/
 
 IF @@SERVERNAME NOT LIKE 'DB04%'
 BEGIN
@@ -219,4 +223,4 @@ END
 GO
 GRANT VIEW DEFINITION ON dbo.ExecRep_08 TO vnteam AS dbo;
 GO
-/*<info serverAlias="DBTXN-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="1"></info>*/
+/*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="1"></info>*/
