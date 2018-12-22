@@ -221,6 +221,4 @@ BEGIN
 	
 END
 GO
-GRANT VIEW DEFINITION ON dbo.ExecRep_08 TO vnteam AS dbo;
-GO
 /*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="1"></info>*/
