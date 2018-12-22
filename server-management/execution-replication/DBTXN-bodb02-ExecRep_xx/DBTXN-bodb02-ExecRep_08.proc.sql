@@ -29,12 +29,16 @@ AS
 		- 20170914@Patrick: Integrate with Lucky3 [RedmineId: #83190]
 		- 20180117@Patrick: Integrate with Bonus
 		- 20180404@Patrick: Add more fields JackpotInfo, RefNo2, ContributionRate, BetStake, ContributionStake3rd on bettransRnG for OneRNG Jackpot
+		- 20181217@Patrick: Use local param variable to avoiding param sniffing [RedmineId: #106130]
 	 */
 	 
+DECLARE @__winlostdate SMALLDATETIME, @__recommend INT
+SELECT @__winlostdate = @winlostdate, @__recommend = @recommend
+
 IF @@SERVERNAME = 'DBTP' AND @parlay = 0
 BEGIN
-	IF NOT EXISTS (SELECT 1 FROM dbo.ExecRep_Queue WHERE command = 'ExecRep_08' AND datevalue = @winlostdate)
-		INSERT INTO dbo.ExecRep_Queue (command, datevalue, qPriority) VALUES ('ExecRep_08',@winlostdate, 1)
+	IF NOT EXISTS (SELECT 1 FROM dbo.ExecRep_Queue WHERE command = 'ExecRep_08' AND datevalue = @__winlostdate)
+		INSERT INTO dbo.ExecRep_Queue (command, datevalue, qPriority) VALUES ('ExecRep_08',@__winlostdate, 1)
 		
 	RETURN
 END
@@ -61,7 +65,7 @@ BEGIN
 		sdiscount, scomm, spositiontaking, swinlost, srecommend, virtualrate, Username, CurrencyName, 
 		oddstype, statusID, currency2, balance, SecAcceptFlag, transid2, ExtraInfo, WalletType, BonusID, RefCode
 	from bettrans (nolock)
-	where recommend = @recommend AND winlostdate=@winlostdate
+	where recommend = @__recommend AND winlostdate=@__winlostdate
 		and bettype <= 19000
 
 	insert into translog14 
@@ -77,7 +81,7 @@ BEGIN
         currency, CurrencyName, recommend, mrecommend, srecommend,ip, statusID, balance, Username, transdesc,
         productID, gameID, eventID, vendorID, GameId3rd, TranId3rd
 	from translog with (nolock)
-	where recommend = @recommend AND winlostdate=@winlostdate
+	where recommend = @__recommend AND winlostdate=@__winlostdate
 		
 	INSERT INTO BettransLC14 
 		(
@@ -92,7 +96,7 @@ BEGIN
 		currency, CurrencyName, recommend, mrecommend, srecommend, ip, statusID, balance, Username, transdesc, productID, gameID, 
 		vendorID, GameId3rd, TranId3rd, RefNo, IsSum, winlost, awinlost, mwinlost, swinlost, playercomm, comm, acomm, scomm, Transdate3rd, NetStake
 	FROM dbo.BettransLC WITH (NOLOCK)
-	WHERE recommend = @recommend AND winlostdate=@winlostdate
+	WHERE recommend = @__recommend AND winlostdate=@__winlostdate
 
 	
 	INSERT INTO BettransRNG14
@@ -110,7 +114,7 @@ BEGIN
 		vendorID, GameId3rd, TranId3rd, RefNo, IsSum, winlost, awinlost, mwinlost, swinlost, playercomm, comm, acomm, scomm, Transdate3rd, Additional,SiteID, 
 		JackpotInfo, RefNo2, ContributionRate, BetStake, ContributionStake3rd
 	FROM dbo.BettransRNG WITH (NOLOCK)
-	WHERE recommend = @recommend AND winlostdate=@winlostdate
+	WHERE recommend = @__recommend AND winlostdate=@__winlostdate
 
 END
 
@@ -136,7 +140,7 @@ BEGIN
 		sdiscount, scomm, spositiontaking, swinlost, srecommend, virtualrate, Username, CurrencyName, 
 		oddstype, statusID, currency2, balance, SecAcceptFlag, transid2, ExtraInfo, WalletType, BonusID, RefCode
 	from bettrans (nolock)
-	where recommend = @recommend AND winlostdate=@winlostdate
+	where recommend = @__recommend AND winlostdate=@__winlostdate
 		and bettype IN (9, 29)
 END
 
@@ -174,8 +178,8 @@ BEGIN
 			statusID, transdesc
 		from bettransm b (nolock)
 			--INNER JOIN custinfo c (nolock) ON b.custid = c.custid
-		where --recommend = @recommend AND 
-			winlostdate=@winlostdate
+		where --recommend = @__recommend AND 
+			winlostdate=@__winlostdate
 
 
 		insert into bettransG14
@@ -193,7 +197,7 @@ BEGIN
 			virtualrate, SiteID, transdesc, BetID3rd
 		from bettransG with (nolock)
 		where  
-			winlostdate=@winlostdate
+			winlostdate=@__winlostdate
 
 		--copy ticket to [14] for lucky3
 		IF (SELECT COUNT(1) FROM dbo.sysobjects WHERE name IN ('BetLucky3Result', 'BetLucky3Result14')) = 2
@@ -207,7 +211,7 @@ BEGIN
 				, Comm, aComm, sComm, aPositionTaking, mPositionTaking, sPositionTaking, PlayerDiscount
 				, Discount, aDiscount, sDiscount, TransDesc, WinlostDate
 			FROM dbo.BetLucky3Result b WITH(NOLOCK)
-			WHERE WinlostDate = @winlostdate
+			WHERE WinlostDate = @__winlostdate
 		END
 	END
 	
