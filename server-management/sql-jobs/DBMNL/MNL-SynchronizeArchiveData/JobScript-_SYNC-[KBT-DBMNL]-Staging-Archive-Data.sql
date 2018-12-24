@@ -5,6 +5,7 @@
 	Revision:
 		- 20181221@Billy:	Initiate on GIT - [Redmine: #000000]
 		- 20181221@Billy:	Add [oddsES_bk], [ResultDetailES_bk], [Transfer_Coll_bk] & Update [match_remark], [bettransRnG_bk] - [Redmine: #106070]
+		- 20181224@Billy:	Fix wrong SSIS package at step bettransG - [Redmine: #000000]
 */
 
 SET NOCOUNT ON;
@@ -301,7 +302,7 @@ BEGIN;
 						,	@subsystem					= N'SSIS'
 						,	@database_name				= N'master'
 						,	@flags						= 0
-						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\KBT_Staging_DBMNL\bettransLC_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\KBT_Staging_DBMNL\bettransG.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
