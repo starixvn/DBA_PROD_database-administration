@@ -33,9 +33,13 @@ AS
 			+ Set current datetime value to checktime field when insert ticket 19999
 			+ When processing a line then insert itself and upline's to [List]
 		- 20180329@Percy: Enhance MBBU process [RedmineID: #92391]
+		- 20181222@Billy:   Remove Queue processing on DBTP - [Redmine: #000000]
  */
 BEGIN
-	--SET NOCOUNT ON 
+	--SET NOCOUNT ON
+	
+	-- 20181222@Billy: Comment code due to replication issue from DBTP to DBMNL
+/*
 	IF @@SERVERNAME = 'DBTP' AND @parlay = 0
 	BEGIN
 		IF NOT EXISTS (SELECT 1 FROM dbo.ExecRep_Queue WHERE command = 'ExecRep_09' AND datevalue = @winlostdate)
@@ -43,6 +47,7 @@ BEGIN
 		
 		RETURN
 	END
+*/
 
 	IF @tableName = 'SystemSettings'
 	BEGIN
@@ -320,6 +325,4 @@ BEGIN
 	END
 END
 GO
-GRANT VIEW DEFINITION ON dbo.ExecRep_09 TO vnteam AS dbo;
-GO
-/*<info serverAlias="DBTXN-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="1"></info>*/
+/*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="1"></info>*/
