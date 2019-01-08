@@ -68,8 +68,15 @@ ORDER BY BlockingSession DESC, rqs.total_elapsed_time DESC
 
 GO
 
-EXEC mondb.dbo.vndba_sp_whoisactive @get_outer_command = 1 
-
+--Check current:
+exec mondb.dbo.vndba_sp_WhoIsActive @get_outer_command = 1
+ --,@filter = 'bodbDownlineNet', @filter_type = 'login'
+ ,@get_plans = 1
+ --,@get_locks = 1
+ --,@get_avg_time = 1
+ --,@sort_order  = '[CPU] DESC' 
+ , @sort_order = '[used_memory] DESC'--mem used
+ 
 GO
 --#2 - Capture SP plan
 SELECT TOP 100 SUBSTRING(t.TEXT, statement_start_offset / 2 + 1, (
@@ -95,7 +102,7 @@ CROSS APPLY sys.dm_exec_text_query_plan(qs.plan_handle, qs.statement_start_offse
 WHERE OBJECT_NAME(t.objectid,t.dbid) = 'ExecRep_09' AND t.dbid = DB_ID('bodb02') 
 
 GO
--- #2 - Capture remote query plan
+-- #3 - Capture remote query plan
 SELECT TOP 100 getdate() AS logdate
 	,OBJECT_NAME(t.objectid, t.dbid) objname
 	,qs.creation_time

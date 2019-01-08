@@ -35,6 +35,8 @@
 	ORDER BY physical_name
 
 -----------------Step 4: Bring database online ---------
+	USE DBxxx
+	GO
 	ALTER DATABASE DBxxx SET ONLINE
 	ALTER DATABASE DBxxx SET MULTI_USER
 
