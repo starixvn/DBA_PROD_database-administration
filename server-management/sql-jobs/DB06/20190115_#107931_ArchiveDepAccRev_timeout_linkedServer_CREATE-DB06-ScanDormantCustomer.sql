@@ -3,16 +3,17 @@
 	Task: Create a new sql job "Archive Deposit Member - Step 1: Collect Dormant Member" in DB06
 	Redmine: https://nexdev.net/issues/107931
 	Run at:	msdb@DB06
+
+		Revision:
+			20190118@Dominic: Enhance SP & change @CheckStatement_DaysPerBatch to 10
 */
 
 USE [msdb]
 GO
 
-
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'[Uncategorized (Local)]' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'[Uncategorized (Local)]'
@@ -32,7 +33,6 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'Archive Deposit Member - Ste
 		@category_name=N'[Uncategorized (Local)]', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Put dormant member into the waiting list', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -43,7 +43,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Put dorm
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'Exec dbo.[Task_Dep_Customer_Archive_GetDormantCustomer] @CheckStatement_DaysPerBatch = 1,
+		@command=N'Exec dbo.[Task_Dep_Customer_Archive_GetDormantCustomer] @CheckStatement_DaysPerBatch = 10,
 	@CheckBettrans_CustPerBatch = 2000,
 	@InsertRepTable_CustPerBatch = 6000', 
 		@database_name=N'bodb02', 
@@ -58,4 +58,7 @@ GOTO EndSave
 QuitWithRollback:
     IF (@@TRANCOUNT > 0) ROLLBACK TRANSACTION
 EndSave:
+
 GO
+
+
