@@ -35,4 +35,4 @@ RETURN (
 	) AS t
 );
 GO
-/*<info serverAlias="DBSTARIX-StarixDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBSTARIX-StarixDB" executers="" viewers="" isFunction="1" isNested="0"></info>*/
