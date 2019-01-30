@@ -45,9 +45,11 @@ PRINT '-------------------------------------------------------------------------
 SELECT CEILING(physical_memory_in_bytes/1048576.0) as [Physical Memory_MB], CEILING(physical_memory_in_bytes/1073741824.0) as [Physical Memory_GB]
 	, CEILING(virtual_memory_in_bytes/1073741824.0) as [Virtual Memory GB] , 'Memory visible to the Operating System' AS _desc
 FROM sys.dm_os_sys_info 
+
 SELECT (bpool_committed*8)/1024.0 as BPool_Committed_MB, (bpool_commit_target*8)/1024.0 as BPool_Commit_Tgt_MB
 	,(bpool_visible*8)/1024.0 as BPool_Visible_MB, 'Buffer Pool Usage at the Moment' as _desc
 FROM sys.dm_os_sys_info 
+------------------------
 SELECT cntr_value as Mem_KB, cntr_value/1024.0 as Mem_MB, (cntr_value/1048576.0) as Mem_GB,'Total Memory used by SQL Server Buffer Pool as reported by Perfmon counters' as _desc
 FROM #perfmon_counters WHERE counter_name = 'Total Server Memory (KB)' 
 union all
@@ -71,7 +73,7 @@ FROM #perfmon_counters WHERE counter_name = 'Granted Workspace Memory (KB) '
 union all
 SELECT cntr_value as Mem_KB, cntr_value/1024.0 as Mem_MB, (cntr_value/1048576.0) as Mem_GB,'Total Amount of memory consumed by cursors' as _desc 
 FROM #perfmon_counters WHERE counter_name = 'Cursor memory usage' and instance_name = '_Total' 
-
+--------------------
 SELECT cntr_value as [8KB_Pages], (cntr_value*@pg_size)/1024.0 as Pages_in_KB, (cntr_value*@pg_size)/1048576.0 as Pages_in_MB
 	,'Number of pages in the buffer pool (includes database, free, and stolen).' as _desc
 FROM #perfmon_counters WHERE object_name= @Instancename+'Buffer Manager' and counter_name = 'Total pages' 
@@ -95,6 +97,7 @@ union all
 SELECT cntr_value as [8KB_Pages], (cntr_value*@pg_size)/1024.0 as Pages_in_KB, (cntr_value*@pg_size)/1048576.0 as Pages_in_MB
 	,'Number of Plan Cache pages in the buffer pool' as _desc 
 FROM #perfmon_counters WHERE object_name=@Instancename+'Plan Cache' and counter_name = 'Cache Pages' and instance_name = '_Total'
+
 -------------------------------------- 
 SELECT 'Free list stalls/sec' title, cntr_value as [value],'Number of requests per second that had to wait for a free page' _desc 
 FROM #perfmon_counters WHERE object_name=@Instancename+'Buffer Manager' and counter_name = 'Free list stalls/sec'
