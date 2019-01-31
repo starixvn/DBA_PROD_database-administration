@@ -183,9 +183,9 @@ BEGIN;
 
 
 	-- Alerting --
-	IF	EXISTS (SELECT 1 FROM @Results)
+	IF	EXISTS (SELECT 1 FROM @Results WHERE Subscriber <> N'DB05')
 	BEGIN;
-		SELECT	@Msg = N'(policecar)  REPLICATION DELAY  (policecar)' + js.str + rss.str
+		SELECT	@Msg = N'(policecar)  REPLICATION DELAY  (policecar)' + ISNULL(js.str, N'') + rss.str
 		FROM	(
 			SELECT	N'
 [' + j.JobName + N']: ' + CONVERT(NVARCHAR(MAX), j.StartTime, 120) + N' ~ ' + CONVERT(NVARCHAR(MAX), j.AvgEndTime, 120) + N' GMT-4'
