@@ -1,0 +1,106 @@
+
+SET QUOTED_IDENTIFIER ON 
+GO
+SET ANSI_NULLS ON 
+GO
+
+/****** Object:  Stored Procedure dbo.LA_FunctionPartysModify    Script Date: 1/21/2019 4:30:03 AM ******/
+/****** Object:  Stored Procedure dbo.LA_FunctionPartysModify    Script Date: 15/10/2014 16:43:23 PM ******/
+/****** Object:  Stored Procedure dbo.OA_FunctionLicenseesModify    Script Date: 12/2/2011 10:33:03 AM ******/
+
+CREATE PROCEDURE [dbo].[LA_FunctionPartysModify]
+	 @FunctionID	INT
+	,@PartyIDs	VARCHAR(5500) --'1,2,3,4'
+	,@Creator		INT
+	,@Language	VARCHAR(20)	 = 'en-us'
+	,@LoginIP		VARCHAR(30)	 =''
+	,@ErrCode		INT			 = 0	    OUTPUT  
+	,@ErrMsg		NVARCHAR(1000)	 = ''     OUTPUT 
+AS
+/*  
+ * Created: 20140820@Florent
+ * Task : Assign party(s) to Function
+ * DB: DB052.bodb_Licensee  
+ *  
+ * Revisions:     
+*/BEGIN
+	SET NOCOUNT ON
+
+	DECLARE @startRun  DATETIME
+		,@endRun	    DATETIME
+		,@duration    INT
+		,@LogSPData   VARCHAR(5000)
+		,@LogSPData2  VARCHAR(5000)
+
+	SET @startRun = GETDATE()
+
+	IF EXISTS (
+			SELECT TOP 1 1
+			FROM dbo.LA_FunctionParty fp WITH (NOLOCK)
+			WHERE fp.FunctionID = @FunctionID
+			)
+	BEGIN
+		DECLARE @PartyListOld VARCHAR(5000) = ''
+
+		SELECT @PartyListOld = @PartyListOld + cast(PartyID AS VARCHAR(30)) + ','
+		FROM dbo.LA_FunctionParty WITH (NOLOCK)
+		WHERE FunctionID = @FunctionID
+
+		SELECT @LogSPData2 = '<LA_FunctionPartysModify FunctionID="' + coalesce(cast(@FunctionID AS VARCHAR(10)), space(1)) + '" ' + 'PartyID="' + coalesce(@PartyListOld, space(1)) + '" ' + 'Language="' + coalesce(cast(@Language AS VARCHAR(20)), space(1)) + '" ' + 'UserID="' + coalesce(cast(@Creator AS VARCHAR(20)), space(1)) + '" ' + 'IP="' + coalesce(cast(@LoginIP AS VARCHAR(30)), space(1)) + '" />'
+
+		DELETE
+		FROM dbo.LA_FunctionParty WITH (ROWLOCK)
+		WHERE FunctionID = @FunctionID
+
+		IF @@Error > 0
+		BEGIN
+			SELECT @ErrCode = 1
+				,@ErrMsg = 'Fail to	unassign LicenseeID ' + @PartyListOld + ' from FunctionID ' + CONVERT(VARCHAR(10), @FunctionID)
+
+			RETURN
+		END
+	END
+
+	INSERT INTO dbo.LA_FunctionParty (
+		FunctionID
+		,PartyID
+		)
+	SELECT @FunctionID
+		,val AS PartyID
+	FROM dbo.strSplit(@PartyIDs, ',')
+
+	IF @@Error > 0
+	BEGIN
+		SELECT @ErrCode = 1
+			,@ErrMsg = 'Fail to insert data of Party list : ' + CONVERT(VARCHAR(10), @PartyIDs) + ' and FunctionID ' + CONVERT(VARCHAR(10), @FunctionID)
+
+		RETURN
+	END
+
+	SELECT @LogSPData = '<LA_FunctionPartysModify FunctionID="' + coalesce(cast(@FunctionID AS VARCHAR(10)), space(1)) + '" ' + 'PartyID="' + coalesce(@PartyIDs, space(1)) + '" ' + 'Language="' + coalesce(cast(@Language AS VARCHAR(20)), space(1)) + '" ' + 'UserID="' + coalesce(cast(@Creator AS VARCHAR(20)), space(1)) + '" ' + 'IP="' + coalesce(cast(@LoginIP AS VARCHAR(30)), space(1)) + '" />'
+
+	SET @endRun = getdate()
+	SET @duration = datediff(millisecond, @startRun, @endRun)
+
+	EXEC dbo.OA_WriteLog_UserLog_RunSP @UserID = @Creator
+		,@CustID = 0
+		,@SPName = 'LA_FunctionPartysModify'
+		,
+		--@ActionID = 0,  
+		@TrackingValue = @LogSPData
+		,@TrackingValue2 = @LogSPData2
+		,@duration = @duration
+END
+GO
+
+SET QUOTED_IDENTIFIER OFF 
+GO
+SET ANSI_NULLS ON 
+GO
+
+
+GO 
+ GRANT EXECUTE ON [dbo].[LA_FunctionPartysModify] TO [bodbAdminNet]
+GO 
+ GRANT VIEW DEFINITION ON [dbo].[LA_FunctionPartysModify] TO [vnteam]
+GO 
