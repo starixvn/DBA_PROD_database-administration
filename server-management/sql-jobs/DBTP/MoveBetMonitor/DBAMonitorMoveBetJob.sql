@@ -8,19 +8,16 @@
 USE [msdb]
 GO
 
-/****** Object:  Job [DBA : Monitor MoveBet Job]    Script Date: 02/01/2019 13:00:44 ******/
 IF  EXISTS (SELECT job_id FROM msdb.dbo.sysjobs_view WHERE name = N'DBA : Monitor MoveBet Job')
 EXEC msdb.dbo.sp_delete_job @job_id=N'4c6d929e-77af-4401-b97c-6009e4b198e9', @delete_unused_schedule=1
 GO
 
 USE [msdb]
 GO
-
-/****** Object:  Job [DBA : Monitor MoveBet Job]    Script Date: 02/01/2019 13:00:44 ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [[Uncategorized (Local)]]]    Script Date: 02/01/2019 13:00:44 ******/
+
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'[Uncategorized (Local)]' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'[Uncategorized (Local)]'
@@ -40,7 +37,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'DBA : Monitor MoveBet Job',
 		@category_name=N'[Uncategorized (Local)]', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [Delete bettransm Monitor]    Script Date: 02/01/2019 13:00:44 ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Delete bettransm Monitor', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -58,7 +55,7 @@ IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'Every 1 minutes', 
-		@enabled=0, 
+		@enabled=1, 
 		@freq_type=4, 
 		@freq_interval=1, 
 		@freq_subday_type=4, 
@@ -67,8 +64,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'Every 1 m
 		@freq_recurrence_factor=0, 
 		@active_start_date=20180723, 
 		@active_end_date=99991231, 
-		@active_start_time=0, 
-		@active_end_time=235959, 
+		@active_start_time=173000, 
+		@active_end_time=180059, 
 		@schedule_uid=N'8dc678c8-3caf-4cc5-8981-c75d791fdb61'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
