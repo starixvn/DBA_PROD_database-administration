@@ -10,6 +10,7 @@ AS
 	
 	Revisions:
 		- 20190124@Billy:	Initial - [Redmine: #107814]
+		- 20190201@Billy:	Replication Monitor Phase 2 - [Redmine: #107814]
 		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
