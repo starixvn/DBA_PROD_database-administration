@@ -45,7 +45,7 @@ BEGIN
 		BEGIN
 			-- CHECK DBTRANS
 			SELECT  @sql = N'SELECT * FROM OPENQUERY(DBTRANS, ' + ''''
-					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,101)
+					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,126)
 					+ '''' + + '''' + ''')'
 			EXECUTE sp_executesql @sql ;  
 
@@ -54,7 +54,7 @@ BEGIN
 				 						
 			-- CHECK db052
 			SELECT  @sql = N'SELECT * FROM OPENQUERY(DB052, ' + ''''
-					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,101)
+					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,126)
 					+ '''' + + '''' + ''')'
 			EXECUTE sp_executesql @sql ;  
 
@@ -63,7 +63,7 @@ BEGIN
 			
 			-- CHECK db053
 			SELECT  @sql = N'SELECT * FROM OPENQUERY(DB053, ' + ''''
-					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,101)
+					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,126)
 					+ '''' + + '''' + ''')'
 			EXECUTE sp_executesql @sql ;  
 
@@ -72,7 +72,7 @@ BEGIN
 				 
 			-- CHECK db06
 			SELECT  @sql = N'SELECT * FROM OPENQUERY(DB06, ' + ''''
-					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,101)
+					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,126)
 					+ '''' + + '''' + ''')'
 			EXECUTE sp_executesql @sql ;  
 
