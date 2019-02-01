@@ -32,12 +32,50 @@ CREATE CLUSTERED INDEX	CIX_Alert_RegularJobSchedules ON dbo.vnDBA_Alert_RegularJ
 --		Alert Threshold Definition
 ----------------------------------------------------------------------------------------------------
 
-CREATE TABLE	dbo.vnDBA_Alert_Thresholds (
-					AlertType			NVARCHAR(128)	NOT NULL
+CREATE TABLE	dbo.vnDBA_Alert_Repl_Thresholds (
+					AlertLevel			SMALLINT		NOT NULL
 				,	Samples				INT				NOT NULL
-				,	Threshold			DECIMAL(19, 8)	NOT NULL
-				,	RegularThreshold	DECIMAL(19, 8)	NOT NULL
-				,	Method				NVARCHAR(128)
-				,	Pattern				VARCHAR(MAX)
-				,	CONSTRAINT	PK_Alert_Thresholds_Type PRIMARY KEY CLUSTERED (AlertType) ON DATA
+				,	Violates			INT				NOT NULL
+				,	AlertInterval		INT				NOT NULL
+				,	TimeThreshold		INT				NOT NULL
+				,	RegTimeThreshold	INT				NOT NULL
+				,	IdThreshold			INT				NOT NULL
+				,	RegIdThreshold		INT				NOT NULL
+				,	CONSTRAINT	PK_AlertReplThresholds PRIMARY KEY CLUSTERED (AlertLevel) ON DATA
+				);
+
+
+--	BEGIN STEP 3:
+--		Alert Replication Tables
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE	dbo.vnDBA_Alert_Repl_Publications (
+					Publication			NVARCHAR(128)	NOT NULL
+				,	AlertLevel			SMALLINT		NOT NULL
+						CONSTRAINT	DF_AlertReplPubs_AlertLevel DEFAULT (0)
+				,	CONSTRAINT	PK_AlertReplPubs PRIMARY KEY CLUSTERED (Publication) ON DATA
+				);
+
+CREATE TABLE	dbo.vnDBA_Alert_Repl_Subsribers (
+					Subscriber			NVARCHAR(128)	NOT NULL
+				,	AlertLevel			SMALLINT		NOT NULL
+						CONSTRAINT	DF_AlertReplSubs_AlertLevel DEFAULT (0)
+				,	AlertCase			TINYINT			NOT NULL
+						CONSTRAINT	DF_AlertReplSubs_AlertCase DEFAULT (1)
+				,	CONSTRAINT	PK_AlertReplSubs PRIMARY KEY CLUSTERED (Subscriber) ON DATA
+				);
+
+
+--	BEGIN STEP 4:
+--		Alert Replication Result
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE	dbo.vnDBA_Alert_Repl_Result (
+					Publisher		NVARCHAR(128)		NOT NULL
+				,	PublishDB		NVARCHAR(128)		NOT NULL
+				,	Publication		NVARCHAR(128)		NOT NULL
+				,	Subscriber		NVARCHAR(128)		NOT NULL
+				,	CounterTime		DATETIME
+				,	AlertCase		TINYINT				NOT NULL
+				,	CONSTRAINT	PK_AlertReplResult PRIMARY KEY CLUSTERED (Publisher, PublishDB, Publication, Subscriber) ON DATA
 				);
