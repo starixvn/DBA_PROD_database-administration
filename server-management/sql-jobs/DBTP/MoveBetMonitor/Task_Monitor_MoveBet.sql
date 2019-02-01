@@ -1,5 +1,6 @@
 /*<info serverAlias="DBTP-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE dbo.Task_Monitor_MoveBet
+GO
+CREATE PROCEDURE dbo.Task_Monitor_MoveBet
 AS
 /*
 	Created by: Helen
@@ -33,10 +34,10 @@ BEGIN
 	WHILE 1 = 1 
 	BEGIN 
 		UPDATE TOP (1) @Days
-			SET IsFinish = 1
-				,@RunningDay = RunningDay	
-		WHERE IsFinish = 0
-		
+		SET IsFinish = 1
+			,@RunningDay = RunningDay
+				WHERE IsFinish = 0
+				
 		IF @@ROWCOUNT = 0 BREAK
 		
 		IF DATEDIFF(MINUTE,@startDate,@currentDate)> 5
@@ -99,3 +100,4 @@ BEGIN
 		END
 	END
 END
+GO
