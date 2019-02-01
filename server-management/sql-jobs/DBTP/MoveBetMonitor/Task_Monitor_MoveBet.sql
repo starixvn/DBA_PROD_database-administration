@@ -1,6 +1,6 @@
 /*<info serverAlias="DBTP-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="0"></info>*/
 GO
-CREATE PROCEDURE dbo.Task_Monitor_MoveBet
+ALTER PROCEDURE [dbo].[Task_Monitor_MoveBet]
 AS
 /*
 	Created by: Helen
@@ -12,6 +12,8 @@ AS
 		- 20190201@Helen:  Job Move Bets Monitor for delete bettransm on DBTRANS, DB052, DB053, DB06 - [Redmine: 108581]
 */
 BEGIN
+	
+	SET NOCOUNT ON
 	
 	DECLARE @Days AS TABLE (ScheduleId TINYINT, RunningDay DATETIME, IsFinish BIT DEFAULT (0))
 	DECLARE @CurrentDateTime DATETIME
@@ -99,5 +101,6 @@ BEGIN
 			
 		END
 	END
+	SET NOCOUNT OFF
 END
 GO
