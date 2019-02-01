@@ -1,4 +1,5 @@
-CREATE PROCEDURE [dbo].[Task_Monitor_MoveBet]
+/*<info serverAlias="DBTP-bodb02" executers="" viewers="" isFunction="0"></info>*/
+ALTER PROCEDURE [dbo].[Task_Monitor_MoveBet]
 AS
 /*
 	Created by: Helen
@@ -42,12 +43,15 @@ BEGIN
 		
 		IF DATEDIFF(MINUTE,@startDate,@currentDate)> 5
 		BEGIN
-			IF EXISTS (SELECT TOP 1 1 
-					FROM dbo.bettransm WITH (NOLOCK) 
-					WHERE winlostdate = @RunningDay
-					)
-				SET @CheckDBs = @CheckDBs + ','  + 'DBTRANS'
-			
+			-- CHECK DBTRANS
+			SELECT  @sql = N'SELECT * FROM OPENQUERY(DBTRANS, ' + ''''
+					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,101)
+					+ '''' + + '''' + ''')'
+			EXECUTE sp_executesql @sql ;  
+
+			IF @@ROWCOUNT > 0
+				 SET @CheckDBs =  @CheckDBs + ','  + ' DBTRANS'
+				 						
 			-- CHECK db052
 			SELECT  @sql = N'SELECT * FROM OPENQUERY(DB052, ' + ''''
 					+ 'SELECT TOP 1 1 FROM bodb02.dbo.bettransm WITH (NOLOCK) WHERE winlostdate = ' + '''' + + '''' + CONVERT(VARCHAR(10),@RunningDay,101)
@@ -102,4 +106,3 @@ BEGIN
 	SET NOCOUNT OFF
 END
 GO
-/*<info serverAlias="DBTP-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/
