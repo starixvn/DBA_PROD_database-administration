@@ -20,7 +20,7 @@ BEGIN
 	DECLARE @Message NVARCHAR(500), @CheckDBTrans BIT, @CheckDBs VARCHAR(50) = '', @sql NVARCHAR(MAX)
 	
 	INSERT INTO @Days (ScheduleId, RunningDay)
-	EXEC DBTRANS.bobd02.dbo.Task_MoveBetsDayByScheduleSel 
+	EXEC DBTRANS.bodb02.dbo.Task_MoveBetsDayByScheduleSel 
 
 	IF @@ROWCOUNT = 0
 		RETURN
@@ -41,7 +41,7 @@ BEGIN
 				
 		IF @@ROWCOUNT = 0 BREAK
 		
-		IF DATEDIFF(MINUTE,@startDate,@currentDate)> 5
+		IF DATEDIFF(MINUTE,@startDate,@currentDate)>= 10
 		BEGIN
 			-- CHECK DBTRANS
 			SELECT  @sql = N'SELECT * FROM OPENQUERY(DBTRANS, ' + ''''
@@ -88,15 +88,15 @@ BEGIN
 				
 				--	Sending alert via letstalk 
 				EXECUTE DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage 
-					@ServerName = @@SERVERNAME
+					@ServerName = N'PONTUS'
 					, @JobId = NULL
-					, @JobName = N'DBA : Monitor MoveBet Job'
+					, @JobName = N'Custom Message'
 					, @Message = @Message, @CaseId = 1
 				--	Sending alert via skype 
 				EXECUTE DBMONDW.MonDBDW.dbo.DBA_Skype_NewMessage
-					  @ServerName = @@SERVERNAME
+					  @ServerName = N'PONTUS'
 					 , @JobId  = NULL
-					 , @JobName = N'DBA : Monitor MoveBet Job'
+					 , @JobName = N'Custom Message'
 					 , @Message = @message
 					 , @isSimple = 1
 			END
@@ -105,6 +105,7 @@ BEGIN
 			
 		END
 	END
+	SELECT @Message
 	SET NOCOUNT OFF
 END
 GO
