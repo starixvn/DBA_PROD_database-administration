@@ -105,7 +105,7 @@ BEGIN
 			
 		END
 	END
-	SELECT @Message
+	
 	SET NOCOUNT OFF
 END
 GO
