@@ -1,5 +1,4 @@
-/*<info serverAlias="DBTP-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE [dbo].[Task_Monitor_MoveBet]
+CREATE PROCEDURE [dbo].[Task_Monitor_MoveBet]
 AS
 /*
 	Created by: Helen
@@ -103,3 +102,4 @@ BEGIN
 	SET NOCOUNT OFF
 END
 GO
+/*<info serverAlias="DBTP-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/
