@@ -80,25 +80,27 @@ BEGIN
 				  SET @CheckDBs =  @CheckDBs + ','  + ' DB06'
 			
 			SET @CheckDBs = STUFF(@CheckDBs,1,1,'')  
-				 	 	  
-			SET @Message = 'Duration of deleting bettransm in Move Bet Job on ' + CONVERT(VARCHAR(10),@RunningDay, 101) + ' is being over 5 minutes.' + CHAR(10)
-			+ 'Please help check in SERVER: ' + @CheckDBs
 			
-			--	Sending alert via letstalk 
-			EXECUTE DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage 
-				@ServerName = @@SERVERNAME
-				, @JobId = NULL
-				, @JobName = N'DBA : Monitor MoveBet Job'
-				, @Message = @Message, @CaseId = 1
-			--	Sending alert via skype 
-			EXECUTE DBMONDW.MonDBDW.dbo.DBA_Skype_NewMessage
-				  @ServerName = @@SERVERNAME
-				 , @JobId  = NULL
-				 , @JobName = N'DBA : Monitor MoveBet Job'
-				 , @Message = @message
-				 , @isSimple = 1
-			
-			IF @CheckDBs <> '' 
+			IF @CheckDBs <> ''
+			BEGIN	 	 	  
+				SET @Message = 'Duration of deleting bettransm in Move Bet Job on ' + CONVERT(VARCHAR(10),@RunningDay, 101) + ' is being over 5 minutes.' + CHAR(10)
+				+ 'Please help check in SERVER: ' + @CheckDBs
+				
+				--	Sending alert via letstalk 
+				EXECUTE DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage 
+					@ServerName = @@SERVERNAME
+					, @JobId = NULL
+					, @JobName = N'DBA : Monitor MoveBet Job'
+					, @Message = @Message, @CaseId = 1
+				--	Sending alert via skype 
+				EXECUTE DBMONDW.MonDBDW.dbo.DBA_Skype_NewMessage
+					  @ServerName = @@SERVERNAME
+					 , @JobId  = NULL
+					 , @JobName = N'DBA : Monitor MoveBet Job'
+					 , @Message = @message
+					 , @isSimple = 1
+			END
+			--IF @CheckDBs <> '' 
 				BREAK
 			
 		END
