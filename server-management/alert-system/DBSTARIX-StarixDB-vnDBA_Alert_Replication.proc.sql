@@ -183,7 +183,7 @@ BEGIN;
 
 	INSERT INTO	@Results
 		(	    Publisher,     PublishDB,     Publication,     Subscriber,     CounterTime, ViolatedCnt, CounterValue,     AlertCase, Status)
-	SELECT	arr.Publisher, arr.PublishDB, arr.Publication, arr.Subscriber, arr.CounterTime,        NULL,         NULL, arr.AlertCase,    '-'
+	SELECT	arr.Publisher, arr.PublishDB, arr.Publication, arr.Subscriber,            @Now,        NULL,         NULL, arr.AlertCase,    '-'
 	FROM		@Results AS r
 	RIGHT JOIN	dbo.vnDBA_Alert_Repl_Result AS arr WITH (NOLOCK)
 			ON	r.Publisher = arr.Publisher
@@ -192,115 +192,121 @@ BEGIN;
 			AND	r.Subscriber = arr.Subscriber
 	WHERE	r.CounterTime IS NULL;
 
-	IF	EXISTS (SELECT 1 FROM @Results WHERE Status IS NOT NULL)
+	IF	EXISTS (SELECT 1 FROM @Results WHERE Status <> N'')
 	BEGIN;
 		-- Send to VN room --
 		SELECT	@Case = 1;
 
-		SELECT	@Msg = N'(policecar)  REPLICATION DELAY  (policecar)' + ISNULL(js.str, N'') + rss.str
-		FROM	(
-			SELECT	N'
-[' + j.JobName + N']: ' + CONVERT(NVARCHAR(MAX), j.StartTime, 120) + N' ~ ' + CONVERT(NVARCHAR(MAX), j.AvgEndTime, 120) + N' GMT-4'
-			FROM	@RegularJobs AS j
-			FOR XML PATH ('')
-			,	TYPE
-		) AS xj(xml)
-		CROSS APPLY	(
-			SELECT	xj.xml.value('.[1]', 'NVARCHAR(MAX)')
-		) AS js(str)
-		CROSS APPLY	(
-			SELECT	N'
-
-[' + rp.Publication + N']' + N' @ (' + CONVERT(NVARCHAR(MAX), rp.CounterTime, 120) + N') GMT-4' + _rs.str
+		IF	EXISTS (SELECT 1 FROM @Results WHERE AlertCase & @Case <> 0)
+		BEGIN;
+			SELECT	@Msg = N'(policecar)  REPLICATION DELAY  (policecar)' + ISNULL(js.str, N'') + rss.str
 			FROM	(
-				SELECT	TOP(1000)
-						_rp.Publisher, _rp.PublishDB, _rp.Publication, [CounterTime] = CAST(AVG(CAST(_rp.CounterTime AS DECIMAL(19,8))) AS DATETIME)
-				FROM	@Results AS _rp
-				WHERE	_rp.AlertCase & @Case <> 0
-				GROUP BY _rp.Publisher, _rp.PublishDB, _rp.Publication
-				ORDER BY CASE _rp.Publisher WHEN N'DBTRANS' THEN 1 WHEN N'DBCUST' THEN 2 ELSE 3 END, CASE _rp.Publication WHEN N'Ticket Latency' THEN 1 ELSE 2 END, _rp.Publication
-			) AS rp
-			CROSS APPLY	(
 				SELECT	N'
-    \- ' + f.formater + _rs.Subscriber + CASE _rs.Status WHEN '-' THEN N'' ELSE N': ' END + CASE _rs.Publication WHEN N'Ticket Latency' THEN CAST(ISNULL(_rs.CounterValue, N'') AS NVARCHAR(MAX)) ELSE ISNULL(dr.duration, N'') END + f.formater
-				FROM		@Results AS _rs
-				CROSS APPLY	(
-					SELECT	[formater] = CASE _rs.Status WHEN '+' THEN N'__' WHEN '-' THEN N'~~' ELSE N'' END
-				) AS f
-				OUTER APPLY	dbo.tf_Format_Duration(_rs.CounterValue / 1000, 0) AS dr
-				WHERE	_rs.Publisher = rp.Publisher
-					AND	_rs.PublishDB = rp.PublishDB
-					AND	_rs.Publication = rp.Publication
-					AND	_rs.AlertCase & @Case <> 0
-				ORDER BY _rs.Subscriber
+[' + j.JobName + N']: ' + CONVERT(NVARCHAR(MAX), j.StartTime, 120) + N' ~ ' + CONVERT(NVARCHAR(MAX), j.AvgEndTime, 120) + N' GMT-4'
+				FROM	@RegularJobs AS j
 				FOR XML PATH ('')
 				,	TYPE
-			) AS _xrs(xml)
+			) AS xj(xml)
 			CROSS APPLY	(
-				SELECT	_xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
-			) AS _rs(str)
-			FOR XML PATH ('')
-			,	TYPE
-		) AS xrs(xml)
-		CROSS APPLY	(
-			SELECT	xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
-		) AS rss(str);
+				SELECT	xj.xml.value('.[1]', 'NVARCHAR(MAX)')
+			) AS js(str)
+			CROSS APPLY	(
+				SELECT	N'
 
-		EXECUTE	DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'STANDBY', @JobId = NULL, @JobName = N'Standby Alert', @Message = @Msg, @isSimple = 1, @CaseId = @Case;
+[' + rp.Publication + N']' + N' @ (' + CONVERT(NVARCHAR(MAX), rp.CounterTime, 120) + N') GMT-4' + _rs.str
+				FROM	(
+					SELECT	TOP(1000)
+							_rp.Publisher, _rp.PublishDB, _rp.Publication, [CounterTime] = CAST(AVG(CAST(_rp.CounterTime AS DECIMAL(19,8))) AS DATETIME)
+					FROM	@Results AS _rp
+					WHERE	_rp.AlertCase & @Case <> 0
+					GROUP BY _rp.Publisher, _rp.PublishDB, _rp.Publication
+					ORDER BY CASE _rp.Publisher WHEN N'DBTRANS' THEN 1 WHEN N'DBCUST' THEN 2 ELSE 3 END, CASE _rp.Publication WHEN N'Ticket Latency' THEN 1 ELSE 2 END, _rp.Publication
+				) AS rp
+				CROSS APPLY	(
+					SELECT	N'
+    \- ' + f.formater + _rs.Subscriber + CASE _rs.Status WHEN '-' THEN N'' ELSE N': ' END + CASE _rs.Publication WHEN N'Ticket Latency' THEN CAST(ISNULL(_rs.CounterValue, N'') AS NVARCHAR(MAX)) ELSE ISNULL(dr.duration, N'') END + f.formater
+					FROM		@Results AS _rs
+					CROSS APPLY	(
+						SELECT	[formater] = CASE _rs.Status WHEN '+' THEN N'__' WHEN '-' THEN N'~~' ELSE N'' END
+					) AS f
+					OUTER APPLY	dbo.tf_Format_Duration(_rs.CounterValue / 1000, 0) AS dr
+					WHERE	_rs.Publisher = rp.Publisher
+						AND	_rs.PublishDB = rp.PublishDB
+						AND	_rs.Publication = rp.Publication
+						AND	_rs.AlertCase & @Case <> 0
+					ORDER BY _rs.Subscriber
+					FOR XML PATH ('')
+					,	TYPE
+				) AS _xrs(xml)
+				CROSS APPLY	(
+					SELECT	_xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS _rs(str)
+				FOR XML PATH ('')
+				,	TYPE
+			) AS xrs(xml)
+			CROSS APPLY	(
+				SELECT	xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
+			) AS rss(str);
+
+			EXECUTE	DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'STANDBY', @JobId = NULL, @JobName = N'Standby Alert', @Message = @Msg, @isSimple = 1, @CaseId = @Case;
+		END;
 
 		-- Send to TW room --
 		SELECT	@Case = 2;
 
-		SELECT	@Msg = N'(policecar)  REPLICATION DELAY  (policecar)' + ISNULL(js.str, N'') + rss.str
-		FROM	(
-			SELECT	N'
-[' + j.JobName + N']: ' + CONVERT(NVARCHAR(MAX), j.StartTime, 120) + N' ~ ' + CONVERT(NVARCHAR(MAX), j.AvgEndTime, 120) + N' GMT-4'
-			FROM	@RegularJobs AS j
-			FOR XML PATH ('')
-			,	TYPE
-		) AS xj(xml)
-		CROSS APPLY	(
-			SELECT	xj.xml.value('.[1]', 'NVARCHAR(MAX)')
-		) AS js(str)
-		CROSS APPLY	(
-			SELECT	N'
-
-[' + rp.Publication + N']' + N' @ (' + CONVERT(NVARCHAR(MAX), rp.CounterTime, 120) + N') GMT-4' + _rs.str
+		IF	EXISTS (SELECT 1 FROM @Results WHERE AlertCase & @Case <> 0)
+		BEGIN;
+			SELECT	@Msg = N'(policecar)  REPLICATION DELAY  (policecar)' + ISNULL(js.str, N'') + rss.str
 			FROM	(
-				SELECT	TOP(1000)
-						_rp.Publisher, _rp.PublishDB, _rp.Publication, [CounterTime] = CAST(AVG(CAST(_rp.CounterTime AS DECIMAL(19,8))) AS DATETIME)
-				FROM	@Results AS _rp
-				WHERE	_rp.AlertCase & @Case <> 0
-				GROUP BY _rp.Publisher, _rp.PublishDB, _rp.Publication
-				ORDER BY CASE _rp.Publisher WHEN N'DBTRANS' THEN 1 WHEN N'DBCUST' THEN 2 ELSE 3 END, CASE _rp.Publication WHEN N'Ticket Latency' THEN 1 ELSE 2 END, _rp.Publication
-			) AS rp
-			CROSS APPLY	(
 				SELECT	N'
-    \- ' + f.formater + _rs.Subscriber + CASE _rs.Status WHEN '-' THEN N'' ELSE N': ' END + CASE _rs.Publication WHEN N'Ticket Latency' THEN CAST(ISNULL(_rs.CounterValue, N'') AS NVARCHAR(MAX)) ELSE ISNULL(dr.duration, N'') END + f.formater
-				FROM		@Results AS _rs
-				CROSS APPLY	(
-					SELECT	[formater] = CASE _rs.Status WHEN '+' THEN N'__' WHEN '-' THEN N'~~' ELSE N'' END
-				) AS f
-				OUTER APPLY	dbo.tf_Format_Duration(_rs.CounterValue / 1000, 0) AS dr
-				WHERE	_rs.Publisher = rp.Publisher
-					AND	_rs.PublishDB = rp.PublishDB
-					AND	_rs.Publication = rp.Publication
-					AND	_rs.AlertCase & @Case <> 0
-				ORDER BY _rs.Subscriber
+[' + j.JobName + N']: ' + CONVERT(NVARCHAR(MAX), j.StartTime, 120) + N' ~ ' + CONVERT(NVARCHAR(MAX), j.AvgEndTime, 120) + N' GMT-4'
+				FROM	@RegularJobs AS j
 				FOR XML PATH ('')
 				,	TYPE
-			) AS _xrs(xml)
+			) AS xj(xml)
 			CROSS APPLY	(
-				SELECT	_xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
-			) AS _rs(str)
-			FOR XML PATH ('')
-			,	TYPE
-		) AS xrs(xml)
-		CROSS APPLY	(
-			SELECT	xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
-		) AS rss(str);
+				SELECT	xj.xml.value('.[1]', 'NVARCHAR(MAX)')
+			) AS js(str)
+			CROSS APPLY	(
+				SELECT	N'
 
-		EXECUTE	DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'STANDBY', @JobId = NULL, @JobName = N'Standby Alert', @Message = @Msg, @isSimple = 1, @CaseId = @Case;
+[' + rp.Publication + N']' + N' @ (' + CONVERT(NVARCHAR(MAX), rp.CounterTime, 120) + N') GMT-4' + _rs.str
+				FROM	(
+					SELECT	TOP(1000)
+							_rp.Publisher, _rp.PublishDB, _rp.Publication, [CounterTime] = CAST(AVG(CAST(_rp.CounterTime AS DECIMAL(19,8))) AS DATETIME)
+					FROM	@Results AS _rp
+					WHERE	_rp.AlertCase & @Case <> 0
+					GROUP BY _rp.Publisher, _rp.PublishDB, _rp.Publication
+					ORDER BY CASE _rp.Publisher WHEN N'DBTRANS' THEN 1 WHEN N'DBCUST' THEN 2 ELSE 3 END, CASE _rp.Publication WHEN N'Ticket Latency' THEN 1 ELSE 2 END, _rp.Publication
+				) AS rp
+				CROSS APPLY	(
+					SELECT	N'
+    \- ' + f.formater + _rs.Subscriber + CASE _rs.Status WHEN '-' THEN N'' ELSE N': ' END + CASE _rs.Publication WHEN N'Ticket Latency' THEN CAST(ISNULL(_rs.CounterValue, N'') AS NVARCHAR(MAX)) ELSE ISNULL(dr.duration, N'') END + f.formater
+					FROM		@Results AS _rs
+					CROSS APPLY	(
+						SELECT	[formater] = CASE _rs.Status WHEN '+' THEN N'__' WHEN '-' THEN N'~~' ELSE N'' END
+					) AS f
+					OUTER APPLY	dbo.tf_Format_Duration(_rs.CounterValue / 1000, 0) AS dr
+					WHERE	_rs.Publisher = rp.Publisher
+						AND	_rs.PublishDB = rp.PublishDB
+						AND	_rs.Publication = rp.Publication
+						AND	_rs.AlertCase & @Case <> 0
+					ORDER BY _rs.Subscriber
+					FOR XML PATH ('')
+					,	TYPE
+				) AS _xrs(xml)
+				CROSS APPLY	(
+					SELECT	_xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS _rs(str)
+				FOR XML PATH ('')
+				,	TYPE
+			) AS xrs(xml)
+			CROSS APPLY	(
+				SELECT	xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
+			) AS rss(str);
+
+			EXECUTE	DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'STANDBY', @JobId = NULL, @JobName = N'Standby Alert', @Message = @Msg, @isSimple = 1, @CaseId = @Case;
+		END;
 
 		BEGIN TRANSACTION;
 		TRUNCATE TABLE	dbo.vnDBA_Alert_Repl_Result;
@@ -308,7 +314,7 @@ BEGIN;
 			(	  Publisher,   PublishDB,   Publication,   Subscriber,   CounterTime,   AlertCase)
 		SELECT	r.Publisher, r.PublishDB, r.Publication, r.Subscriber, r.CounterTime, r.AlertCase
 		FROM	@Results AS r
-		WHERE	r.Status NOT IN ('-');
+		WHERE	ISNULL(r.Status, '') NOT IN ('-');
 		COMMIT;
 	END;
 END;
