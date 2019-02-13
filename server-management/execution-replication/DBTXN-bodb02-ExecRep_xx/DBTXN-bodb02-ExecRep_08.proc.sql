@@ -16,21 +16,21 @@ AS
 	Task: 
 	DB: DBTXN.BODB02
 	Revisions:
-		- 20110523@Henry: change bettype to new range
-		- 20120316@Victor: add move bettransG to bettransG14
-		- 20140305@Vivi: add move translog to translog14
-		- 20151012@Sophia: Add Move BettransLC and BettransRNG 
-		
-		- 20160121@Joe : move command to run in ExecRep_Queue @ DBTP (to solve Blocking problem which cause replication delay)
-		- 20160121@Joy : Add Move column :transdesc on bettransm
-		- 20160428@Joy : 1. Add Move column :Additional on bettransrng
-		-                2. remove Move column :NetStake on bettransrng
-		- 20170412@Joy :Add Move column  ExtraInfo on bettrans14 
-		- 20170914@Patrick: Integrate with Lucky3 [RedmineId: #83190]
-		- 20180117@Patrick: Integrate with Bonus
-		- 20180404@Patrick: Add more fields JackpotInfo, RefNo2, ContributionRate, BetStake, ContributionStake3rd on bettransRnG for OneRNG Jackpot
-		- 20181217@Patrick: Use local param variable to avoiding param sniffing [RedmineId: #106130]
-		- 20181222@Billy:   Remove Queue processing on DBTP - [Redmine: #000000]
+		- 20110523@Henry:	change bettype to new range
+		- 20120316@Victor:	add move bettransG to bettransG14
+		- 20140305@Vivi:	add move translog to translog14
+		- 20151012@Sophia:	Add Move BettransLC and BettransRNG 
+		- 20160121@Joe:		move command to run in ExecRep_Queue @ DBTP (to solve Blocking problem which cause replication delay)
+		- 20160121@Joy:		Add Move column :transdesc on bettransm
+		- 20160428@Joy:		1. Add Move column :Additional on bettransrng
+							2. remove Move column :NetStake on bettransrng
+		- 20170412@Joy:		Add Move column  ExtraInfo on bettrans14 
+		- 20170914@Patrick:	Integrate with Lucky3 [RedmineId: #83190]
+		- 20180117@Patrick:	Integrate with Bonus
+		- 20180404@Patrick:	Add more fields JackpotInfo, RefNo2, ContributionRate, BetStake, ContributionStake3rd on bettransRnG for OneRNG Jackpot
+		- 20181217@Patrick:	Use local param variable to avoiding param sniffing [RedmineId: #106130]
+		- 20181222@Billy:	Remove Queue processing on DBTP - [Redmine: #000000]
+		- 20190213@Billy:	Add column [SecAcceptFlag] of [bettransm] - [Redmine: #108780]
 	 */
 	 
 DECLARE @__winlostdate SMALLDATETIME, @__recommend INT
@@ -164,26 +164,22 @@ BEGIN
 		--	END
 		--END
 
-		insert into bettransm14
-			(
-			transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, [status], winlost, livehomescore, 
-			liveawayscore, liveindicator, betteam, creator, refno, comstatus, winlostdate, betfrom, betcheck, 
-			checktime, oddsspread, apositiontaking, mpositiontaking, tpositiontaking, awinlost, mwinlost, 
-			playerdiscount, discount, adiscount, playercomm, comm, acomm, actualrate, matchid, matchdate, 
-			finalodds, isfinish, statuswinlost, ruben, bettype, spositiontaking, swinlost, sdiscount, scomm, 
-			statusID, transdesc
+		INSERT INTO	dbo.bettransm14 (
+				transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, [status], winlost, livehomescore
+			,	liveawayscore, liveindicator, betteam, creator, refno, comstatus, winlostdate, betfrom, betcheck
+			,	checktime, oddsspread, apositiontaking, mpositiontaking, tpositiontaking, awinlost, mwinlost
+			,	playerdiscount, discount, adiscount, playercomm, comm, acomm, actualrate, matchid, matchdate
+			,	finalodds, isfinish, statuswinlost, ruben, bettype, spositiontaking, swinlost, sdiscount, scomm
+			,	statusID, transdesc, SecAcceptFlag
 			)
-		select
-			transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, [status], winlost, livehomescore, 
-			liveawayscore, liveindicator, betteam, creator, refno, comstatus, winlostdate, betfrom, betcheck, 
-			checktime, oddsspread, apositiontaking, mpositiontaking, tpositiontaking, awinlost, mwinlost, 
-			playerdiscount, discount, adiscount, playercomm, comm, acomm, actualrate, matchid, matchdate, 
-			finalodds, isfinish, statuswinlost, ruben, bettype, spositiontaking, swinlost, sdiscount, scomm, 
-			statusID, transdesc
-		from bettransm b (nolock)
-			--INNER JOIN custinfo c (nolock) ON b.custid = c.custid
-		where --recommend = @__recommend AND 
-			winlostdate=@__winlostdate
+		SELECT	transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, [status], winlost, livehomescore
+			,	liveawayscore, liveindicator, betteam, creator, refno, comstatus, winlostdate, betfrom, betcheck
+			,	checktime, oddsspread, apositiontaking, mpositiontaking, tpositiontaking, awinlost, mwinlost
+			,	playerdiscount, discount, adiscount, playercomm, comm, acomm, actualrate, matchid, matchdate
+			,	finalodds, isfinish, statuswinlost, ruben, bettype, spositiontaking, swinlost, sdiscount, scomm
+			,	statusID, transdesc, SecAcceptFlag
+		FROM	dbo.bettransm AS b WITH (NOLOCK)
+		WHERE	winlostdate = @__winlostdate;
 
 
 		insert into bettransG14
