@@ -192,17 +192,17 @@
       <FullPath>Viet - DB06 to DBTP - Odds3rd_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>Viet - DB06 to DBTP - oddsES_bk.dtsx</Name>
       <FullPath>Viet - DB06 to DBTP - oddsES_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>Viet - DB06 to DBTP - ResultDetailES_bk.dtsx</Name>
       <FullPath>Viet - DB06 to DBTP - ResultDetailES_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>Viet - DB06 to DBTP - Transfer_Coll_bk.dtsx</Name>
       <FullPath>Viet - DB06 to DBTP - Transfer_Coll_bk.dtsx</FullPath>
       <References />
