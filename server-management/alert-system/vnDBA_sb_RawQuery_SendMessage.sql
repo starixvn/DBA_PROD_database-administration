@@ -1,5 +1,5 @@
 /*<info serverAlias="DBDWCSS-StarixDB" executers="" viewers="" isFunction="0"></info>*/
-CREATE PROCEDURE dbo.vnDBA_ServiceBroker_SendMessage
+CREATE PROCEDURE dbo.vnDBA_sb_RawQuery_SendMessage
 (
 	@messageBody NVARCHAR(MAX),
 	@fromService SYSNAME ,   
