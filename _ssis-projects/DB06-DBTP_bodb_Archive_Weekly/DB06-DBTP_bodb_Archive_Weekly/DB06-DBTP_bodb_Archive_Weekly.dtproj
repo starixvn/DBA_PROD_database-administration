@@ -207,5 +207,10 @@
       <FullPath>Viet - DB06 to DBTP - Transfer_Coll_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>Viet - DB06 to DBTP - transfer_fi.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - transfer_fi.dtsx</FullPath>
+      <References />
+    </DtsPackage>
   </DTSPackages>
 </Project>
