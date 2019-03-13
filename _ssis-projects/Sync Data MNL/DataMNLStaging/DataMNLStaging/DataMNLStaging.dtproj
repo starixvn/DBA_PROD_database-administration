@@ -202,5 +202,10 @@
       <FullPath>Transfer_Coll_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>transfer_fi.dtsx</Name>
+      <FullPath>transfer_fi.dtsx</FullPath>
+      <References />
+    </DtsPackage>
   </DTSPackages>
 </Project>
