@@ -101,7 +101,7 @@ BEGIN
 			SET @handle = (SELECT handle FROM #Temp WHERE ID = @start)
 			
 			IF @handle IS NOT NULL
-				END CONVERSATION @handle
+				END CONVERSATION @handle WITH CLEANUP
 			
 			SET @start = @start + 1
 		END
