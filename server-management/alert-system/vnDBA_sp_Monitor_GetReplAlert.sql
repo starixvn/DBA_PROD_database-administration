@@ -11,8 +11,8 @@ AS
 	Task: Support show replication latency in replicated server
 	DB: DBSTARIX/starixDB
 	
-	Revision:
-		Helen@20190320: Initialize - [Redmine:107963]
+	Revisions:
+		- 20190320@Helen: Initialize - [Redmine:107963]
 	
 	Param's explaination:
 		- @ServerName: Name of server like db052, db053, db06, db042 ......
