@@ -1,4 +1,4 @@
-/*<info serverAlias="DBSTARIX-starixDB" executers="bodbAdminNet,bodbDownlineNet,bodbDownlineNetView" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBSTARIX-starixDB" executers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [dbo].[vnDBA_sp_Monitor_GetReplAlert]
 (
 	@ServerName NVARCHAR (128) = 'DB052'
@@ -21,11 +21,9 @@ AS
 BEGIN
 	SET @isLatency = 0
 	
-	IF EXISTS (SELECT TOP 1 1 
-			   FROM dbo.vnDBA_Alert_Repl_Result WITH (NOLOCK)
-			   WHERE Subcriber = @ServerName AND Publication = @PublicationName)
-	BEGIN		   
-		SET @isLatency = 1
-	END	
+	SELECT TOP (1) @isLatency = 1 
+	FROM dbo.vnDBA_Alert_Repl_Result WITH (NOLOCK)
+	WHERE Subscriber = @ServerName AND Publication = @PublicationName
+	
 END
 GO
