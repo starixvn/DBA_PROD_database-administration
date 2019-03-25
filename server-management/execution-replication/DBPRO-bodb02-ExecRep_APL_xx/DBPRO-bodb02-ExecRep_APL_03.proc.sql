@@ -14,6 +14,7 @@ AS
 	Revisions:
 		- 20171221@Billy:	Add Match3rd14 table - [Redmine: #88506]
 		- 20181204@Billy:	Add [oddsES14] & [ResultDetailES14] tables - [Redmine: #105816]
+		- 20190325@Billy:	Add [SMP_Market] & [SMP_MarketSelection] tables - [Redmine: #109926]
 */
 BEGIN
 	SET NOCOUNT ON 
@@ -132,6 +133,25 @@ BEGIN
 		INNER JOIN	@idList AS il
 				ON	tbl.MatchID = il.id;
 	END;
+
+	-- 20190325@Billy:	Add [SMP_Market14]
+	IF	@DeletedTarget = 'SMP_Market14'
+	BEGIN;
+		DELETE	tbl WITH (ROWLOCK)
+		FROM		dbo.SMP_Market14 AS tbl
+		INNER JOIN	@idList AS il
+				ON	tbl.MatchID = il.id;
+	END;
+
+	-- 20190325@Billy:	Add [SMP_MarketSelection14]
+	IF	@DeletedTarget = 'SMP_MarketSelection14'
+	BEGIN;
+		DELETE	tbl WITH (ROWLOCK)
+		FROM		dbo.SMP_MarketSelection14 AS tbl
+		INNER JOIN	@idList AS il
+				ON	tbl.MarketSelectionId = il.id;
+	END;
+
 END
 GO
 /*<info serverAlias="DBPRO-bodb02" executers="" viewers="" isFunction="0" isNested="1"></info>*/
