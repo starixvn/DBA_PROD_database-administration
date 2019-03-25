@@ -134,15 +134,15 @@ WHERE t1.eventdate = @winlostdate;'')'
 		SELECT	@query = N'
 INSERT INTO dbo.match_remark(matchid, calculate, multiple, calrefund, refund, calStatus, IsTotalBetDenied_1, IsTotalBetDenied_3, IsTotalBetDenied_7, IsTotalBetDenied_8, LiveTimer, HomeRedCard, AwayRedCard
 			,	LivePeriod, HedgeForecast, IsTotalBetDenied_20, IsTotalBetDenied_21, IsNeutral, StreamingID, IsInternal, IsHTCal, LiveDeleteChecker, HomeColor, AwayColor, ConfirmHT, ConfirmFT
-			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive, CommGroup)
+			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive)
 SELECT	matchid, calculate, multiple, calrefund, refund, calStatus, IsTotalBetDenied_1, IsTotalBetDenied_3, IsTotalBetDenied_7, IsTotalBetDenied_8, LiveTimer, HomeRedCard, AwayRedCard
 			,	LivePeriod, HedgeForecast, IsTotalBetDenied_20, IsTotalBetDenied_21, IsNeutral, StreamingID, IsInternal, IsHTCal, LiveDeleteChecker, HomeColor, AwayColor, ConfirmHT, ConfirmFT
-			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive, CommGroup
+			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive
 FROM OPENQUERY(DBPRO,''
 DECLARE	@winlostdate SMALLDATETIME = ''''' + CONVERT(NVARCHAR(MAX), @winlostdate, 121) + ''''';
 SELECT		matchid, calculate, multiple, calrefund, refund, calStatus, IsTotalBetDenied_1, IsTotalBetDenied_3, IsTotalBetDenied_7, IsTotalBetDenied_8, LiveTimer, HomeRedCard, AwayRedCard
 			,	LivePeriod, HedgeForecast, IsTotalBetDenied_20, IsTotalBetDenied_21, IsNeutral, StreamingID, IsInternal, IsHTCal, LiveDeleteChecker, HomeColor, AwayColor, ConfirmHT, ConfirmFT
-			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive, CommGroup
+			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive
 FROM	bodb02.dbo.match_remark AS t1  WITH (NOLOCK)
 WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
 
