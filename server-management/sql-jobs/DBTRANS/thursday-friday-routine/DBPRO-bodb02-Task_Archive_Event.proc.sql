@@ -389,9 +389,9 @@ BEGIN
 			-- 20190325@Billy -- New table [SMP_MarketSelection14]
 		TRUNCATE TABLE	#DeletedList;
 		INSERT INTO	#DeletedList (id, IsDone)
-		SELECT	sm.MarketSelectionId, 0
+		SELECT	sms.MarketSelectionId, 0
 		FROM	dbo.SMP_MarketSelection14 AS sms WITH (NOLOCK)
-		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE m.matchid = sm.MatchId AND m.eventdate = @winlostdate);
+		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE m.matchid = sms.MatchId AND m.eventdate = @winlostdate);
 
 		-- Call subtask for looping & deleting data on [SMP_MarketSelection14]
 			-- 20190325@Billy -- New table [SMP_MarketSelection14]
