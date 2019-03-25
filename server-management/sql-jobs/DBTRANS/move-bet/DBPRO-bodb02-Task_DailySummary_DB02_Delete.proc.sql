@@ -20,6 +20,4 @@ BEGIN
 
 END
 GO
-GRANT VIEW DEFINITION ON dbo.Task_DailySummary_DB02_Delete TO vnteam AS dbo;
-GO
-/*<info serverAlias="DBPRO-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="1"></info>*/
+/*<info serverAlias="DBPRO-bodb02" executers="" viewers="" isFunction="0" isNested="1"></info>*/

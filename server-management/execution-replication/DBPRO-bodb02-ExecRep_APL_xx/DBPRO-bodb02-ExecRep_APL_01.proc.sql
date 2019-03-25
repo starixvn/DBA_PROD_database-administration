@@ -21,6 +21,7 @@ AS
 		- 20170721@Billy:	Add odds3rd table - [Redmine: #80382]
 		- 20171221@Billy:	Add Match3rd table - [Redmine: #88506]
 		- 20181204@Billy:	Add [oddsES] & [ResultDetailES] tables - [Redmine: #105816]
+		- 20190325@Billy:	Add [SMP_Market] & [SMP_MarketSelection] tables - [Redmine: #109926]
 */ 
 BEGIN
 
@@ -122,6 +123,24 @@ BEGIN
 	BEGIN;
 		DELETE	tbl WITH (ROWLOCK)
 		FROM	dbo.ResultDetailES AS tbl
+		WHERE	EXISTS (SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE tbl.matchid = m.matchid AND m.eventdate = @Winlostdate);
+	END;
+
+	-- Delete [SMP_Market]
+		-- 20190325@Billy --
+	IF	OBJECT_ID('dbo.SMP_Market', 'U') IS NOT NULL
+	BEGIN;
+		DELETE	tbl WITH (ROWLOCK)
+		FROM	dbo.SMP_Market AS tbl
+		WHERE	EXISTS (SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE tbl.matchid = m.matchid AND m.eventdate = @Winlostdate);
+	END;
+
+	-- Delete [SMP_MarketSelection]
+		-- 20190325@Billy --
+	IF	OBJECT_ID('dbo.SMP_MarketSelection', 'U') IS NOT NULL
+	BEGIN;
+		DELETE	tbl WITH (ROWLOCK)
+		FROM	dbo.SMP_MarketSelection AS tbl
 		WHERE	EXISTS (SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE tbl.matchid = m.matchid AND m.eventdate = @Winlostdate);
 	END;
 

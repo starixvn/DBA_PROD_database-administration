@@ -41,6 +41,7 @@ AS
 		-- 20180405@Billy:	Add [cs04], [cs05], [ResourceId] columns of [Odds3rd] - [Redmine: #93175]
 		-- 20180514@Patrick: Copy data from active to [14] batch by batch
 		-- 20181204@Billy:	Add [oddsES] & [ResultDetailES] tables - [Redmine: #105816]
+		-- 20190325@Billy:	Add [SMP_Market] & [SMP_MarketSelection] tables - [Redmine: #109926]
 */
 
 BEGIN
@@ -350,12 +351,25 @@ SET NOCOUNT ON
 	FROM	dbo.ResultDetailES AS rdes WITH (NOLOCK)
 	WHERE	EXISTS(SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE m.matchid = rdes.matchid AND m.eventdate = @winlostdate);
 
+	-- 20190325@Billy -- New table [SMP_Market]
+	INSERT INTO	dbo.SMP_Market14
+		(	MarketId, MatchId, VendorId, Price, TradeStatus, Result, ResultStatusId, SelectionCounts, CreateTime, UpdateTime)
+	SELECT	MarketId, MatchId, VendorId, Price, TradeStatus, Result, ResultStatusId, SelectionCounts, CreateTime, UpdateTime
+	FROM	dbo.SMP_Market AS sm WITH (NOLOCK)
+	WHERE	EXISTS (SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE m.matchid = sm.MatchId AND m.eventdate = @winlostdate);
+
+	-- 20190325@Billy -- New table [SMP_MarketSelection]
+	INSERT INTO	dbo.SMP_MarketSelection14
+		(	MarketSelectionId, MarketId, SelectionType, Result, ResultStatusId, MatchId)
+	SELECT	MarketSelectionId, MarketId, SelectionType, Result, ResultStatusId, MatchId
+	FROM	dbo.SMP_MarketSelection AS sms WITH (NOLOCK)
+	WHERE	EXISTS (SELECT 1 FROM dbo.match AS m WITH (NOLOCK) WHERE m.matchid = sms.MatchId AND m.eventdate = @winlostdate);
+
+
 	drop table #__tempData
 	drop table #__IdsList
 	drop table #__matchIdList
 
 END
 GO
-GRANT VIEW DEFINITION ON dbo.Task_DailySummary_DB02_Copy TO vnteam AS dbo;
-GO
-/*<info serverAlias="DBPRO-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="1"></info>*/
+/*<info serverAlias="DBPRO-bodb02" executers="" viewers="" isFunction="0" isNested="1"></info>*/
