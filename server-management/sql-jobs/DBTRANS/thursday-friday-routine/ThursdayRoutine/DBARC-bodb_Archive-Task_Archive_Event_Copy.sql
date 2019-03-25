@@ -1,8 +1,7 @@
 /*<info serverAlias="DBARC-bodb02" executers="" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE	[dbo].[Task_Archive_Event]
+ALTER PROCEDURE	[dbo].[Task_Archive_Event_Copy]
 						@winlostdate	DATETIME
-					,	@Action			VARCHAR(10)		= NULL -- copy / delete / subtask	
-					,	@DeletedTarget	VARCHAR(100)	= ''
+					,	@TableName		VARCHAR(100)	= ''
 AS
 /*
 	Created: 20190318@Helen
@@ -15,10 +14,9 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 	DECLARE @query NVARCHAR(MAX) = ''
-	
-	IF @Action = 'copy'
+	---------------Table 1: odds_bk --------------------
+	IF @TableName = 'odds_bk'
 	BEGIN
-		---------------Table 1: odds_bk --------------------
 		SELECT	@query = N'
 INSERT INTO dbo.odds_bk
 	(	oddsid, matchid, bettype, switch, hdp1, hdp2, odds1a, odds2a, odds1b, odds2b, odds1c, odds2c, odds1e, odds2e, odds1f, odds2f, odds1d, odds2d, odds1hka, odds2hka, odds1hkb, odds2hkb, odds1hkc
@@ -48,30 +46,36 @@ FROM	bodb02.dbo.odds14 AS t1 WITH (NOLOCK)
 WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
 
 		EXECUTE	sys.sp_executesql @query
-		
-		---------------Table 2: match_bk --------------------
+	END
+	
+	---------------Table 2: match_bk --------------------
+	ELSE IF @TableName = 'match_bk'
+	BEGIN 	
 		SELECT	@query = N'
 INSERT INTO dbo.match_bk(matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore,
 				finalhomescore, finalawayscore, creator, matchcode, kickofftime, closedtime, showtime,
 				hthomescore, htawayscore, ruben, multiple, yenbet, exrisk, sporttype, tstamp,
-				homeid2, awayid2, DisplayMode, LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, GlobalShowTime, ParentID)
+				homeid2, awayid2, DisplayMode, LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, GlobalShowTime, ParentID, ShowTimeDT)
 				
 SELECT matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore,
 				finalhomescore, finalawayscore, creator, matchcode, kickofftime, closedtime, showtime,
 				hthomescore, htawayscore, ruben, multiple, yenbet, exrisk, sporttype, tstamp,
-				homeid2, awayid2, DisplayMode, LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, GlobalShowTime, ParentID 
+				homeid2, awayid2, DisplayMode, LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, GlobalShowTime, ParentID, ShowTimeDT 
 FROM OPENQUERY(DBPRO,''
 DECLARE	@winlostdate SMALLDATETIME = ''''' + CONVERT(NVARCHAR(MAX), @winlostdate, 121) + ''''';
 SELECT	matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore,
 				finalhomescore, finalawayscore, creator, matchcode, kickofftime, closedtime, showtime,
 				hthomescore, htawayscore, ruben, multiple, yenbet, exrisk, sporttype, tstamp,
-				homeid2, awayid2, DisplayMode, LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, GlobalShowTime, ParentID
+				homeid2, awayid2, DisplayMode, LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, GlobalShowTime, ParentID, ShowTimeDT
 FROM	bodb02.dbo.match14 AS t1  WITH (NOLOCK)
 WHERE t1.eventdate = @winlostdate;'')'
 
 		EXECUTE	sys.sp_executesql @query
-			
-		---------------Table 3: bingoBall_bk --------------------		
+		
+	END	
+	---------------Table 3: bingoBall_bk --------------------	
+	ELSE IF @TableName = 'bingoBall_bk'
+	BEGIN		
 		SELECT	@query = N'
 INSERT INTO dbo.bingoBall_bk([Matchid], [Seq], [Number], [UpdateTime])
 SELECT	[Matchid], [Seq], [Number], [UpdateTime]
@@ -82,8 +86,11 @@ FROM	bodb02.dbo.BingoBall14 AS t1  WITH (NOLOCK)
 WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
 
 		EXECUTE	sys.sp_executesql @query
-
-		---------------Table 4: outright_bk --------------------
+		
+	END
+	---------------Table 4: outright_bk --------------------
+	ELSE IF @TableName = 'outright_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.outright_bk(orid, leagueid, teamid, eventdate, kickofftime, oddsstatus, odds, maxbet, gapodds, matchcode, groupmatch, status, creator, bal, risk, 
 			DisplayMode, PlaceOdds, Placing, IsFavor, IsSCR, ProgramID, 
@@ -102,7 +109,10 @@ WHERE t1.eventdate = @winlostdate;'')'
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 5: VSOutright_bk --------------------
+	END
+	---------------Table 5: VSOutright_bk --------------------
+	ELSE IF @TableName = 'VSOutright_bk'
+	BEGIN	
 		SELECT	@query = N'
 INSERT INTO dbo.VSOutright_bk(Orid, EventID, RacerNum, IsFavor, EventDate, KickoffTime, RacerID, HumanID, WinOdds, PlaceOdds, 
 			Lane, MaxBet, Placing, Creator, EventStatus)
@@ -117,25 +127,31 @@ WHERE t1.eventdate = @winlostdate;'')'
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 6: match_remark -----------------------------
+	END
+	---------------Table 6: match_remark -----------------------------
+	ELSE IF @TableName = 'match_remark'
+	BEGIN	
 		SELECT	@query = N'
 INSERT INTO dbo.match_remark(matchid, calculate, multiple, calrefund, refund, calStatus, IsTotalBetDenied_1, IsTotalBetDenied_3, IsTotalBetDenied_7, IsTotalBetDenied_8, LiveTimer, HomeRedCard, AwayRedCard
 			,	LivePeriod, HedgeForecast, IsTotalBetDenied_20, IsTotalBetDenied_21, IsNeutral, StreamingID, IsInternal, IsHTCal, LiveDeleteChecker, HomeColor, AwayColor, ConfirmHT, ConfirmFT
-			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier)
+			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive, CommGroup)
 SELECT	matchid, calculate, multiple, calrefund, refund, calStatus, IsTotalBetDenied_1, IsTotalBetDenied_3, IsTotalBetDenied_7, IsTotalBetDenied_8, LiveTimer, HomeRedCard, AwayRedCard
 			,	LivePeriod, HedgeForecast, IsTotalBetDenied_20, IsTotalBetDenied_21, IsNeutral, StreamingID, IsInternal, IsHTCal, LiveDeleteChecker, HomeColor, AwayColor, ConfirmHT, ConfirmFT
-			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier
+			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive, CommGroup
 FROM OPENQUERY(DBPRO,''
 DECLARE	@winlostdate SMALLDATETIME = ''''' + CONVERT(NVARCHAR(MAX), @winlostdate, 121) + ''''';
 SELECT		matchid, calculate, multiple, calrefund, refund, calStatus, IsTotalBetDenied_1, IsTotalBetDenied_3, IsTotalBetDenied_7, IsTotalBetDenied_8, LiveTimer, HomeRedCard, AwayRedCard
 			,	LivePeriod, HedgeForecast, IsTotalBetDenied_20, IsTotalBetDenied_21, IsNeutral, StreamingID, IsInternal, IsHTCal, LiveDeleteChecker, HomeColor, AwayColor, ConfirmHT, ConfirmFT
-			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier
+			,	PausePeriod, TimerSuspend, IsPending, isUndecided, StdDelBetCheck, HomeSubstitutes, AwaySubstitutes, StartTeam, HomePenalty, AwayPenalty, HomeYellowCard, AwayYellowCard, Tier, OfferLive, CommGroup
 FROM	bodb02.dbo.match_remark AS t1  WITH (NOLOCK)
 WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
 
 		EXECUTE	sys.sp_executesql @query
-	
-		---------------Table 7: MatchMaxbet_bk -----------------------------
+		
+	END
+	---------------Table 7: MatchMaxbet_bk -----------------------------
+	ELSE IF @TableName = 'MatchMaxbet_bk'
+	BEGIN	
 		SELECT	@query = N'
 INSERT INTO dbo.MatchMaxbet_bk(MatchId, BetType, Maxbet, OperatorId, Spread)
 SELECT	MatchId, BetType, Maxbet, OperatorId, Spread
@@ -147,7 +163,10 @@ WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matc
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 8:  ResultDetail_bk -----------------------------
+	END
+	---------------Table 8:  ResultDetail_bk -----------------------------
+	ELSE IF @TableName = 'ResultDetail_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.ResultDetail_bk(MatchId, ResourceId, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateDate, LastModifyDate, CreateBy, LastModifyBy, OtherInfo)
 SELECT	MatchId, ResourceId, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateDate, LastModifyDate, CreateBy, LastModifyBy, OtherInfo
@@ -159,7 +178,10 @@ WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matc
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 9:  ResultDetail3rd_bk -----------------------------
+	END	
+	---------------Table 9:  ResultDetail3rd_bk -----------------------------
+	ELSE IF @TableName = 'ResultDetail3rd_bk'
+	BEGIN	
 		SELECT	@query = N'
 INSERT INTO dbo.ResultDetail3rd_bk(ResultID, VendorID, MatchID, GameID, Custom1, Custom2, Custom3, ResultStatusID, SettlementStatusID, GameResult, OtherInfo, CreateBy, CreateDate, LastModifyBy, LastModifyDate, ResourceId)
 SELECT	ResultID, VendorID, MatchID, GameID, Custom1, Custom2, Custom3, ResultStatusID, SettlementStatusID, GameResult, OtherInfo, CreateBy, CreateDate, LastModifyBy, LastModifyDate, ResourceId
@@ -171,7 +193,10 @@ WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matc
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 10:  EventInfo3rd_bk -----------------------------
+	END
+	---------------Table 10:  EventInfo3rd_bk -----------------------------
+	ELSE IF @TableName = 'EventInfo3rd_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.EventInfo3rd_bk(EventInfo3rdId,ArenaID,FightNo,EventDate,HomeOwner,AwayOwner)
 SELECT	EventInfo3rdId,ArenaID,FightNo,EventDate,HomeOwner,AwayOwner
@@ -183,7 +208,10 @@ WHERE t1.eventdate = @winlostdate;'')'
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 11:  AutoPayoutResult_bk -----------------------------
+	END
+	---------------Table 11:  AutoPayoutResult_bk -----------------------------
+	ELSE IF @TableName = 'AutoPayoutResult_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.AutoPayoutResult_bk(AutoPayoutResultId, MatchId, CalculationType, SourceId, HomeValue, AwayValue, StatusId, TryCount, CreatedDate, ModifiedDate)
 SELECT	AutoPayoutResultId, MatchId, CalculationType, SourceId, HomeValue, AwayValue, StatusId, TryCount, CreatedDate, ModifiedDate
@@ -195,7 +223,10 @@ WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matc
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 12:  ProviderResultDetail_bk -----------------------------
+	END
+	---------------Table 12:  ProviderResultDetail_bk -----------------------------
+	ELSE IF @TableName = 'ProviderResultDetail_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.ProviderResultDetail_bk(ProviderResultDetailId, MatchId, SourceId, TypeId, HomeValue, AwayValue, CreatedDate, IsConfirmed)
 SELECT	ProviderResultDetailId, MatchId, SourceId, TypeId, HomeValue, AwayValue, CreatedDate, IsConfirmed
@@ -207,7 +238,10 @@ WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matc
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 13:  Odds3rd_bk -----------------------------
+	END
+	---------------Table 13:  Odds3rd_bk -----------------------------
+	ELSE IF @TableName = 'Odds3rd_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.Odds3rd_bk(oddsid, matchid, odds3rdid, bettype, hdp1, hdp2, odds1a, odds2a, oddsstatus, changetime, creator, com1, comx, com2, cs00, cs01, cs10, cs11, cs02, cs12, cs22, cs21, cs20, cs30, cs31, cs32, cs33, cs23, cs13, cs03, cs99, sporttype, cs04, cs05, Resourceid)
 SELECT	oddsid, matchid, odds3rdid, bettype, hdp1, hdp2, odds1a, odds2a, oddsstatus, changetime, creator, com1, comx, com2, cs00, cs01, cs10, cs11, cs02, cs12, cs22, cs21, cs20, cs30, cs31, cs32, cs33, cs23, cs13, cs03, cs99, sporttype, cs04, cs05, Resourceid
@@ -219,7 +253,10 @@ WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matc
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 14:  Intg_OddsFeed_SettlementAction_bk -----------------------------
+	END
+	---------------Table 14:  Intg_OddsFeed_SettlementAction_bk -----------------------------
+	ELSE IF @TableName = 'Intg_OddsFeed_SettlementAction_bk'
+	BEGIN	
 		SELECT	@query = N'
 INSERT INTO dbo.Intg_OddsFeed_SettlementAction_bk(ActionId, LeagueId, MatchId, ActionType, HTHomeScore, HTAwayScore, FTHomeScore, FTAwayScore, CreateTime, OtherInfo)
 SELECT	ActionId, LeagueId, MatchId, ActionType, HTHomeScore, HTAwayScore, FTHomeScore, FTAwayScore, CreateTime, OtherInfo
@@ -230,8 +267,11 @@ FROM	bodb02.dbo.Intg_OddsFeed_SettlementAction AS t1  WITH (NOLOCK)
 WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
 
 		EXECUTE	sys.sp_executesql @query
-	
-		---------------Table 15:  Intg_OddsFeed_SettlementAction_Outright_bk -----------------------------
+		
+	END
+	---------------Table 15:  Intg_OddsFeed_SettlementAction_Outright_bk -----------------------------
+	ELSE IF @TableName = 'Intg_OddsFeed_SettlementAction_Outright_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.Intg_OddsFeed_SettlementAction_Outright_bk(ActionId, ActionType, OrId, LeagueId, TeamId, Status, IsDeadheat, Deadheat, CreateTime)
 SELECT	ActionId, ActionType, OrId, LeagueId, TeamId, Status, IsDeadheat, Deadheat, CreateTime
@@ -243,7 +283,10 @@ WHERE EXISTS (SELECT 1 FROM bodb02.dbo.outright14 AS t2 WITH (NOLOCK) WHERE t1.o
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 16:  Match3rd_bk -----------------------------
+	END
+	---------------Table 16:  Match3rd_bk -----------------------------
+	ELSE IF @TableName = 'Match3rd_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.Match3rd_bk(Match3rdId, League3rdId, HomeId, AwayId, EventDate, SportType, VendorMatchId, MatchNo, HasLive, EventStatus, VendorEventStatus, CreateTime, UpdateTime, VendorEventDate, GameResultDate)
 SELECT	Match3rdId, League3rdId, HomeId, AwayId, EventDate, SportType, VendorMatchId, MatchNo, HasLive, EventStatus, VendorEventStatus, CreateTime, UpdateTime, VendorEventDate, GameResultDate
@@ -255,25 +298,31 @@ WHERE t1.eventdate = @winlostdate;'')'
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 17:  oddsES_bk -----------------------------
+	END
+	---------------Table 17:  oddsES_bk -----------------------------
+	ELSE IF @TableName = 'oddsES_bk'
+	BEGIN
 		SELECT	@query = N'
 INSERT INTO dbo.oddsES_bk(oddsid, matchid, bettype, switch, hdp1, hdp2, odds1a, odds2a, oddsspreada, autobookie, gapodds1, gapodds2, diffbalance, maxodds, minodds, oddsstatus, liveindicator, changetime, risk, stakerange
 			,	newoffersetup, livehomescore, liveawayscore, creator, com1, com2, csstatus, maxbet, autosuspend, stakerange2, risk2, site3, sporttype, HasBeenLinked, Resourceid, Category, IncreaseMaxbet
-			,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId)
+			,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId, ExSpread)
 SELECT	oddsid, matchid, bettype, switch, hdp1, hdp2, odds1a, odds2a, oddsspreada, autobookie, gapodds1, gapodds2, diffbalance, maxodds, minodds, oddsstatus, liveindicator, changetime, risk, stakerange
 			,	newoffersetup, livehomescore, liveawayscore, creator, com1, com2, csstatus, maxbet, autosuspend, stakerange2, risk2, site3, sporttype, HasBeenLinked, Resourceid, Category, IncreaseMaxbet
-			,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId
+			,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId, ExSpread
 FROM OPENQUERY(DBPRO,''
 DECLARE	@winlostdate SMALLDATETIME = ''''' + CONVERT(NVARCHAR(MAX), @winlostdate, 121) + ''''';
 SELECT oddsid, matchid, bettype, switch, hdp1, hdp2, odds1a, odds2a, oddsspreada, autobookie, gapodds1, gapodds2, diffbalance, maxodds, minodds, oddsstatus, liveindicator, changetime, risk, stakerange
 			,	newoffersetup, livehomescore, liveawayscore, creator, com1, com2, csstatus, maxbet, autosuspend, stakerange2, risk2, site3, sporttype, HasBeenLinked, Resourceid, Category, IncreaseMaxbet
-			,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId
+			,	odds1aH, odds2aH, IsCopyDeadball, GoalLineDiff, IsStatusIndep, ParentOddsId, RefOddsSP, RefOddsH, RefOddsA, RefTrueOdds, CurrentTrueOdds, EnableVirtualRate, TraderId, ExSpread
 FROM	bodb02.dbo.oddsES14 AS t1  WITH (NOLOCK)
 WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
 
 		EXECUTE	sys.sp_executesql @query
 		
-		---------------Table 18:  ResultDetailES_bk -----------------------------
+	END
+	---------------Table 18:  ResultDetailES_bk -----------------------------
+	ELSE IF @TableName = 'ResultDetailES_bk'
+	BEGIN	
 		SELECT	@query = N'
 INSERT INTO dbo.ResultDetailES_bk(MatchID, ResourceID, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateBy, CreateDate, LastModifyBy, LastModifyDate, OtherInfo)
 SELECT	MatchID, ResourceID, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateBy, CreateDate, LastModifyBy, LastModifyDate, OtherInfo
@@ -284,7 +333,36 @@ FROM	bodb02.dbo.ResultDetailES14 AS t1  WITH (NOLOCK)
 WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
 
 		EXECUTE	sys.sp_executesql @query
-		
+	END	
+	
+	---------------Table 19:  SMP_Market_bk -----------------------------
+	ELSE IF @TableName = 'SMP_Market_bk'
+	BEGIN	
+		SELECT	@query = N'
+INSERT INTO dbo.SMP_Market_bk(MarketId, MatchId, VendorId, Price, TradeStatus, Result, ResultStatusId, SelectionCounts, CreateTime, UpdateTime)
+SELECT	MarketId, MatchId, VendorId, Price, TradeStatus, Result, ResultStatusId, SelectionCounts, CreateTime, UpdateTime
+FROM OPENQUERY(DBPRO,''
+DECLARE	@winlostdate SMALLDATETIME = ''''' + CONVERT(NVARCHAR(MAX), @winlostdate, 121) + ''''';
+SELECT MarketId, MatchId, VendorId, Price, TradeStatus, Result, ResultStatusId, SelectionCounts, CreateTime, UpdateTime
+FROM	bodb02.dbo.SMP_Market14 AS t1  WITH (NOLOCK)
+WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
+
+		EXECUTE	sys.sp_executesql @query
+	END	
+	
+	---------------Table 20:  SMP_MarketSelection_bk -----------------------------
+	ELSE IF @TableName = 'SMP_MarketSelection_bk'
+	BEGIN	
+		SELECT	@query = N'
+INSERT INTO dbo.SMP_MarketSelection_bk(MarketSelectionId, MarketId, SelectionType, Result, ResultStatusId, MatchId)
+SELECT	MarketSelectionId, MarketId, SelectionType, Result, ResultStatusId, MatchId
+FROM OPENQUERY(DBPRO,''
+DECLARE	@winlostdate SMALLDATETIME = ''''' + CONVERT(NVARCHAR(MAX), @winlostdate, 121) + ''''';
+SELECT MarketSelectionId, MarketId, SelectionType, Result, ResultStatusId, MatchId
+FROM	bodb02.dbo.SMP_MarketSelection14 AS t1  WITH (NOLOCK)
+WHERE EXISTS (SELECT 1 FROM bodb02.dbo.match14 AS t2 WITH (NOLOCK) WHERE t1.matchid = t2.matchid AND t2.eventdate = @winlostdate);'')'
+
+		EXECUTE	sys.sp_executesql @query
 	END	
 END
 
