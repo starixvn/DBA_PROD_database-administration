@@ -39,6 +39,7 @@ AS
 							Add column list to [odds] table - [Redmine: #000000]
 		- 20181214@Billy:	Fix duplicate PK in #DeletedList - [Redmine: #106358]
 		- 20181219@Billy:	Add [Tier] column of [match_remark] - [Redmine: #106648]
+		- 20190325@Billy:	Add [SMP_Market] & [SMP_MarketSelection] tables - [Redmine: #109926]
  */
 BEGIN
 	SET NOCOUNT ON;
@@ -197,6 +198,21 @@ BEGIN
 		SELECT	MatchID, ResourceID, HomeValue, AwayValue, ResultStatusID, SettlementStatusID, CreateBy, CreateDate, LastModifyBy, LastModifyDate, OtherInfo
 		FROM	dbo.ResultDetailES14 AS rdes WITH (NOLOCK)
 		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE m.matchid = rdes.matchid AND m.eventdate = @winlostdate);
+
+			-- 20190325@Billy:	New table [SMP_Market]
+		INSERT INTO	DB06.bodb_Archive.dbo.SMP_Market_bk
+			(	MarketId, MatchId, VendorId, Price, TradeStatus, Result, ResultStatusId, SelectionCounts, CreateTime, UpdateTime)
+		SELECT	MarketId, MatchId, VendorId, Price, TradeStatus, Result, ResultStatusId, SelectionCounts, CreateTime, UpdateTime
+		FROM	dbo.SMP_Market14 AS sm WITH (NOLOCK)
+		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE m.matchid = sm.MatchId AND m.eventdate = @winlostdate);
+
+			-- 20190325@Billy:	New table [SMP_MarketSelection]
+		INSERT INTO	DB06.bodb_Archive.dbo.SMP_MarketSelection_bk
+			(	MarketSelectionId, MarketId, SelectionType, Result, ResultStatusId, MatchId)
+		SELECT	MarketSelectionId, MarketId, SelectionType, Result, ResultStatusId, MatchId
+		FROM	dbo.SMP_MarketSelection14 AS sms WITH (NOLOCK)
+		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE m.matchid = sms.MatchId AND m.eventdate = @winlostdate);
+
 	END -- END @action = 'copy'
 
 	IF @Action = 'delete'
@@ -355,6 +371,33 @@ BEGIN
 		EXECUTE	dbo.Task_Archive_Event @winlostdate = @winlostdate, @Action = 'subtask', @DeletedTarget = 'ResultDetailES14';
 
 
+		---### Delete data for [SMP_Market14]
+			-- 20190325@Billy -- New table [SMP_Market14]
+		TRUNCATE TABLE	#DeletedList;
+		INSERT INTO	#DeletedList (id, IsDone)
+		SELECT	DISTINCT
+				sm.MatchId, 0
+		FROM	dbo.SMP_Market14 AS sm WITH (NOLOCK)
+		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE m.matchid = sm.MatchId AND m.eventdate = @winlostdate);
+
+		-- Call subtask for looping & deleting data on [SMP_Market14]
+			-- 20190325@Billy -- New table [SMP_Market14]
+		EXECUTE	dbo.Task_Archive_Event @winlostdate = @winlostdate, @Action = 'subtask', @DeletedTarget = 'SMP_Market14';
+
+
+		---### Delete data for [SMP_MarketSelection14]
+			-- 20190325@Billy -- New table [SMP_MarketSelection14]
+		TRUNCATE TABLE	#DeletedList;
+		INSERT INTO	#DeletedList (id, IsDone)
+		SELECT	sms.MarketSelectionId, 0
+		FROM	dbo.SMP_MarketSelection14 AS sms WITH (NOLOCK)
+		WHERE	EXISTS (SELECT 1 FROM dbo.match14 AS m WITH (NOLOCK) WHERE m.matchid = sms.MatchId AND m.eventdate = @winlostdate);
+
+		-- Call subtask for looping & deleting data on [SMP_MarketSelection14]
+			-- 20190325@Billy -- New table [SMP_MarketSelection14]
+		EXECUTE	dbo.Task_Archive_Event @winlostdate = @winlostdate, @Action = 'subtask', @DeletedTarget = 'SMP_MarketSelection14';
+
+
 		---### delete data for match14
 		TRUNCATE TABLE #DeletedList
 		INSERT INTO #DeletedList (id,IsDone)
@@ -403,6 +446,4 @@ BEGIN
 	END
 END
 GO
-GRANT VIEW DEFINITION ON dbo.Task_Archive_Event TO vnteam AS dbo;
-GO
-/*<info serverAlias="DBPRO-bodb02" executers="" viewers="vnteam" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBPRO-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/
