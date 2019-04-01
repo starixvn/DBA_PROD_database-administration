@@ -207,9 +207,19 @@
       <FullPath>Transfer_Coll_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>transfer_fi.dtsx</Name>
       <FullPath>transfer_fi.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>SMP_Market_bk.dtsx</Name>
+      <FullPath>SMP_Market_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>SMP_MarketSelection_bk.dtsx</Name>
+      <FullPath>SMP_MarketSelection_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
   </DTSPackages>
