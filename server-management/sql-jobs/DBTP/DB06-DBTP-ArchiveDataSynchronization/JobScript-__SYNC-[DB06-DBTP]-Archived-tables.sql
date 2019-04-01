@@ -5,6 +5,7 @@
 	Revision:
 		- 20181219@Billy:	Initiate on GIT - [Redmine: #000000]
 		- 20181219@Billy:	Add [oddsES_bk], [ResultDetailES_bk], [Transfer_Coll_bk] & Update [match_remark], [bettransRnG_bk] - [Redmine: #106070]
+		- 20190313@Billy:	Add [transfer_fi] - [Redmine: #109016]
 */
 
 SET NOCOUNT ON;
@@ -26,7 +27,7 @@ DECLARE	@Category		NVARCHAR(128)	= N'Archive Data Synchronization'
 	,	@JobName		NVARCHAR(128)	= N'__SYNC: [DB06-DBTP] Archived tables'
 	,	@Description	NVARCHAR(512)	= N''
 	,	@EmailOperator	NVARCHAR(128)	= N'vnDBA'
-	,	@Steps			INT				= 40
+	,	@Steps			INT				= 41
 	;
 
 SELECT	@ReturnCode		= 0;
@@ -181,7 +182,7 @@ BEGIN;
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 4
-						,	@on_fail_step_id			= 39
+						,	@on_fail_step_id			= 40	-- Point to step [Re-sync if there are rowcount mismatch]
 						,	@retry_attempts				= 0
 						,	@retry_interval				= 0
 						,	@os_run_priority			= 0
@@ -1185,6 +1186,34 @@ BEGIN;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
+						,	@step_name					= N'transfer_fi'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "H:\IBC_DB\_SSIS_library\DB06 to DBTP\Viet - DB06 to DBTP - transfer_fi.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 39 ----
+BEGIN;
+	SELECT	@Loop = 39;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
 						,	@step_name					= N'update_done'
 						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
@@ -1207,9 +1236,9 @@ BEGIN;
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 39 ----
+---- Step 40 ----
 BEGIN;
-	SELECT	@Loop = 39;
+	SELECT	@Loop = 40;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -1238,9 +1267,9 @@ IF	EXISTS(SELECT 1 FROM DB06.bodb_Archive.dbo.Task_DBTP_ArchiveCheckRowcount WIT
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 40 ----
+---- Step 41 ----
 BEGIN;
-	SELECT	@Loop = 40;
+	SELECT	@Loop = 41;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
