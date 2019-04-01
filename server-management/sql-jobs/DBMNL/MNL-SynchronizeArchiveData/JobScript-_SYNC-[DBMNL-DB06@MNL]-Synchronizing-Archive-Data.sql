@@ -5,6 +5,8 @@
 	Revision:
 		- 20181221@Billy:	Initiate on GIT - [Redmine: #000000]
 		- 20181221@Billy:	Add [oddsES_bk], [ResultDetailES_bk], [Transfer_Coll_bk] & Update [match_remark], [bettransRnG_bk] - [Redmine: #106070]
+		- 20190313@Billy:	Add [transfer_fi] - [Redmine: #109016]
+		- 20190401@Billy:	Add [SMP_Market_bk] & [SMP_MarketSelection_bk] - [Redmine: #109926]
 */
 
 SET NOCOUNT ON;
@@ -26,7 +28,7 @@ DECLARE	@Category		NVARCHAR(128)	= N'Archive Data Synchronization'
 	,	@JobName		NVARCHAR(128)	= N'_SYNC: [DBMNL-DB06@MNL] Synchonizing Archive Data'
 	,	@Description	NVARCHAR(512)	= N''
 	,	@EmailOperator	NVARCHAR(128)	= N'DBAAdmin'
-	,	@Steps			INT				= 40
+	,	@Steps			INT				= 43
 	;
 
 SELECT	@ReturnCode		= 0;
@@ -147,7 +149,7 @@ BEGIN;
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 4
-						,	@on_fail_step_id			= 39
+						,	@on_fail_step_id			= 42	-- Jump to step [Check Rowcount]
 						,	@retry_attempts				= 0
 						,	@retry_interval				= 0
 						,	@os_run_priority			= 0
@@ -1152,6 +1154,90 @@ BEGIN;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
+						,	@step_name					= N'transfer_fi'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\DBMNL_Sync_DB06\transfer_fi.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 38 ----
+BEGIN;
+	SELECT	@Loop = 38;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
+						,	@step_name					= N'SMP_Market_bk'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\DBMNL_Sync_DB06\SMP_Market_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 39 ----
+BEGIN;
+	SELECT	@Loop = 39;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
+						,	@step_name					= N'SMP_MarketSelection_bk'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\DBMNL_Sync_DB06\SMP_MarketSelection_bk.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 40 ----
+BEGIN;
+	SELECT	@Loop = 40;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
 						,	@step_name					= N'Delete match_bk'
 						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
@@ -1174,9 +1260,9 @@ BEGIN;
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 38 ----
+---- Step 41 ----
 BEGIN;
-	SELECT	@Loop = 38;
+	SELECT	@Loop = 41;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -1210,9 +1296,9 @@ IF	@@ROWCOUNT <> 1
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 39 ----
+---- Step 42 ----
 BEGIN;
-	SELECT	@Loop = 39;
+	SELECT	@Loop = 42;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -1240,9 +1326,9 @@ EXECUTE dbo.Task_MNL_CheckRowcount;
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 40 ----
+---- Step 43 ----
 BEGIN;
-	SELECT	@Loop = 40;
+	SELECT	@Loop = 43;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
