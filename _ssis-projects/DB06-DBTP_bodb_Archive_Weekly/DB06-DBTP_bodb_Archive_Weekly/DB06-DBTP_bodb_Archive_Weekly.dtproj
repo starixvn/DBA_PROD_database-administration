@@ -207,9 +207,19 @@
       <FullPath>Viet - DB06 to DBTP - Transfer_Coll_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>Viet - DB06 to DBTP - transfer_fi.dtsx</Name>
       <FullPath>Viet - DB06 to DBTP - transfer_fi.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>Viet - DB06 to DBTP - SMP_Market_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - SMP_Market_bk.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>Viet - DB06 to DBTP - SMP_MarketSelection_bk.dtsx</Name>
+      <FullPath>Viet - DB06 to DBTP - SMP_MarketSelection_bk.dtsx</FullPath>
       <References />
     </DtsPackage>
   </DTSPackages>
