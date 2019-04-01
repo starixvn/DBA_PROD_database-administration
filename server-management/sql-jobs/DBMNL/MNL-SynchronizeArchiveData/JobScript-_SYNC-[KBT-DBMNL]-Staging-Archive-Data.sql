@@ -6,6 +6,7 @@
 		- 20181221@Billy:	Initiate on GIT - [Redmine: #000000]
 		- 20181221@Billy:	Add [oddsES_bk], [ResultDetailES_bk], [Transfer_Coll_bk] & Update [match_remark], [bettransRnG_bk] - [Redmine: #106070]
 		- 20181224@Billy:	Fix wrong SSIS package at step bettransG - [Redmine: #000000]
+		- 20190313@Billy:	Add [transfer_fi] - [Redmine: #109016]
 */
 
 SET NOCOUNT ON;
@@ -27,7 +28,7 @@ DECLARE	@Category		NVARCHAR(128)	= N'Archive Data Synchronization'
 	,	@JobName		NVARCHAR(128)	= N'_SYNC: [KBT-DBMNL] Staging Archive Data'
 	,	@Description	NVARCHAR(512)	= N''
 	,	@EmailOperator	NVARCHAR(128)	= N'DBAAdmin'
-	,	@Steps			INT				= 40
+	,	@Steps			INT				= 41
 	;
 
 SELECT	@ReturnCode		= 0;
@@ -208,7 +209,7 @@ BEGIN;
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
 						,	@on_fail_action				= 4
-						,	@on_fail_step_id			= 40
+						,	@on_fail_step_id			= 41	-- Jump to step [Start synchronize job]
 						,	@retry_attempts				= 0
 						,	@retry_interval				= 0
 						,	@os_run_priority			= 0
@@ -1213,6 +1214,34 @@ BEGIN;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
+						,	@step_name					= N'transfer_fi'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "G:\IBC_DB\_SSIS\KBT_Staging_DBMNL\transfer_fi.dtsx" /DECRYPT "ss1s@w3e" /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 40 ----
+BEGIN;
+	SELECT	@Loop = 40;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
 						,	@step_name					= N'Task_MNL_ArchiveData'
 						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
@@ -1243,9 +1272,9 @@ IF	@@ROWCOUNT <> 1
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 40 ----
+---- Step 41 ----
 BEGIN;
-	SELECT	@Loop = 40;
+	SELECT	@Loop = 41;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
