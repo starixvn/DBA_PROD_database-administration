@@ -1,4 +1,4 @@
-/*<info serverAlias="DBARC-bodb02" executers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBARC-bodb_archive" executers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE	[dbo].[Task_Archive_Event_Copy]
 						@winlostdate	DATETIME
 					,	@TableName		VARCHAR(100)	= ''
