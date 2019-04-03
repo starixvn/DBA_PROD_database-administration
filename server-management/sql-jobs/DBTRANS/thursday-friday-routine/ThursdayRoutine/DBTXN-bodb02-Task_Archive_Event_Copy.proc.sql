@@ -1,5 +1,5 @@
 /*<info serverAlias="DBTXN-bodb02" executers="" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE	[dbo].[Task_Archive_Event_Copy]
+ALTER PROCEDURE	[dbo].[Task_Archive_Event_Control]
 AS
 /*
 	Created: 20190318@Helen
