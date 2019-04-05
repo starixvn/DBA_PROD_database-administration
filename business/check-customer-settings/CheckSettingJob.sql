@@ -5,6 +5,7 @@
 	Revision:
 		- 20180727@Billy:	Initiate on GIT - [Redmine: #98673]
 		- 20180802@Billy:	Add clean up table Commission result step - [Redmine: #99249]
+		- 20180906@Billy:	Add prepare Keno data - [Redmine: #101011]
 */
 
 SET NOCOUNT ON;
@@ -188,6 +189,7 @@ BEGIN;
 						,	@flags						= 0
 						,	@command					= N'
 EXECUTE dbo.vnDBA_sp_CheckSetting_PrepareCustDB;
+EXECUTE dbo.DBA_PrepareKenoGameType;
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -243,13 +245,7 @@ BEGIN;
 						,	@database_name				= N'CheckResultDB'
 						,	@flags						= 0
 						,	@command					= N'
-TRUNCATE TABLE CheckPTResult_Credit;
-
-TRUNCATE TABLE dbo.CheckStatusResult;
-
-TRUNCATE TABLE dbo.CheckStatusResult_DCS;
-
-TRUNCATE TABLE dbo.CheckCommResult_Credit;
+EXECUTE dbo.vnDBA_sp_CheckSetting_ClearResult;
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
