@@ -42,6 +42,7 @@ AS
 		-- 20180514@Patrick: Copy data from active to [14] batch by batch
 		-- 20181204@Billy:	Add [oddsES] & [ResultDetailES] tables - [Redmine: #105816]
 		-- 20190325@Billy:	Add [SMP_Market] & [SMP_MarketSelection] tables - [Redmine: #109926]
+		-- 20190402@Billy:	Add [ShowTimeDT] of [match] - [Redmine: #109926]
 */
 
 BEGIN
@@ -118,39 +119,35 @@ SET NOCOUNT ON
 		waitfor delay '00:00:01'
 	end
 
-	select @rowId = 0
-	while 1 = 1
-	begin
-		truncate table #__tempData
+	SELECT	@rowId = 0;
+	WHILE	1 = 1
+	BEGIN
+		TRUNCATE TABLE #__tempData;
 
-		insert into #__tempData(id)
-		select matchid from #__matchIdList where rowId > @rowId and rowId <= @rowId + @rowInBatch
-		if @@rowcount = 0
-			break
+		INSERT INTO #__tempData (id)
+		SELECT	matchid
+		FROM	#__matchIdList
+		WHERE	rowId > @rowId
+			AND	rowId <= @rowId + @rowInBatch;
 
-		set @rowId = @rowId + @rowInBatch
+		IF	@@ROWCOUNT = 0
+			BREAK;
 
-		insert into dbo.match14 
-			([matchid], [leagueid], [homeid], [awayid], homeid2, awayid2, [eventdate], 
-			[eventstatus], [betstatus], [livehomescore], [liveawayscore],
-			[finalhomescore], [finalawayscore], [creator], [matchcode],
-			[kickofftime], [closedtime], [showtime], [hthomescore], [htawayscore],
-			[ruben], [multiple], [tstamp], exrisk, sporttype,
-			DisplayMode, LeaguePatternID, HomeDisplayPatternID, 
-			AwayDisplayPatternID, IsNeutral, GoalRecord, settletime, GlobalShowTime, ParentID, IsAutoPayout, AutoSetting)
-		select
-			[matchid], [leagueid], [homeid], [awayid], homeid2, awayid2, [eventdate], 
-			[eventstatus], [betstatus], [livehomescore], [liveawayscore],
-			[finalhomescore], [finalawayscore], [creator], [matchcode],
-			[kickofftime], [closedtime], [showtime], [hthomescore], [htawayscore],
-			[ruben], [multiple], [tstamp], exrisk, sporttype,
-			DisplayMode, LeaguePatternID, HomeDisplayPatternID, 
-			AwayDisplayPatternID, IsNeutral, GoalRecord, settletime, GlobalShowTime, ParentID, IsAutoPayout, AutoSetting
-		from match with(nolock)
-		where matchid in (select id from #__tempData)
+		SET	@rowId = @rowId + @rowInBatch;
 
-		waitfor delay '00:00:01'
-	end
+		INSERT INTO	dbo.match14 (
+				matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore, finalhomescore, finalawayscore, creator, matchcode
+			,	kickofftime, closedtime, showtime, hthomescore, htawayscore, ruben, multiple, yenbet, exrisk, sporttype, tstamp, homeid2, awayid2, DisplayMode
+			,	LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, settletime, GlobalShowTime, ParentID, IsAutoPayout, AutoSetting, ShowTimeDT
+			)
+		SELECT	matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore, finalhomescore, finalawayscore, creator, matchcode
+			,	kickofftime, closedtime, showtime, hthomescore, htawayscore, ruben, multiple, yenbet, exrisk, sporttype, tstamp, homeid2, awayid2, DisplayMode
+			,	LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, settletime, GlobalShowTime, ParentID, IsAutoPayout, AutoSetting, ShowTimeDT
+		FROM	dbo.match WITH (NOLOCK)
+		WHERE	matchid IN (SELECT id FROM #__tempData);
+
+		WAITFOR DELAY '00:00:01';
+	END;
 
 	INSERT INTO bingoBall14
 		([Matchid], [Seq], [Number], [UpdateTime])
