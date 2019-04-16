@@ -1,12 +1,13 @@
 /*
 	Creator:	20181219@Billy
-	Job Name:	[__SYNC: [DB06-DBTP] Archived tables]
+	Job Name:	[__SYNC: [DB061] Archived tables HA]
 	Server:		DBTP
 	Revision:
 		- 20181219@Billy:	Initiate on GIT - [Redmine: #000000]
 		- 20181219@Billy:	Add [oddsES_bk], [ResultDetailES_bk], [Transfer_Coll_bk] & Update [match_remark], [bettransRnG_bk] - [Redmine: #106070]
 		- 20190313@Billy:	Add [transfer_fi] - [Redmine: #109016]
 		- 20190401@Billy:	Add [SMP_Market_bk] & [SMP_MarketSelection_bk] - [Redmine: #109926]
+		- 20190416@Billy:	Move job to DB061 - [Redmine: #111418]
 */
 
 SET NOCOUNT ON;
@@ -25,7 +26,7 @@ DECLARE @ReturnCode		INT
 
 -- Input --
 DECLARE	@Category		NVARCHAR(128)	= N'Archive Data Synchronization'
-	,	@JobName		NVARCHAR(128)	= N'__SYNC: [DB06-DBTP] Archived tables'
+	,	@JobName		NVARCHAR(128)	= N'__SYNC: [DB061] Archived tables HA'
 	,	@Description	NVARCHAR(512)	= N''
 	,	@EmailOperator	NVARCHAR(128)	= N'vnDBA'
 	,	@Steps			INT				= 43
