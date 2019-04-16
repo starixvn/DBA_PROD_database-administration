@@ -221,6 +221,17 @@ EXECUTE	[~~Server~~].bodb_Archive.dbo.Task_ArchiveHA_CheckRowcount_Child @Step =
 			-- Clear temp table data --
 			TRUNCATE TABLE	#StandbyRowcount;
 		END;
+		
+		-- Keep only mismatch result and in month limitation --
+		DELETE	tbl WITH (TABLOCK)
+		FROM		dbo.Task_ArchiveHA_RowcountResult AS tbl
+		INNER JOIN	#StandbyServers AS ss
+				ON	tbl.StandbyServer = ss.ServerName
+		WHERE	tbl.DatabaseName = @Database
+			AND	tbl.TableName = @Table
+			AND	(	tbl.ActiveRowcount = tbl.StandbyRowcount
+				OR	tbl.WinLostDate < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - ss.DataMonthLimit, 0)
+				);
 
 		TRUNCATE TABLE #ActiveRowcount;
 	END;
@@ -229,14 +240,6 @@ EXECUTE	[~~Server~~].bodb_Archive.dbo.Task_ArchiveHA_CheckRowcount_Child @Step =
 	DELETE	tbl WITH (TABLOCK)
 	FROM	dbo.Task_ArchiveHA_RowcountResult AS tbl
 	WHERE	tbl.TimeType IS NULL;
-
-	-- Keep only mismatch result and in month limitation --
-	DELETE	tbl WITH (TABLOCK)
-	FROM		dbo.Task_ArchiveHA_RowcountResult AS tbl
-	INNER JOIN	#StandbyServers AS ss
-			ON	tbl.StandbyServer = ss.ServerName
-	WHERE	tbl.ActiveRowcount = tbl.StandbyRowcount
-		OR	tbl.WinLostDate < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - ss.DataMonthLimit, 0);
 END;
 GO
 /*<info serverAlias="DBARc-bodb_Archive" executers="" viewers="" isFunction="0" isNested="0"></info>*/
