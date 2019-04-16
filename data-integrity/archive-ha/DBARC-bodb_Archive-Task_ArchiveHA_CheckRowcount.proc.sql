@@ -45,7 +45,6 @@ BEGIN;
 					,	WinLostDate		DATETIME
 					,	RowCnt			BIGINT
 					,	TimeType		VARCHAR(10)
-					,	PRIMARY KEY CLUSTERED (DatabaseName, TableName, WinLostDate)
 					);
 
 	CREATE TABLE	#ActiveRowcount (
@@ -54,7 +53,6 @@ BEGIN;
 					,	WinLostDate		DATETIME
 					,	RowCnt			BIGINT
 					,	TimeType		VARCHAR(10)
-					,	PRIMARY KEY CLUSTERED (DatabaseName, TableName, WinLostDate)
 					);
 
 	-- Truncate rowcount table --
@@ -223,6 +221,8 @@ EXECUTE	[~~Server~~].bodb_Archive.dbo.Task_ArchiveHA_CheckRowcount_Child @Step =
 			-- Clear temp table data --
 			TRUNCATE TABLE	#StandbyRowcount;
 		END;
+
+		TRUNCATE TABLE #ActiveRowcount;
 	END;
 
 	-- Delete processed data --

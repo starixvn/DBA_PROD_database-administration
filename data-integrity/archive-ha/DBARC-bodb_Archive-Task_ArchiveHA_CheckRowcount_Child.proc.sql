@@ -30,13 +30,13 @@ BEGIN
 			,	isDone			BIT				NOT NULL
 			);
 
-	DECLARE	@Result AS TABLE (
-				DatabaseName	NVARCHAR(128)
-			,	TableName		NVARCHAR(128)
-			,	WinLostDate		DATETIME
-			,	RowCnt			BIGINT
-			,	TimeType		VARCHAR(10)
-			);
+	CREATE TABLE	#Result (
+						DatabaseName	NVARCHAR(128)
+					,	TableName		NVARCHAR(128)
+					,	WinLostDate		DATETIME
+					,	RowCnt			BIGINT
+					,	TimeType		VARCHAR(10)
+					);
 
 	DECLARE	@TableType		INT
 		,	@FromDate		DATETIME
@@ -60,6 +60,7 @@ BEGIN
 		-- Query for select data --
 		SELECT	@DataQuery = N'';
 		SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= DB_NAME()
 	,	[TableName]		= tbl.name
 	,	[WinLostDate]	= pt.right_value
@@ -115,14 +116,13 @@ EXECUTE	[~~Database~~].sys.sp_executesql @Query;
 
 			SELECT	@Execute = REPLACE(@Query, N'~~Database~~', @Database);
 
-			INSERT INTO	@result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 			EXECUTE	sys.sp_executesql @Execute, @Params, @DataQuery;
 		END;
 
 		DELETE	tbl
-		FROM	@result AS tbl
+		FROM	#Result AS tbl
 		WHERE	tbl.WinLostDate IS NULL
-			AND	EXISTS (SELECT 1 FROM @result AS r WHERE r.TableName = tbl.TableName AND r.WinLostDate IS NOT NULL);
+			AND	EXISTS (SELECT 1 FROM #Result AS r WHERE r.TableName = tbl.TableName AND r.WinLostDate IS NOT NULL);
 	END;
 
 	IF	@Step = 2 AND @Database IS NOT NULL AND @Table IS NOT NULL
@@ -158,6 +158,7 @@ EXECUTE	[~~Database~~].sys.sp_executesql @Query;
 			BEGIN;
 				SELECT	@DataQuery = N'';
 				SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
 	,	[WinLostDate]	= CAST(tbl.winlostdate AS DATE)
@@ -175,6 +176,7 @@ GROUP BY CAST(tbl.winlostdate AS DATE);
 			BEGIN;
 				SELECT	@DataQuery = N'';
 				SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
 	,	[WinLostDate]	= CAST(tbl.eventdate AS DATE)
@@ -192,6 +194,7 @@ GROUP BY CAST(tbl.eventdate AS DATE);
 			BEGIN;
 				SELECT	@DataQuery = N'';
 				SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
 	,	[WinLostDate]	= CAST(m.eventdate AS DATE)
@@ -211,6 +214,7 @@ GROUP BY CAST(m.eventdate AS DATE);
 			BEGIN;
 				SELECT	@DataQuery = N'';
 				SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
 	,	[WinLostDate]	= CAST(tbl.transtime AS DATE)
@@ -228,6 +232,7 @@ GROUP BY CAST(tbl.transtime AS DATE);
 			BEGIN;
 				SELECT	@DataQuery = N'';
 				SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
 	,	[WinLostDate]	= CAST(tbl.MatchEventDate AS DATE)
@@ -245,6 +250,7 @@ GROUP BY CAST(tbl.MatchEventDate AS DATE);
 			BEGIN;
 				SELECT	@DataQuery = N'';
 				SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
 	,	[WinLostDate]	= CAST(tbl.accdate AS DATE)
@@ -262,6 +268,7 @@ GROUP BY CAST(tbl.accdate AS DATE);
 			BEGIN;
 				SELECT	@DataQuery = N'';
 				SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
 	,	[WinLostDate]	= CAST(tbl.ArchiveDate AS DATE)
@@ -289,13 +296,13 @@ EXECUTE	[~~Database~~].sys.sp_executesql @Query, @Params, @Database, @Table, @Fr
 
 			SELECT	@Execute = REPLACE(@Query, N'~~Database~~', @Database);
 
-			INSERT INTO	@Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 			EXECUTE	sys.sp_executesql @Execute, @Params, @DataExecute, @DataParams, @Database, @Table, @FromDate, @ToDate;
 
 			IF	@Table = N'Dot_Admin_Assignment_Operator_bk'
 			BEGIN
 				SELECT	@DataQuery = N'';
 				SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
 	,	[WinLostDate]	= CAST(m.eventdate AS DATE)
@@ -324,7 +331,6 @@ EXECUTE	[~~Database~~].sys.sp_executesql @Query, @Params, @Database, @Table, @Fr
 
 				SELECT	@Execute = REPLACE(@Query, N'~~Database~~', @Database);
 
-				INSERT INTO	@Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 				EXECUTE	sys.sp_executesql @Execute, @Params, @DataExecute, @DataParams, @Database, @Table, @FromDate, @ToDate;
 			END;
 		END;
@@ -336,7 +342,7 @@ EXECUTE	[~~Database~~].sys.sp_executesql @Query, @Params, @Database, @Table, @Fr
 	----------------------------------------------------------------------------------------------------
 
 	SELECT	DatabaseName, TableName, WinLostDate, RowCnt, TimeType
-	FROM	@result;
+	FROM	#Result;
 END;
 GO
 /*<info serverAlias="DBARC-bodb_Archive" executers="" viewers="" isFunction="0" isNested="0"></info>*/
