@@ -134,7 +134,7 @@ EXECUTE	[~~Database~~].sys.sp_executesql @Query;
 
 		IF	@TableType IS NOT NULL
 		BEGIN;
-			IF	@WinLostDate IS NULL AND @MonthLimit IS NOT NULL
+			IF	@WinLostDate IS NULL
 			BEGIN;
 				SELECT	@FromDate	= ISNULL(DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - @MonthLimit, 0), 0)
 					,	@ToDate		= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) + 12, 0)
