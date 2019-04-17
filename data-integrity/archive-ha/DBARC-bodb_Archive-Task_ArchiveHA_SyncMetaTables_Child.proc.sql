@@ -32,13 +32,13 @@ FROM	bodb_Archive.dbo.Task_ArchiveHA_StandbyServers WITH (NOLOCK)
 	BEGIN TRANSACTION;
 	TRUNCATE TABLE	dbo.Task_ArchiveHA_ArchiveTables;
 	INSERT INTO	dbo.Task_ArchiveHA_ArchiveTables
-		(	DatabaseName, TableName, TableType)
-	SELECT	DatabaseName, TableName, TableType
+		(	DatabaseName, TableName, TableType, KeyList)
+	SELECT	DatabaseName, TableName, TableType, KeyList
 	FROM	OPENQUERY(DB061, N'
-SELECT	DatabaseName, TableName, TableType
+SELECT	DatabaseName, TableName, TableType, KeyList
 FROM	bodb_Archive.dbo.Task_ArchiveHA_ArchiveTables WITH (NOLOCK)
 ');
 	COMMIT;
 END;
 GO
-/*<info serverAlias="DBARC-bodb_Archive" executers="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBARC-bodb_Archive" executers="" viewers="" isFunction="0" isNested="1"></info>*/

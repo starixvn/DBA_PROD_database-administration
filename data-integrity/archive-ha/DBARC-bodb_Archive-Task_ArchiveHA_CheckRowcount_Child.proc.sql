@@ -342,7 +342,8 @@ EXECUTE	[~~Database~~].sys.sp_executesql @Query, @Params, @Database, @Table, @Fr
 	----------------------------------------------------------------------------------------------------
 
 	SELECT	DatabaseName, TableName, WinLostDate, RowCnt, TimeType
-	FROM	#Result;
+	FROM	#Result
+	ORDER BY WinLostDate;
 END;
 GO
-/*<info serverAlias="DBARC-bodb_Archive" executers="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBARC-bodb_Archive" executers="" viewers="" isFunction="0" isNested="1"></info>*/

@@ -31,6 +31,7 @@ CREATE TABLE	dbo.Task_ArchiveHA_ArchiveTables (
 					DatabaseName	NVARCHAR(128)	NOT NULL
 				,	TableName		NVARCHAR(128)	NOT NULL
 				,	TableType		INT				NULL
+				,	KeyList			NVARCHAR(MAX)	NOT NULL
 				,	CONSTRAINT	PK_ArchiveHA_ArchiveTables PRIMARY KEY CLUSTERED (
 									DatabaseName	ASC
 								,	TableName		ASC

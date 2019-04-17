@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ProductVersion>10.50.1600.1</ProductVersion>
+  <SchemaVersion>9.0.1.0</SchemaVersion>
+  <State>$base64$PFNvdXJjZUNvbnRyb2xJbmZvIHhtbG5zOnhzZD0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEiIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zOmRkbDI9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDAzL2VuZ2luZS8yIiB4bWxuczpkZGwyXzI9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDAzL2VuZ2luZS8yLzIiIHhtbG5zOmRkbDEwMF8xMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDA4L2VuZ2luZS8xMDAvMTAwIiB4bWxuczpkZGwyMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEwL2VuZ2luZS8yMDAiIHhtbG5zOmRkbDIwMF8yMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEwL2VuZ2luZS8yMDAvMjAwIiB4bWxuczpkd2Q9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vRGF0YVdhcmVob3VzZS9EZXNpZ25lci8xLjAiPg0KICA8RW5hYmxlZD5mYWxzZTwvRW5hYmxlZD4NCiAgPFByb2plY3ROYW1lPjwvUHJvamVjdE5hbWU+DQogIDxBdXhQYXRoPjwvQXV4UGF0aD4NCiAgPExvY2FsUGF0aD48L0xvY2FsUGF0aD4NCiAgPFByb3ZpZGVyPjwvUHJvdmlkZXI+DQo8L1NvdXJjZUNvbnRyb2xJbmZvPg==</State>
+  <Database>
+    <Name>ArchiveHA.database</Name>
+    <FullPath>ArchiveHA.database</FullPath>
+  </Database>
+  <Cubes />
+  <Dimensions />
+  <DataSources>
+    <ProjectItem>
+      <Name>DB06-bodb_Archive.ds</Name>
+      <FullPath>DB06-bodb_Archive.ds</FullPath>
+    </ProjectItem>
+    <ProjectItem>
+      <Name>DB06-bodb_Report.ds</Name>
+      <FullPath>DB06-bodb_Report.ds</FullPath>
+    </ProjectItem>
+    <ProjectItem>
+      <Name>DB061-bodb_Archive.ds</Name>
+      <FullPath>DB061-bodb_Archive.ds</FullPath>
+    </ProjectItem>
+    <ProjectItem>
+      <Name>DB061-bodb_Report.ds</Name>
+      <FullPath>DB061-bodb_Report.ds</FullPath>
+    </ProjectItem>
+  </DataSources>
+  <DataSourceViews />
+  <MiningModels />
+  <Roles />
+  <Miscellaneous />
+  <Configurations>
+    <Configuration>
+      <Name>Development</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings>
+          <ConfigurationSetting>
+            <Id>DB06-bodb_Archive</Id>
+            <Name>DB06-bodb_Archive</Name>
+            <Value xsi:type="xsd:string">Provider=SQLNCLI10.1;Data Source=DB06;Persist Security Info=True;Password=;User ID=;Initial Catalog=bodb_archive</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>DB06-bodb_Report</Id>
+            <Name>DB06-bodb_Report</Name>
+            <Value xsi:type="xsd:string">Provider=SQLNCLI10.1;Data Source=DB06;Persist Security Info=True;Password=;User ID=;Initial Catalog=bodb_Report</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>DB061-bodb_Archive</Id>
+            <Name>DB061-bodb_Archive</Name>
+            <Value xsi:type="xsd:string">Provider=SQLNCLI10.1;Data Source=DB061;Persist Security Info=True;Password=;User ID=;Initial Catalog=bodb_archive</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>DB061-bodb_Report</Id>
+            <Name>DB061-bodb_Report</Name>
+            <Value xsi:type="xsd:string">Provider=SQLNCLI10.1;Data Source=DB061;Persist Security Info=True;Password=;User ID=;Initial Catalog=bodb_Report</Value>
+          </ConfigurationSetting>
+        </ConnectionMappings>
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings>
+          <ConfigurationSetting>
+            <Id>DB06-bodb_Archive</Id>
+            <Name>DB06-bodb_Archive</Name>
+            <Value xsi:type="xsd:int">1</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>DB06-bodb_Report</Id>
+            <Name>DB06-bodb_Report</Name>
+            <Value xsi:type="xsd:int">1</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>DB061-bodb_Archive</Id>
+            <Name>DB061-bodb_Archive</Name>
+            <Value xsi:type="xsd:int">1</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>DB061-bodb_Report</Id>
+            <Name>DB061-bodb_Report</Name>
+            <Value xsi:type="xsd:int">1</Value>
+          </ConfigurationSetting>
+        </ConnectionSecurityMappings>
+        <DatabaseStorageLocations />
+      </Options>
+    </Configuration>
+  </Configurations>
+  <DTSPackages>
+    <DtsPackage FormatVersion="0">
+      <Name>ArchiveHA-SyncType1.dtsx</Name>
+      <FullPath>ArchiveHA-SyncType1.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>ArchiveHA-SyncType2.dtsx</Name>
+      <FullPath>ArchiveHA-SyncType2.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>ArchiveHA-SyncType3.dtsx</Name>
+      <FullPath>ArchiveHA-SyncType3.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>ArchiveHA-SyncType4.dtsx</Name>
+      <FullPath>ArchiveHA-SyncType4.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>ArchiveHA-SyncType5.dtsx</Name>
+      <FullPath>ArchiveHA-SyncType5.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>ArchiveHA-SyncType6.dtsx</Name>
+      <FullPath>ArchiveHA-SyncType6.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+    <DtsPackage FormatVersion="0">
+      <Name>ArchiveHA-SyncType7.dtsx</Name>
+      <FullPath>ArchiveHA-SyncType7.dtsx</FullPath>
+      <References />
+    </DtsPackage>
+  </DTSPackages>
+</Project>

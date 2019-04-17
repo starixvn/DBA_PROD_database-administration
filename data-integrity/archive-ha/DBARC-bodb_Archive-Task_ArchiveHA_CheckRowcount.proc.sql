@@ -65,6 +65,7 @@ BEGIN;
 	FROM	dbo.Task_ArchiveHA_StandbyServers
 	WHERE	isActive = 1;
 
+
 	--	BEGIN STEP 1:
 	--	Compare rowcount based on system dynamic views
 	----------------------------------------------------------------------------------------------------
