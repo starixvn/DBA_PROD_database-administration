@@ -84,6 +84,7 @@ OUTER APPLY	(
 	SELECT	[right_value]	= DATEADD(MONTH, DATEDIFF(MONTH, 0, CAST(rvr.value AS DATETIME)), 0)
 ) AS pt
 WHERE	at.DatabaseName = DB_NAME()
+	AND	at.isActive = 1
 ORDER BY tbl.name, prt.partition_number;
 ';
 

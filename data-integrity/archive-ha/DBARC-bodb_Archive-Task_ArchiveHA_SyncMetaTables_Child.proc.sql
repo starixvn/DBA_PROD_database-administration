@@ -32,10 +32,10 @@ FROM	bodb_Archive.dbo.Task_ArchiveHA_StandbyServers WITH (NOLOCK)
 	BEGIN TRANSACTION;
 	TRUNCATE TABLE	dbo.Task_ArchiveHA_ArchiveTables;
 	INSERT INTO	dbo.Task_ArchiveHA_ArchiveTables
-		(	DatabaseName, TableName, TableType, KeyList)
-	SELECT	DatabaseName, TableName, TableType, KeyList
+		(	DatabaseName, TableName, TableType, KeyList, isActive)
+	SELECT	DatabaseName, TableName, TableType, KeyList, isActive
 	FROM	OPENQUERY(DB061, N'
-SELECT	DatabaseName, TableName, TableType, KeyList
+SELECT	DatabaseName, TableName, TableType, KeyList, isActive
 FROM	bodb_Archive.dbo.Task_ArchiveHA_ArchiveTables WITH (NOLOCK)
 ');
 	COMMIT;
