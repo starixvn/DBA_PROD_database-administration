@@ -60,26 +60,10 @@ CREATE CLUSTERED INDEX	CIX_ArchiveHA_RowcountResult ON dbo.Task_ArchiveHA_Rowcou
 							StandbyServer	ASC
 						,	DatabaseName	ASC
 						,	TableName		ASC
-						,	WinLostDate		DESC
+						,	WinLostDate		ASC
 						) ON DATA;
 
 CREATE NONCLUSTERED INDEX	IX_ArchiveHA_RowcountResult_TimeType ON dbo.Task_ArchiveHA_RowcountResult (
 								TimeType	ASC
 							) ON DATA;
 GO
-
-
---	BEGIN STEP 3:
---		Archive dates needed to be run
-----------------------------------------------------------------------------------------------------
-
-CREATE TABLE	dbo.Task_ArchiveHA_ArchiveDates	(
-					WinLostDate		SMALLDATETIME	NOT NULL
-				,	isDone			BIT				NOT NULL
-						CONSTRAINT	DF_ArchiveHA_ArchiveDates_isDone DEFAULT (0)
-				,	CONSTRAINT	PK_ArchiveHA_ArchiveDates PRIMARY KEY CLUSTERED (
-									WinLostDate	ASC
-								) ON DATA
-				) ON DATA;
-GO
-
