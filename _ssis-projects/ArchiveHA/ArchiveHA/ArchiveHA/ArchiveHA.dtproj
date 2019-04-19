@@ -86,37 +86,37 @@
     </Configuration>
   </Configurations>
   <DTSPackages>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>ArchiveHA-SyncType1.dtsx</Name>
       <FullPath>ArchiveHA-SyncType1.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>ArchiveHA-SyncType2.dtsx</Name>
       <FullPath>ArchiveHA-SyncType2.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>ArchiveHA-SyncType3.dtsx</Name>
       <FullPath>ArchiveHA-SyncType3.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>ArchiveHA-SyncType4.dtsx</Name>
       <FullPath>ArchiveHA-SyncType4.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>ArchiveHA-SyncType5.dtsx</Name>
       <FullPath>ArchiveHA-SyncType5.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>ArchiveHA-SyncType6.dtsx</Name>
       <FullPath>ArchiveHA-SyncType6.dtsx</FullPath>
       <References />
     </DtsPackage>
-    <DtsPackage FormatVersion="0">
+    <DtsPackage FormatVersion="-1">
       <Name>ArchiveHA-SyncType7.dtsx</Name>
       <FullPath>ArchiveHA-SyncType7.dtsx</FullPath>
       <References />
