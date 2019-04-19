@@ -18,6 +18,7 @@ AS
 */
 BEGIN;
 	SET NOCOUNT ON;
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
 	DECLARE	@Date		DATETIME
 		,	@Server		NVARCHAR(128)
@@ -30,27 +31,33 @@ BEGIN;
 		,	@Table = rr.TableName
 		,	@Database = rr.DatabaseName
 		,	@Date = rr.WinLostDate
-	FROM		dbo.Task_ArchiveHA_RowcountResult AS rr WITH (NOLOCK)
-	INNER JOIN	dbo.Task_ArchiveHA_ArchiveTables AS tbl WITH (NOLOCK)
+	FROM		dbo.Task_ArchiveHA_RowcountResult AS rr
+	INNER JOIN	dbo.Task_ArchiveHA_ArchiveTables AS tbl
 			ON	rr.DatabaseName = tbl.DatabaseName
 			AND	rr.TableName = tbl.TableName
 	WHERE	rr.TimeType = 'DAY'
 		AND	tbl.TableType = @TableType;
 
 	IF @@ROWCOUNT = 0
+	BEGIN;
 		SELECT	[server]		= @Server
 			,	[database]		= @Database
 			,	[table]			= @Table
 			,	[winlostdate]	= @Date
 			,	[condition]		= CONVERT(BIT, 0)
 			;
+		RETURN	0;
+	END;
 	ELSE
+	BEGIN;
 		SELECT	[server]		= @Server
 			,	[database]		= @Database
 			,	[table]			= @Table
 			,	[winlostdate]	= @Date
 			,	[condition]		= CONVERT(BIT, 1)
 			;
+		RETURN	1;
+	END;
 END;
 GO
 /*<info serverAlias="DBARC-bodb_Archive" executers="" viewers="" isFunction="0" isNested="0"></info>*/
