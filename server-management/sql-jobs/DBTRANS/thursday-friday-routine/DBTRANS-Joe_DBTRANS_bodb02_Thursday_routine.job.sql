@@ -5,6 +5,7 @@
 	Revision:
 		- 20181211@Billy:	Initiate on GIT - [Redmine: #000000]
 		- 20181211@Billy:	Add archive Transfer_Coll step - [Redmine: #106220]
+		- 20190426@Billy:	Add archive Transfer_fi step - [Redmine: #000000]
 */
 
 SET NOCOUNT ON;
@@ -26,7 +27,7 @@ DECLARE	@Category		NVARCHAR(128)	= N'MoveBet/BalanceUp'
 	,	@JobName		NVARCHAR(128)	= N'Joe : DBTRANS_bodb02 : Thursday routine'
 	,	@Description	NVARCHAR(512)	= N'No description available.'
 	,	@EmailOperator	NVARCHAR(128)	= N'DBAAdmin'
-	,	@Steps			INT				= 20
+	,	@Steps			INT				= 21
 	;
 
 SELECT	@ReturnCode		= 0;
@@ -159,7 +160,7 @@ DELETE FROM dbo.Task_ArchiveDate
 
 INSERT INTO dbo.Task_ArchiveDate
 SELECT DISTINCT TOP 7 winlostdate
-FROM dbo.bettrans14 (nolock)
+FROM dbo.bettrans14 WITH (NOLOCK)
 ORDER BY winlostdate
 
 EXEC bodb02.dbo.Task_Archive_SetState @State = ''Prepare''
@@ -570,6 +571,34 @@ BEGIN;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
+						,	@step_name					= N'transfer_FI'
+						,	@step_id					= @Loop
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'SSIS'
+						,	@database_name				= N'master'
+						,	@flags						= 0
+						,	@command					= N'/FILE "H:\ThursdayRoutine_SSIS_Packages\DBTRANS-Archive_Transfer_Fi-DB06.dtsx" /DECRYPT r4g95x /CHECKPOINTING OFF /REPORTING E';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d UPDATED';
+	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+END;
+
+---- Step 17----
+BEGIN;
+	SELECT	@Loop = 17;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
 						,	@step_name					= N'Archive_Transfer_Coll'
 						,	@step_id					= @Loop
 						,	@cmdexec_success_code		= 0
@@ -592,9 +621,9 @@ BEGIN;
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 17 ----
+---- Step 18 ----
 BEGIN;
-	SELECT	@Loop = 17;
+	SELECT	@Loop = 18;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -623,9 +652,9 @@ EXEC bodb02.dbo.Task_Archive_SetState @State = ''Ready''
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 18 ----
+---- Step 19 ----
 BEGIN;
-	SELECT	@Loop = 18;
+	SELECT	@Loop = 19;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -661,9 +690,9 @@ PRINT ''State Reported as Done''
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 19 ----
+---- Step 20 ----
 BEGIN;
-	SELECT	@Loop = 19;
+	SELECT	@Loop = 20;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -696,9 +725,9 @@ ORDER BY winlostdate
 	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
 END;
 
----- Step 20 ----
+---- Step 21 ----
 BEGIN;
-	SELECT	@Loop = 20;
+	SELECT	@Loop = 21;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -716,9 +745,10 @@ BEGIN;
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
 						,	@command					= N'
+/*
 DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
 INSERT INTO @archiveDate (winlostdate)
-SELECT winlostdate FROM dbo.task_archivedate WITH (NOLOCK)
+SELECT winlostdate FROM dbo.task_archivedate
 ORDER BY 1
 
 Declare @wldate smalldatetime
@@ -730,6 +760,8 @@ SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 4   EXEC DB02.bodb02.
 SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 5   EXEC DB02.bodb02.dbo.Task_Archive_Event @winlostdate = @wldate, @Action = ''copy''
 SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 6   EXEC DB02.bodb02.dbo.Task_Archive_Event @winlostdate = @wldate, @Action = ''copy''
 SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 7   EXEC DB02.bodb02.dbo.Task_Archive_Event @winlostdate = @wldate, @Action = ''copy''
+*/
+EXEC Task_Archive_Event_Control
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
