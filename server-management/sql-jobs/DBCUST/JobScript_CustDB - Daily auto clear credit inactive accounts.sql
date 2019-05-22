@@ -4,6 +4,7 @@
 	Server:		DBCUST
 	Revision:
 		- 20190510@Daniel:	Initiate on GIT - [Redmine: #112458]
+		- 20190522@Daniel:	Add steps 4, 5 for members - [Redmine: #112458]
 */
 
 
