@@ -15,7 +15,7 @@ CREATE TABLE	dbo.DBA_LetstalkJobs (
 				,	RoomId			INT				NOT NULL
 				,	CaseId			TINYINT			NOT NULL
 				,	SkypeGroupId	INT				NULL
-				,	CONSTRAINT PK_DBA_LetstalkJobs PRIMARY KEY CLUSTERED (ServerName ASC, JobId ASC, RoomId ASC)
+				,	CONSTRAINT PK_DBA_LetstalkJobs PRIMARY KEY CLUSTERED (ServerName ASC, JobId ASC, CaseId ASC) ON DATA
 				) ON DATA;
 
 CREATE TABLE	dbo.DBA_LetstalkRooms (
@@ -23,7 +23,7 @@ CREATE TABLE	dbo.DBA_LetstalkRooms (
 				,	RoomName		VARCHAR(100)	NOT NULL
 				,	isActive		BIT				NOT NULL
 						CONSTRAINT	DF_LetstalkRooms_isActive DEFAULT (1)
-				,	CONSTRAINT PK_DBA_LetstalkRooms PRIMARY KEY CLUSTERED (RoomId ASC)
+				,	CONSTRAINT PK_DBA_LetstalkRooms PRIMARY KEY CLUSTERED (RoomId ASC) ON DATA
 				) ON DATA;
 
 CREATE TABLE	dbo.DBA_LetstalkNotifications (
