@@ -3,16 +3,19 @@ SET ANSI_NULLS ON;
 GO
 ALTER PROCEDURE	dbo.Task_vnDBA_Alert_BasicNotification
 						@sample		TINYINT		= 2
+					,	@debug		BIT			= 0
 AS
 /*
 	Creator:	20180618@Billy
 	Task:		Basic Alert Norification - [Redmine: #96988]
 	Database:	DBSTARIX.StarixDB
-	
+
 	Revisions:
 		- 20180618@Billy:	Initial - [Redmine: #96988]
 		- 20180927@Billy:	Change blocking alert to Skype - [Redmine: #102224]
-		
+		- 20181204@Billy:	Skip night notification - [Redmine: #000000]
+		- 20190524@Billy:	Change Letstalk linked server - [Redmine: #113125]
+
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
 		
@@ -36,6 +39,10 @@ BEGIN;
 				MachineName		VARCHAR(1024)
 			);
 
+	DECLARE	@lowpriority AS TABLE (
+				MachineName		VARCHAR(1024)
+			);
+
 	DECLARE	@result AS TABLE (
 				MachineName		VARCHAR(1024)
 			,	ObjectName		VARCHAR(1024)
@@ -47,7 +54,7 @@ BEGIN;
 			)
 
 	INSERT INTO @capturing (ObjectName, CounterName, Threshold, IsLetstalk, Emoticon)
-	VALUES	('SQLServer:General Statistics', 'Processes blocked', 2, 0, '(confidential)')
+	VALUES	('SQLServer:General Statistics', 'Processes blocked', 0, 0, '(confidential)')
 		,	('Processor', '% Processor Time', 60, 1, '(aokijump)')
 		;
 
@@ -60,18 +67,35 @@ BEGIN;
 		,	('\\DBDIST02')
 		,	('\\DBDIST03')
 		,	('\\DBDISTRM')
+		,	('\\DB05N2')
+		,	('\\DBFRAUD')
+		,	('\\DBFRAUD02')
+		,	('\\FPS_DB01')
+		,	('\\FPS_DB02')
+		,	('\\DBLICAPI')
+		,	('\\DBLICAPI02')
 		;
+
+	--INSERT INTO	@lowpriority (MachineName)
+	--VALUES	('\\DBFRAUD')
+	--	,	('\\DBFRAUD02')
+	--	,	('\\FPS_DB01')
+	--	,	('\\FPS_DB02')
+	--	;
 
 	WHILE	0 = 0
 	BEGIN;
 		INSERT INTO	@result (MachineName, ObjectName, CounterName, CounterTime, CounterValue, IsLetstalk, Emoticon)
-		SELECT	c.MachineName, c.ObjectName, c.CounterName, d.CounterTime, d.MaxCounterValue, input.IsLetstalk, input.Emoticon
+		SELECT	c.MachineName, c.ObjectName, c.CounterName, d.CounterTime, d.MaxCounterValue, CASE WHEN lp.MachineName IS NOT NULL THEN 0 ELSE input.IsLetstalk END, input.Emoticon
 		FROM		@capturing AS input
 		INNER JOIN	dbo.CounterDetails AS c WITH (NOLOCK)
 				ON	input.ObjectName = c.ObjectName
 				AND	input.CounterName = c.CounterName
 		LEFT JOIN	@excluded AS ex
 				ON	c.MachineName LIKE ex.MachineName
+		LEFT JOIN	@lowpriority AS lp
+				ON	c.MachineName LIKE lp.MachineName
+				AND	DATEPART(HOUR, GETDATE()) BETWEEN 7 AND 19
 		CROSS APPLY	(
 			SELECT	[CounterTime]		= MIN(_ad.CounterTime)
 				,	[ViolatedCnt]		= SUM(_ad.Violated)
@@ -123,7 +147,7 @@ BEGIN;
 				SELECT	xr.xml.value('.[1]', 'NVARCHAR(MAX)')
 			) AS rs(str);
 
-			EXECUTE	DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage
+			EXECUTE	DBNOTI.NotificationDB.dbo.DBA_Letstalk_NewJobMessage
 						@ServerName	= N'PONTUS'
 					,	@JobId		= NULL
 					,	@JobName	= N'Custom Message'
@@ -131,8 +155,11 @@ BEGIN;
 					,	@isSimple	= 1
 					;
 
-			SELECT	@message = N'Alerted - ' + CONVERT(NVARCHAR(32), GETDATE(), 121);
-			RAISERROR(@message, 0, 0) WITH NOWAIT;
+			IF	@debug = 1
+			BEGIN;
+				SELECT	@message = N'Alerted - ' + CONVERT(NVARCHAR(32), GETDATE(), 121);
+				RAISERROR(@message, 0, 0) WITH NOWAIT;
+			END;
 		END;
 
 		IF	EXISTS (SELECT 1 FROM @result WHERE IsLetstalk = 0)
@@ -167,7 +194,7 @@ BEGIN;
 				SELECT	xr.xml.value('.[1]', 'NVARCHAR(MAX)')
 			) AS rs(str);
 
-			EXECUTE	DBMONDW.MonDBDW.dbo.DBA_Skype_NewMessage
+			EXECUTE	DBNOTI.NotificationDB.dbo.DBA_Skype_NewMessage
 						@ServerName	= N'PONTUS'
 					,	@JobId		= NULL
 					,	@JobName	= N'Custom Message'
@@ -175,8 +202,11 @@ BEGIN;
 					,	@isSimple	= 1
 					;
 
-			SELECT	@message = N'Alerted Skype - ' + CONVERT(NVARCHAR(32), GETDATE(), 121);
-			RAISERROR(@message, 0, 0) WITH NOWAIT;
+			IF	@debug = 1
+			BEGIN;
+				SELECT	@message = N'Alerted Skype - ' + CONVERT(NVARCHAR(32), GETDATE(), 121);
+				RAISERROR(@message, 0, 0) WITH NOWAIT;
+			END;
 		END;
 
 		WAITFOR DELAY '00:00:10.000';

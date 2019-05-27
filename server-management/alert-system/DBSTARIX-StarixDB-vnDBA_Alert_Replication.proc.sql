@@ -11,6 +11,9 @@ AS
 	Revisions:
 		- 20190124@Billy:	Initial - [Redmine: #107814]
 		- 20190201@Billy:	Replication Monitor Phase 2 - [Redmine: #107814]
+		- 20190202@Billy:	Fix NULL message - [Redmine: #000000]
+		- 20190219@Helen:	Capture running statement when replication latency - [Redmine:109072]
+		- 20190524@Billy:	Change Letstalk linked server - [Redmine: #113125]
 		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -28,7 +31,9 @@ BEGIN;
 		;
 
 	DECLARE	@Msg			NVARCHAR(MAX)
-		;
+		,	@ServerName		NVARCHAR(128)
+		,	@DatabaseName	VARCHAR(128);
+		
 
 	DECLARE	@ReplInstances AS TABLE (
 				Publisher		NVARCHAR(128)
@@ -59,6 +64,13 @@ BEGIN;
 			,	AlertCase		TINYINT
 			,	Status			CHAR(1)
 			);
+
+	DECLARE	@servers AS TABLE (
+				ServerName			NVARCHAR(128)
+			,	DatabaseName		VARCHAR(128)
+			,	Done				BIT
+			);
+
 
 	-- Initials --
 	SELECT	@CounterName = 'Dist:Delivery Latency'
@@ -248,7 +260,7 @@ BEGIN;
 				SELECT	xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
 			) AS rss(str);
 
-			EXECUTE	DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'STANDBY', @JobId = NULL, @JobName = N'Standby Alert', @Message = @Msg, @isSimple = 1, @CaseId = @Case;
+			EXECUTE	DBNOTI.NotificationDB.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'STANDBY', @JobId = NULL, @JobName = N'Standby Alert', @Message = @Msg, @isSimple = 1, @CaseId = @Case;
 		END;
 
 		-- Send to TW room --
@@ -305,9 +317,48 @@ BEGIN;
 				SELECT	xrs.xml.value('.[1]', 'NVARCHAR(MAX)')
 			) AS rss(str);
 
-			EXECUTE	DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'STANDBY', @JobId = NULL, @JobName = N'Standby Alert', @Message = @Msg, @isSimple = 1, @CaseId = @Case;
+			EXECUTE	DBNOTI.NotificationDB.dbo.DBA_Letstalk_NewJobMessage @ServerName = N'STANDBY', @JobId = NULL, @JobName = N'Standby Alert', @Message = @Msg, @isSimple = 1, @CaseId = @Case;
 		END;
 
+		-----Starting: Capture running statements for troubleshoot----
+		INSERT INTO	@servers (ServerName, DatabaseName, Done)
+		SELECT	m.ServerName, m.MonitorDatabase, 0
+		FROM		dbo.vnDBA_Monitor_Servers AS m WITH (NOLOCK)
+		INNER JOIN	@Results AS r
+				ON	m.ServerName = r.Subscriber
+				AND	m.IsActive = 1
+				AND	m.IsAlertReplication = 1
+		WHERE	ISNULL(r.Status, '') NOT IN ('-');
+		
+		WHILE	(1 = 1)
+		BEGIN
+			UPDATE	TOP(1) tbl
+			SET		@ServerName	= tbl.ServerName
+				,	@DatabaseName = tbl.DatabaseName
+				,	Done = 1
+			FROM	@servers AS tbl
+			WHERE	Done = 0;
+
+			IF	@@ROWCOUNT = 0
+				BREAK;
+				
+			SELECT	@Msg = N'
+INSERT INTO	dbo.vnDBA_Monitor_LukasCapture
+	(	servername, capturedate, spid, ecid, blockedBy, database_login, CMD_status, wait, wait_type, waitresource, current_stmt, lastwaittype, resource_description, wait_duration_ms, current_batch, reads, logical_reads, cpu, time_elapsed_ms, program, batch_plan)
+SELECT	servername, capturedate, spid, ecid, blockedBy, database_login, CMD_status, wait, wait_type, waitresource, current_stmt, lastwaittype, resource_description, wait_duration_ms, current_batch, reads, logical_reads, cpu, time_elapsed_ms, program, batch_plan
+FROM	OPENQUERY(' + @ServerName + 'KBT, ''
+EXECUTE	' + @DatabaseName + '.dbo.vnDBA_sp_Monitor_LukasCapture;
+'');
+';
+			EXECUTE	dbo.vnDBA_sb_RawQuery_SendMessage
+						@messageBody	= @Msg
+					,	@fromService	= N'RawQueryInitiator'
+					,	@toService		= N'RawQueryTarget'
+					,	@onContract		= N'RawQueryContract'
+					;
+		END;
+		-----END: Capture running statements for troubleshoot----
+		
 		BEGIN TRANSACTION;
 		TRUNCATE TABLE	dbo.vnDBA_Alert_Repl_Result;
 		INSERT INTO	dbo.vnDBA_Alert_Repl_Result
