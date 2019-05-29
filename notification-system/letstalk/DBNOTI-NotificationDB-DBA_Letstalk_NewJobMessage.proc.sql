@@ -1,10 +1,10 @@
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
-ALTER PROCEDURE	dbo.DBA_Letstalk_NewJobMessage
-						@ServerName			VARCHAR(100)
+CREATE PROCEDURE	dbo.DBA_Letstalk_NewJobMessage
+						@ServerName			NVARCHAR(128)
 					,	@JobId				CHAR(36)
-					,	@JobName			VARCHAR(100)	= NULL
+					,	@JobName			NVARCHAR(128)	= NULL
 					,	@Message			NVARCHAR(4000)
 					,	@CaseId				TINYINT			= 1
 					,	@isSimple			BIT				= 0
@@ -12,13 +12,14 @@ AS
 /*
 	Creator:	20170207@Billy
 	Task:		Letstalk Notification - Insert new message to notify in Letstalk - Type: JOB - [Redmine: #70016]
-	Database:	DBMON.MonDBDW
-	
+	Database:	DBNOTI.NotificationDB
+
 	Revisions:
 		- 20170207@Billy:	Initialization - [Redmine: #70016]
 		- 20180102@Billy:	Add CaseId option - [Redmine: #88932]
 		- 20180202@Billy:	Support Skype notification - [Redmine: #90474]
 		- 20180906@Billy:	Support new Skype notification - [Redmine: #101021]
+		- 20190523@Billy:	Move system to DBSPARE - [Redmine: #113125]
 
 	Parameters:
 		@ServerName			: The name of server where job's message comes from
@@ -31,14 +32,14 @@ BEGIN
 
 	-- Declare variables & temporary schemas --
 	DECLARE	@JobRoom	AS TABLE (
-							JobName			VARCHAR(100)
+							JobName			NVARCHAR(128)
 						,	TargetName		VARCHAR(128)
 						,	SkypeGroupId	INT
 						);
 
 	-- If @JobId and @JobName are both NULL, we cannot identify the job, RETURN --
 	IF	@JobId IS NULL AND @JobName IS NULL
-		RETURN;
+		RETURN	0;
 
 	-- If @CaseId is invalid, set default 1 --
 	IF	ISNULL(@CaseId, 0) = 0
@@ -88,4 +89,4 @@ BEGIN
 	EXECUTE	dbo.DBA_Skype_NewMessage @ServerName = @ServerName, @JobId = @JobId, @JobName = @JobName, @Message = @Message, @CaseId = @CaseId, @isSimple = @isSimple;
 END;
 GO
-/*<info serverAlias="DBMON-MonDBDW" executers="MonDB_User" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBNOTI-NotificationDB" executers="sqlLink" viewers="" isFunction="0" isNested="0"></info>*/

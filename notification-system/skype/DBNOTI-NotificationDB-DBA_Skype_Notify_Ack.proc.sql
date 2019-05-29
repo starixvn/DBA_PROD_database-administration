@@ -7,14 +7,13 @@ AS
 /*
 	Creator:	20180906@Billy
 	Task:		Skype Notification - Update messages' status - [Redmine: #101021]
-	Database:	DBMON.MonDBDW
+	Database:	DBNOTI.NotificationDB
 	
 	Revisions:
 		- 20170207@Billy:	Initialization - [Redmine: #101021]
+		- 20190523@Billy:	Move system to DBSPARE - [Redmine: #113125]
 
 	Parameters:
-		@minute			: We will get the message from this amount of minutes in the past to the current time
-		@type			: The message type that we will get (NULL values means get all of the types)
 */
 BEGIN
 	SET NOCOUNT ON;
@@ -56,4 +55,4 @@ BEGIN
 	WHERE	sn.isNoticed = 0									-- Update only unnotified messages;
 END;
 GO
-/*<info serverAlias="DBMON-MonDBDW" executers="DBA_Letstalk,MonDB_User" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBNOTI-NotificationDB" executers="DBA_Skype" viewers="" isFunction="0" isNested="0"></info>*/
