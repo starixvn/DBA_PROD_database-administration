@@ -1,6 +1,8 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
+USE	msdb;
+GO
 CREATE PROCEDURE	dbo.Task_Job_InstantResultNotification
 						@JobName	NVARCHAR(128)
 AS
@@ -8,13 +10,14 @@ AS
 	Creator:	20190419@Billy
 	Task:		Send out instant notification about a done job - [Redmine: #111418]
 	Database:	DBARC.msdb
-	
+
 	Revisions:
 		- 20190419@Billy:	Initial - [Redmine: #111418]
-		
+		- 20190524@Billy:	Change Letstalk linked server - [Redmine: #113125]
+
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
-		
+
 */
 BEGIN;
 	SET NOCOUNT ON;
@@ -63,7 +66,7 @@ BEGIN;
 	+ '.'			+ CASE WHEN @Time % 1000 < 10 THEN '00' + CAST(@Time % 1000 AS NVARCHAR) WHEN @Time % 1000 < 100 THEN '0' + CAST(@Time % 1000 AS NVARCHAR) ELSE CAST(@Time % 1000 AS NVARCHAR) END
 	;
 
-	EXECUTE DBMONDW.MonDBDW.dbo.DBA_Letstalk_NewJobMessage
+	EXECUTE DBNOTI.NotificationDB.dbo.DBA_Letstalk_NewJobMessage
 				@ServerName	= @@SERVERNAME
 			,	@JobId		= NULL
 			,	@JobName	= @JobName
@@ -71,3 +74,4 @@ BEGIN;
 			;
 END;
 GO
+/*<info serverAlias="DBARC-bodb_Archive" executers="" viewers="" isFunction="0" isNested="0"></info>*/
