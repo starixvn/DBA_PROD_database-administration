@@ -1,3 +1,13 @@
+/*
+	Creator:	20190611@Billy
+	Task:		#110-001 - Check Linked Servers - [Redmine: #114307]
+	Server:		DBSPARE
+
+	Revision:
+		- 20190611@Billy:	Initialization - [Redmine: #114307]
+*/
+
+
 SET NOCOUNT ON;
 
 DECLARE	@Query				NVARCHAR(MAX)
