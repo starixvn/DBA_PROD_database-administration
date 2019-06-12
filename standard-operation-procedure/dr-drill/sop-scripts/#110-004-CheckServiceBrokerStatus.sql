@@ -1,11 +1,10 @@
 /*
 	Creator:	20190611@Billy
-	Task:		#110-004 - Check service broker status - [Redmine: #114307]
+	Task:		#110-004 - [Redmine: #114307]
 	Server:		DB052 - DB053 - DB06
 
 	Revision:
 		- 20190611@Billy: Initialization - [Redmine: #114307]
-		- 20191213@Billy: UI improvement - [Redmine: #125425]
 */
 
 --	BEGIN STEP 1:
@@ -16,7 +15,6 @@ USE	master;
 
 SELECT	[Database]		= db.name
 	,	[BrokerStatus]	= CASE db.is_broker_enabled WHEN 1 THEN 'ENABLED' WHEN 0 THEN '' ELSE NULL END
-	,	[Status]		= CASE db.is_broker_enabled WHEN 1 THEN N'OK __' ELSE N'__ NG' END
 FROM	sys.databases AS db WITH (NOLOCK)
 WHERE	db.name IN (N'bodb02');
 GO
@@ -47,12 +45,7 @@ SELECT	[SysObj]			= obj.name
 	,	[QueueStatus]		= CASE sq.is_enqueue_enabled WHEN 1 THEN 'ENABLED' WHEN 0 THEN '' ELSE NULL END
 	,	[ActivationSP]		= sq.activation_procedure
 	,	[ActivationStatus]	= CASE sq.is_activation_enabled WHEN 1 THEN 'ENABLED' WHEN 0 THEN '' ELSE NULL END
-	,	[Rows]				= ptt.rows
-	,	[Status]			= CASE	WHEN par.name = N'//Queue/Calculation_send' THEN CASE WHEN sq.is_activation_enabled = 1 THEN N'OK __' ELSE N'__ NG' END
-									WHEN par.name = N'//Queue/Calculation_receive' THEN CASE WHEN sq.is_activation_enabled = 0 THEN N'OK __' ELSE N'__ NG' END
-									WHEN par.name = N'Queue_Settlement_OtherSports' THEN CASE WHEN sq.is_activation_enabled = 0 THEN N'OK __' ELSE N'__ NG' END
-									ELSE N''
-							  END
+	,	[Rows]			= ptt.rows
 FROM		sys.all_objects AS obj WITH (NOLOCK)
 LEFT JOIN	sys.all_objects AS par WITH (NOLOCK)
 		ON	obj.parent_object_id = par.object_id
