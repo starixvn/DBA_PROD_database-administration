@@ -7,7 +7,7 @@
 		- 20190617@Billy:	Initialization - [Redmine: #114307]
 */
 
-USE	bodb02;
+USE	bodb_ACC;
 GO
 
 --	BEGIN STEP 1:
