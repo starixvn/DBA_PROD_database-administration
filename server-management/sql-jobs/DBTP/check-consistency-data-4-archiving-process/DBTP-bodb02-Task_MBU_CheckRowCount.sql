@@ -146,15 +146,13 @@ BEGIN;
 					,	[h1/@align]		= N'center'
 					,	[h1]			= N'Archiving Data Row Count Check!'
 					,	[p/b]			= N'Check time: '
-					,	[p]				= CONVERT(NVARCHAR, GETDATE(), 121)
-					,	[br]			= N''
+					,	[p]				= CONVERT(NVARCHAR, GETDATE(), 120)
 					,	[div/@align]	= N'center'
 					,	[div/@style]	= N'\
 background-color:' + s.color + N';\
 width:80%;color:white;text-align:center;margin:0 auto;padding:20px;font-size:30px;\
 '
 					,	[div/b]			= s.status
-					,	[br]			= N''
 					,	[p/b]			= CASE WHEN @hasDiff = 0 THEN NULL ELSE N'Error message: ' END
 					,	[p]				= CASE	WHEN @hasDiff = 1 THEN N'One or more tables has mismatch data when archiving data. Please check!!!'
 												WHEN @hasDiff IS NULL THEN N'Unexpected error. Please check!!!'
@@ -165,19 +163,19 @@ width:80%;color:white;text-align:center;margin:0 auto;padding:20px;font-size:30p
 						SELECT	[@border]		= 1
 							,	[@cellpadding]	= 5
 							,	[@width]		= N'95%'
-							,	[@style]		= N'margin:0 auto;white-space:nowrap;'
+							,	[@style]		= N'margin:0 auto;white-space:nowrap;border-collapse:collapse;'
 							,	(
 								SELECT	NULL, [th]	= N'WinLostDate'
 									,	NULL, [th]	= N'TableName'
 									,	NULL, [th]	= N'Active RowCount'
 									,	NULL, [th]	= N'Archive RowCount'
 									,	NULL, [th]	= N'Delta'
-								WHERE	@hasDiff NOT IN (0, 1)
+								WHERE	@hasDiff = 1
 								FOR XML PATH ('tr')
 								,	TYPE
 								)
 							,	(
-								SELECT	NULL, [td]	= ISNULL(active.winlostdate, archive.winlostdate)
+								SELECT	NULL, [td]	= CAST(ISNULL(active.winlostdate, archive.winlostdate) AS DATE)
 									,	NULL, [td]	= ISNULL(active.tableName, archive.tableName)
 									,	NULL, [td]	= ISNULL(active.activeRowCount, 0)
 									,	NULL, [td]	= ISNULL(archive.archiveRowCount, 0)
