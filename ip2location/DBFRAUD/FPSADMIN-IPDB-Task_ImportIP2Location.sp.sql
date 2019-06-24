@@ -1,20 +1,21 @@
-USE	IPDB;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 GO
-ALTER PROCEDURE	dbo.Task_ImportIP2Location
+CREATE PROCEDURE	dbo.Task_ImportIP2Location
 						@FilePath			NVARCHAR(128)		= 'G:\IP2Location'
 					,	@ProductDB			VARCHAR(10)			= 'DB4'
 AS
 /*
 	Creator:	20180212@Billy
 	Task:		Import IP2Location to IPDB - DBFRAUD only - DB4 product - [Redmine: #90857]
-	Database:	DBFRAUD.IPDB
-	
+	Database:	FPSADMIN.IPDB
+
 	Revisions:
 		- 20180212@Billy:	Initial - [Redmine: #90857]
-		
+
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
-		
+
 */
 BEGIN;
 	SET NOCOUNT ON;
@@ -27,16 +28,16 @@ BEGIN;
 	BEGIN;
 		RAISERROR('Last time run is not verified. Backup table exists.', 0, 0) WITH NOWAIT;
 
-		RETURN;
+		RETURN -1;
 	END;
 
 	IF	OBJECT_ID('tempdb..##IP2Location_file') IS NOT NULL
 	BEGIN;
 		RAISERROR('There are other processes running now.', 0, 0) WITH NOWAIT;
 
-		RETURN;
+		RETURN -1;
 	END;
-	
+
 	-- Checking source file --
 	CREATE TABLE	##IP2Location_file (
 						file_name		NVARCHAR(MAX)
@@ -55,19 +56,19 @@ EXECUTE	sys.xp_dirtree N''' + @FilePath + N''', 1, 1;
 	IF	NOT EXISTS (SELECT 1 FROM ##IP2Location_file WITH (NOLOCK) WHERE file_name = N'IP-COUNTRY-REGION-CITY-ISP.CSV')
 	BEGIN;
 		RAISERROR('Source file is not available. Please copy file "IP-COUNTRY-REGION-CITY-ISP.CSV" to "%s" before executing the job.', 0, 0, @FilePath) WITH NOWAIT;
-		
+
 		DROP TABLE	##IP2Location_file;
 
-		RETURN;
+		RETURN -1;
 	END;
-	
+
 	IF	NOT EXISTS (SELECT 1 FROM ##IP2Location_file WITH (NOLOCK) WHERE file_name = @ProductDB + N'.FMT')
 	BEGIN;
 		RAISERROR('Source file is not available. Please copy file "%s.FMT" to "%s" before executing the job.', 0, 0, @ProductDB, @FilePath) WITH NOWAIT;
-		
+
 		DROP TABLE	##IP2Location_file;
 
-		RETURN;
+		RETURN -1;
 	END;
 
 	-- Import data to new table --
@@ -77,7 +78,7 @@ EXECUTE	sys.xp_dirtree N''' + @FilePath + N''', 1, 1;
 	CREATE TABLE	dbo.tmp_IP2Location_New (
 						ip_from			BIGINT
 					,	ip_to			BIGINT
-					,	country_code	CHAR(10)
+					,	country_code	CHAR(2)
 					,	country_name	VARCHAR(64)
 					,	region			VARCHAR(128)
 					,	city			VARCHAR(128)
@@ -93,7 +94,7 @@ EXECUTE	sys.xp_dirtree N''' + @FilePath + N''', 1, 1;
 								) ON DATA;
 
 	SELECT	@query = N'';
-	SELECT	@query = @query + N'
+	SELECT	@query = @query + N'\
 BULK INSERT	dbo.tmp_IP2Location_New
 FROM	''' + @FilePath + N'\IP-COUNTRY-REGION-CITY-ISP.CSV''
 WITH	(
@@ -115,3 +116,4 @@ WITH	(
 	COMMIT;
 END;
 GO
+/*<info serverAlias="FPSADMIN-IPDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/

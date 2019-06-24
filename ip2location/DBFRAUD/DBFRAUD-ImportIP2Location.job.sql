@@ -25,7 +25,7 @@ DECLARE	@Category		NVARCHAR(128)	= N'IPDB'
 	,	@JobName		NVARCHAR(128)	= N'[IPDB] - Import IP2Location'
 	,	@Description	NVARCHAR(512)	= N''
 	,	@EmailOperator	NVARCHAR(128)	= N'FPS_DBA'
-	,	@Steps			INT				= 2
+	,	@Steps			INT				= 3
 	;
 
 SELECT	@ReturnCode		= 0;
@@ -166,7 +166,36 @@ END;
 
 ---- Step 2 ----
 BEGIN;
-	SELECT	@StepId = 2;
+	SELECT	@StepId = 1;
+
+	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
+							@job_id						= @JobId
+						,	@step_name					= N'Uncompress data file IPv6'
+						,	@step_id					= @StepId
+						,	@cmdexec_success_code		= 0
+						,	@on_success_action			= 3
+						,	@on_success_step_id			= 0
+						,	@on_fail_action				= 2
+						,	@on_fail_step_id			= 0
+						,	@retry_attempts				= 0
+						,	@retry_interval				= 0
+						,	@os_run_priority			= 0
+						,	@subsystem					= N'CmdExec'
+						,	@flags						= 0
+						,	@proxy_name					= N''
+						,	@command					= N'\
+"C:\Program Files\7-Zip\7z.exe" e G:\IP2Location\DB4-IPV6-COUNTRY-REGION-CITY-ISP.CSV.ZIP -oG:\IP2Location IPV6-*.csv -y';
+
+	IF	@@ERROR <> 0 OR @ReturnCode <> 0
+		GOTO QuitWithRollback;
+
+	SELECT	@Msg = N'STEP %d ADDED';
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
+END;
+
+---- Step 3 ----
+BEGIN;
+	SELECT	@StepId = 3;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -184,8 +213,9 @@ BEGIN;
 						,	@database_name				= N'IPDB'
 						,	@flags						= 0
 						,	@command					= N'\
-EXECUTE dbo.Task_ImportIP2Location;'
-						;
+EXECUTE dbo.Task_ImportIP2Location;
+EXECUTE dbo.Task_ImportIPv62Location;
+';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
