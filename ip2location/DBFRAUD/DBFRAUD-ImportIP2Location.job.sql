@@ -160,13 +160,13 @@ BEGIN;
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@Msg = N'STEP %d ADDED';
+	SELECT	@Msg = N'STEP %d UPDATED';
 	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 2 ----
 BEGIN;
-	SELECT	@StepId = 1;
+	SELECT	@StepId = 2;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
@@ -189,7 +189,7 @@ BEGIN;
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
 
-	SELECT	@Msg = N'STEP %d ADDED';
+	SELECT	@Msg = N'STEP %d UPDATED';
 	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 

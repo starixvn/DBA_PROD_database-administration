@@ -76,8 +76,8 @@ EXECUTE	sys.xp_dirtree N''' + @FilePath + N''', 1, 1;
 		DROP TABLE	dbo.tmp_IPv62Location_New;
 
 	CREATE TABLE	dbo.tmp_IPv62Location_New (
-						ip_from			DECIMAL(39,0)
-					,	ip_to			DECIMAL(39,0)
+						ip_from			CHAR(39)
+					,	ip_to			CHAR(39)
 					,	country_code	CHAR(2)
 					,	country_name	VARCHAR(64)
 					,	region			VARCHAR(128)
