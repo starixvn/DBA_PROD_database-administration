@@ -156,7 +156,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
 INSERT INTO @archiveDate (winlostdate)
 SELECT winlostdate FROM dbo.task_archivedate
@@ -246,6 +246,9 @@ DELETE FROM SettlementNG2_Message
 WHERE EventDate <= @wldate
 
 WAITFOR DELAY ''00:01:30''
+
+EXECUTE dbo.Task_Archive_Bet @winlostdate = NULL, @DeletedTarget = ''MarkedTransaction'';
+WAITFOR DELAY ''00:00:30'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -274,7 +277,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -394,7 +397,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -514,7 +517,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -634,7 +637,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -754,7 +757,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -874,7 +877,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -994,7 +997,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -1114,7 +1117,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME)
 
 INSERT INTO @archiveDate (winlostdate)

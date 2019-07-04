@@ -1,7 +1,7 @@
-USE	bodb02;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 GO
-
-ALTER PROCEDURE [dbo].[ExecRep_02]
+CREATE PROCEDURE [dbo].[ExecRep_02]
 	@tmp1 sql_variant = NULL,
 	@tmp2 sql_variant = NULL,
 	@tmp3 sql_variant = NULL,
@@ -15,14 +15,15 @@ AS
 	Date:
 	Task: call from Joe : ClearData14 working routine
 	DB: DBTXN.BODB02
-	Revisions:		
+	Revisions:
 		- 20151012@Sophia:	Add delete BettransLC14 and BettransRNG14
-    	- 20160526@Victor:	Add delete TransLog14 
+		- 20160526@Victor:	Add delete TransLog14
 		- 20170725@Sophia:	Change Datatype of TransID [Redmine: #73545]
-		- 20170914@Patrick: Integrate with Lucky3 [RedmineId: #83190]
+		- 20170914@Patrick:	Integrate with Lucky3 [RedmineId: #83190]
 		- 20171004@Lukas:	Add @deletedTarget for deleting data for one by one table
 		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
-		- 20181106@Sophia:  Add delete Transfer_Coll [Redmine: #98621]
+		- 20181106@Sophia:	Add delete Transfer_Coll [Redmine: #98621]
+		- 20190628@Billy:	Add delete MarkedTransaction - [Redmine: #115199]
 */
 -- =======================
 -- Parameter check\control
@@ -50,7 +51,7 @@ BEGIN
 		(@Command = 'Except_DBTRANS' AND @@ServerName <> 'DBTRANS') 
 	)
 	BEGIN
-		
+
 		DECLARE @rc INT, @rn INT, @rn2 INT
 
 		IF	@deletedTarget = 'bettrans14' --- delete bettrans14
@@ -71,7 +72,7 @@ BEGIN
 			DELETE TOP (2500) B14
 			FROM dbo.bettrans14 B14 WITH (ROWLOCK, INDEX=IX_bettrans14)
 			WHERE winlostdate = @winlostdate
-	
+
 			SET @rowcount = @@ROWCOUNT
 			RETURN
 		END --- end of deleting bettrans14
@@ -193,7 +194,7 @@ BEGIN
 
 			RETURN;
 		END;  --- end of deleting bettransLC14
-	
+
 		IF	@deletedTarget = 'bettransRNG14' --- delete bettransRNG14
 		BEGIN;
 			SELECT	@rowcount = 0;
@@ -227,16 +228,34 @@ BEGIN
 
 				COMMIT TRANSACTION;
 
-			RETURN;	
+			RETURN;
 			END
 		END; --- end of deleting Transfer_Coll
 
+		-- Delete Marked Transaction --
+		IF	@deletedTarget = 'MarkedTransaction' AND @winlostdate = 0
+		BEGIN;
+			IF	OBJECT_ID('MarkedTransaction') IS NOT NULL
+			BEGIN;
+				SELECT	@rowcount = 0;
+
+				BEGIN TRANSACTION;
+
+				DELETE	tbl WITH (ROWLOCK)
+				FROM		dbo.MarkedTransaction AS tbl WITH (ROWLOCK)
+				INNER JOIN	dbo.strSplit (CONVERT(VARCHAR(4000), @tmp1), ',') AS s
+						ON	tbl.TransId = CONVERT(BIGINT, s.val);
+
+				SELECT	@rowcount = @@ROWCOUNT;
+
+				COMMIT TRANSACTION;
+			END;
+		END;
+		-- END -- Delete Marked Transaction --
+
 		IF	@deletedTarget = 'others' --- for deleting all other small tables
 		BEGIN
-			IF EXISTS (
-				SELECT TOP 1 1
-				FROM dbo.sysobjects WHERE name = 'BetLucky3Result14'
-			)
+			IF	OBJECT_ID('BetLucky3Result14') IS NOT NULL
 			BEGIN
 				SET @rc = 1
 				WHILE @rc > 0
@@ -250,10 +269,12 @@ BEGIN
 					COMMIT TRANSACTION
 				END
 			END
-			IF EXISTS (select * from dbo.sysobjects where name = 'bettranssum')
+
+			IF	OBJECT_ID('bettranssum') IS NOT NULL
 			BEGIN
 				DELETE FROM bettranssum WHERE winlostdate = @winlostdate
 			END
+
 			RETURN
 		END --- end of deleting others tables
 	END

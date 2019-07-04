@@ -21,7 +21,7 @@ BEGIN
 
 	IF @DeletedTarget = 'betParlayDetail'
 	BEGIN
-		
+
 		SELECT IDENTITY(INT,1,1) id, refno, count(1) AS cnt, 5000/count(1) AS batch_size
 		INTO #tmp
 		FROM betparlaydetail WITH(NOLOCK)
@@ -62,7 +62,7 @@ BEGIN
 		-- call execRep SP
 		EXEC dbo.ExecRep_09 @recommend = 0, @winlostdate = @winlostdate, @parlay = 29, @tableName = 'betParlayResult'
 	END
-	
+
 	IF	@DeletedTarget = 'Task_bettrans14_IP2Country'
 	BEGIN;
 		WHILE 0 = 0
@@ -73,7 +73,7 @@ BEGIN
 
 			IF	@@ROWCOUNT = 0
 				BREAK;
-			
+
 			-- Dynamic Delay Time --
 			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('IP2Country');
 			WAITFOR DELAY @WaitFor;
@@ -92,7 +92,7 @@ BEGIN
 
 			IF	@@ROWCOUNT = 0
 				BREAK;
-			
+
 			-- Dynamic Delay Time --
 			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('IP2Country');
 			WAITFOR DELAY @WaitFor;
@@ -111,13 +111,62 @@ BEGIN
 
 			IF	@@ROWCOUNT = 0
 				BREAK;
-			
+
 			-- Dynamic Delay Time --
 			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('IP2Country');
 			WAITFOR DELAY @WaitFor;
 		END;
 
 		RETURN;
+	END;
+
+	IF	@DeletedTarget = 'MarkedTransaction'
+	BEGIN;
+		DECLARE	@transList AS TABLE (
+					TransId		BIGINT
+				);
+
+		DECLARE	@transDel AS TABLE (
+					TransId		BIGINT
+				);
+
+		DECLARE	@transDelStr	SQL_VARIANT;
+
+		INSERT INTO	@transList (TransId)
+		SELECT	tbl.transid
+		FROM		dbo.MarkedTransaction AS tbl
+		LEFT JOIN	dbo.match AS m WITH (NOLOCK)
+				ON	tbl.MatchId = m.matchid
+		LEFT JOIN	dbo.match14 AS m14 WITH (NOLOCK)
+				ON	tbl.MatchId = m14.matchid
+		WHERE	m.matchid IS NULL
+			AND	m14.matchid IS NULL;
+
+		WHILE	0 = 0
+		BEGIN;
+			DELETE	@transDel;
+
+			DELETE	TOP(200) @transList
+			OUTPUT	Deleted.TransId
+			INTO	@transDel (TransId);
+
+			IF	@@ROWCOUNT = 0
+				BREAK;
+
+			SELECT	@transDelStr = CONVERT(SQL_VARIANT, CONVERT(VARCHAR(4000), trn.xml.value('.[1]', 'VARCHAR(4000)')))
+			FROM	(
+				SELECT	CAST(TransId AS VARCHAR(19)) + ','
+				FROM	@transDel
+				FOR XML PATH ('')
+				,	TYPE
+			) AS trn(xml);
+
+			EXECUTE	dbo.ExecRep_02 @winlostdate = 0, @Command = 'ALL_DB', @DeletedTarget = 'MarkedTransaction', @tmp1 = @transDelStr;
+
+			-- Dynamic Delay Time --
+			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('FriRoutine');
+			WAITFOR DELAY @WaitFor;
+		END;
 	END;
 END
 GO
