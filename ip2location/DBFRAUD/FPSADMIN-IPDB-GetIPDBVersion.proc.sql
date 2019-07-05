@@ -1,0 +1,27 @@
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+CREATE PROCEDURE	dbo.GetIPDBVersion
+AS
+/*
+	Creator:	20190705@Billy
+	Task:		Description - [Redmine: #116251]
+	Database:	FPSADMIN.IPDB
+
+	Revisions:
+		- 20190705@Billy:	Initial - [Redmine: #116251]
+
+	Developer's Notes:
+		- @Example:			NULL		- Explaination [DEFAULT]
+
+*/
+BEGIN;
+	SET NOCOUNT ON;
+
+	SELECT	TOP(1)
+			[version] = version_date
+	FROM	dbo.IPDBVersion WITH (NOLOCK)
+	ORDER BY version_date DESC;
+END;
+GO
+/*<info serverAlias="FPSADMIN-IPDB" executers="fpsWebService" viewers="" isFunction="0" isNested="0"></info>*/
