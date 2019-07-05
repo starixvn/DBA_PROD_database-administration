@@ -164,6 +164,10 @@ ORDER BY 1
 
 Declare @wldate smalldatetime
 
+SELECT @wldate = MAX(winlostdate) FROM @archiveDate;
+EXECUTE dbo.Task_Archive_Bet @winlostdate = @wldate, @DeletedTarget = ''MarkedTransaction'';
+WAITFOR DELAY ''00:00:30'';
+
 SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 1   EXEC DB02.bodb02.dbo.Task_Archive_Event @wldate, @Action = ''delete''
 WAITFOR DELAY ''00:00:05''
 SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 2   EXEC DB02.bodb02.dbo.Task_Archive_Event @wldate, @Action = ''delete''
@@ -246,9 +250,6 @@ DELETE FROM SettlementNG2_Message
 WHERE EventDate <= @wldate
 
 WAITFOR DELAY ''00:01:30''
-
-EXECUTE dbo.Task_Archive_Bet @winlostdate = NULL, @DeletedTarget = ''MarkedTransaction'';
-WAITFOR DELAY ''00:00:30'';
 ';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0

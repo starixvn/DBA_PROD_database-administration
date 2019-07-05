@@ -135,12 +135,9 @@ BEGIN
 		INSERT INTO	@transList (TransId)
 		SELECT	tbl.transid
 		FROM		dbo.MarkedTransaction AS tbl
-		LEFT JOIN	dbo.match AS m WITH (NOLOCK)
-				ON	tbl.MatchId = m.matchid
-		LEFT JOIN	dbo.match14 AS m14 WITH (NOLOCK)
+		INNER JOIN	dbo.match14 AS m14 WITH (NOLOCK)
 				ON	tbl.MatchId = m14.matchid
-		WHERE	m.matchid IS NULL
-			AND	m14.matchid IS NULL;
+		WHERE	m14.eventdate <= @winlostdate;
 
 		WHILE	0 = 0
 		BEGIN;
@@ -161,7 +158,7 @@ BEGIN
 				,	TYPE
 			) AS trn(xml);
 
-			EXECUTE	dbo.ExecRep_02 @winlostdate = 0, @Command = 'ALL_DB', @DeletedTarget = 'MarkedTransaction', @tmp1 = @transDelStr;
+			EXECUTE	dbo.ExecRep_02 @winlostdate = @winlostdate, @Command = 'ALL_DB', @DeletedTarget = 'MarkedTransaction', @tmp1 = @transDelStr;
 
 			-- Dynamic Delay Time --
 			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('FriRoutine');

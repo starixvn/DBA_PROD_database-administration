@@ -233,7 +233,7 @@ BEGIN
 		END; --- end of deleting Transfer_Coll
 
 		-- Delete Marked Transaction --
-		IF	@deletedTarget = 'MarkedTransaction' AND @winlostdate = 0
+		IF	@deletedTarget = 'MarkedTransaction'
 		BEGIN;
 			IF	OBJECT_ID('MarkedTransaction') IS NOT NULL
 			BEGIN;
