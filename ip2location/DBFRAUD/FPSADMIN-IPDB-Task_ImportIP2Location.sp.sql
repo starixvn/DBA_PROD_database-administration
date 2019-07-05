@@ -2,7 +2,7 @@ SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
 CREATE PROCEDURE	dbo.Task_ImportIP2Location
-						@FilePath			NVARCHAR(128)		= 'G:\IP2Location'
+						@FilePath			NVARCHAR(128)		= 'E:\IP2Location'
 					,	@ProductDB			VARCHAR(10)			= 'DB4'
 AS
 /*
@@ -26,9 +26,7 @@ BEGIN;
 	-- Verify table --
 	IF	OBJECT_ID('dbo.bk_IP2Location_Old') IS NOT NULL
 	BEGIN;
-		RAISERROR('Last time run is not verified. Backup table exists.', 0, 0) WITH NOWAIT;
-
-		RETURN -1;
+		DROP TABLE	dbo.bk_IP2Location_Old;
 	END;
 
 	IF	OBJECT_ID('tempdb..##IP2Location_file') IS NOT NULL
