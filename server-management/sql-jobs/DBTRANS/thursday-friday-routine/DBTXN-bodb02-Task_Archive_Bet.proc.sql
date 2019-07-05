@@ -13,6 +13,7 @@ AS
 
 	Revisions:
 		- 20180725@Billy:	Change the way of deleting data of IP2Country tables - [Redmine: #98857]
+		- 20190704@Billy:	Add [MarkedTransaction] to Friday Routine - [Redmine: #115199]
 */
 BEGIN
 	SET NOCOUNT ON;

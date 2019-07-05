@@ -23,7 +23,7 @@ AS
 		- 20171004@Lukas:	Add @deletedTarget for deleting data for one by one table
 		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
 		- 20181106@Sophia:	Add delete Transfer_Coll [Redmine: #98621]
-		- 20190628@Billy:	Add delete MarkedTransaction - [Redmine: #115199]
+		- 20190704@Billy:	Add [MarkedTransaction] to Friday Routine - [Redmine: #115199]
 */
 -- =======================
 -- Parameter check\control
