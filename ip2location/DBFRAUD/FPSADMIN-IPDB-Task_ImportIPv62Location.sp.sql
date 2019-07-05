@@ -53,18 +53,18 @@ EXECUTE	sys.xp_dirtree N''' + @FilePath + N''', 1, 1;
 
 	IF	NOT EXISTS (SELECT 1 FROM ##IPv62Location_file WITH (NOLOCK) WHERE file_name = N'IPv6-COUNTRY-REGION-CITY-ISP.CSV')
 	BEGIN;
-		RAISERROR('Source file is not available. Please copy file "IPv6-COUNTRY-REGION-CITY-ISP.CSV" to "%s" before executing the job.', 0, 0, @FilePath) WITH NOWAIT;
-
 		DROP TABLE	##IPv62Location_file;
+
+		RAISERROR('Source file is not available. Please copy file "IPv6-COUNTRY-REGION-CITY-ISP.CSV" to "%s" before executing the job.', 16, 1, @FilePath) WITH NOWAIT;
 
 		RETURN -1;
 	END;
 
 	IF	NOT EXISTS (SELECT 1 FROM ##IPv62Location_file WITH (NOLOCK) WHERE file_name = @ProductDB + N'v6.FMT')
 	BEGIN;
-		RAISERROR('Source file is not available. Please copy file "%s.FMT" to "%s" before executing the job.', 0, 0, @ProductDB, @FilePath) WITH NOWAIT;
-
 		DROP TABLE	##IPv62Location_file;
+
+		RAISERROR('Source file is not available. Please copy file "%s.FMT" to "%s" before executing the job.', 16, 1, @ProductDB, @FilePath) WITH NOWAIT;
 
 		RETURN -1;
 	END;
