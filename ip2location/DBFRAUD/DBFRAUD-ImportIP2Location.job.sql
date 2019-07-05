@@ -4,6 +4,7 @@
 	Server:		DBFRAUD
 	Revision:
 		- 20180209@Billy:	Initiate on GIT - [Redmine: #90857]
+		- 20190705@Billy:	Move file to $E - [Redmine: #116251]
 */
 
 SET NOCOUNT ON;
@@ -154,7 +155,7 @@ BEGIN;
 						,	@flags						= 0
 						,	@proxy_name					= N''
 						,	@command					= N'\
-"C:\Program Files\7-Zip\7z.exe" e G:\IP2Location\DB4-IP-COUNTRY-REGION-CITY-ISP.CSV.ZIP -oG:\IP2Location IP-*.csv -y'
+"C:\Program Files\7-Zip\7z.exe" e E:\IP2Location\DB4-IP-COUNTRY-REGION-CITY-ISP.CSV.ZIP -oE:\IP2Location IP-*.csv -y'
 						;
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
@@ -184,7 +185,7 @@ BEGIN;
 						,	@flags						= 0
 						,	@proxy_name					= N''
 						,	@command					= N'\
-"C:\Program Files\7-Zip\7z.exe" e G:\IP2Location\DB4-IPV6-COUNTRY-REGION-CITY-ISP.CSV.ZIP -oG:\IP2Location IPV6-*.csv -y';
+"C:\Program Files\7-Zip\7z.exe" e E:\IP2Location\DB4-IPV6-COUNTRY-REGION-CITY-ISP.CSV.ZIP -oE:\IP2Location IPV6-*.csv -y';
 
 	IF	@@ERROR <> 0 OR @ReturnCode <> 0
 		GOTO QuitWithRollback;
