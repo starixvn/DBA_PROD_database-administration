@@ -28,4 +28,4 @@ BEGIN;
 	FROM	dbo.IPv62Location AS ipv6 WITH (NOLOCK);
 END;
 GO
-/*<info serverAlias="FPSADMIN-IPDB" executers="fpsWebService" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="FPSADMIN-IPDB" executers="fpsWinService" viewers="" isFunction="0" isNested="0"></info>*/
