@@ -29,4 +29,3 @@ BEGIN
 						ELSE '00:00:00:280' END)
 END
 GO
-/*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="1"></info>*/
