@@ -7,6 +7,7 @@
 		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
 		- 20181018@Billy:	Update Category - [Redmine: #103430]
 		- 20181218@Daniel:	Add table [Transfer_Coll] - [Redmine: #106220]
+		- 20190704@Billy:	Add [MarkedTransaction] to Friday Routine - [Redmine: #115199]
 */
 
 SET NOCOUNT ON;
@@ -18,7 +19,7 @@ BEGIN TRANSACTION;
 
 DECLARE @ReturnCode		INT
 	,	@JobId			BINARY(16)
-	,	@Loop			INT
+	,	@StepId			INT
 	,	@StepName		NVARCHAR(128)
 	,	@Msg			NVARCHAR(MAX)
 	;
@@ -89,23 +90,23 @@ END;
 
 -- Init job steps --
 BEGIN;
-	SELECT	@Loop	= 1
+	SELECT	@StepId	= 1
 		;
 
-	WHILE	@Loop <= @Steps
+	WHILE	@StepId <= @Steps
 	BEGIN;
-		SELECT	@StepName	= N'Step ' + CAST(@Loop AS NVARCHAR);
+		SELECT	@StepName	= N'Step ' + CAST(@StepId AS NVARCHAR);
 
 		EXECUTE	@ReturnCode	= msdb.dbo.sp_add_jobstep
 								@job_id						= @JobId
 							,	@step_name					= @StepName
-							,	@step_id					= @Loop
+							,	@step_id					= @StepId
 							;
 					
 		IF	@@ERROR <> 0 OR @ReturnCode <> 0
 			GOTO QuitWithRollback;
 
-		SELECT	@Loop = @Loop + 1;
+		SELECT	@StepId = @StepId + 1;
 	END;
 
 	SELECT	@Msg = N'INITIATED ' + CAST(@Steps AS NVARCHAR) + N' STEPS';
@@ -139,12 +140,12 @@ END;
 -- Define job steps --
 ---- Step 1 ----
 BEGIN;
-	SELECT	@Loop = 1;
+	SELECT	@StepId = 1;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'Archive Event'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -156,13 +157,17 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid int PRIMARY KEY IDENTITY(1,1), winlostdate smalldatetime)
 INSERT INTO @archiveDate (winlostdate)
 SELECT winlostdate FROM dbo.task_archivedate
 ORDER BY 1
 
 Declare @wldate smalldatetime
+
+SELECT @wldate = MAX(winlostdate) FROM @archiveDate;
+EXECUTE dbo.Task_Archive_Bet @winlostdate = @wldate, @DeletedTarget = ''MarkedTransaction'';
+WAITFOR DELAY ''00:00:30'';
 
 SELECT @wldate = winlostdate FROM @archiveDate WHERE rid = 1   EXEC DB02.bodb02.dbo.Task_Archive_Event @wldate, @Action = ''delete''
 WAITFOR DELAY ''00:00:05''
@@ -252,17 +257,17 @@ WAITFOR DELAY ''00:01:30''
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 2 ----
 BEGIN;
-	SELECT	@Loop = 2;
+	SELECT	@StepId = 2;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'1'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -274,7 +279,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -372,17 +377,17 @@ WAITFOR DELAY ''00:00:03'';
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 3 ----
 BEGIN;
-	SELECT	@Loop = 3;
+	SELECT	@StepId = 3;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'2'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -394,7 +399,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -492,17 +497,17 @@ WAITFOR DELAY ''00:00:03'';
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 4 ----
 BEGIN;
-	SELECT	@Loop = 4;
+	SELECT	@StepId = 4;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'3'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -514,7 +519,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -612,17 +617,17 @@ WAITFOR DELAY ''00:00:03'';
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 5 ----
 BEGIN;
-	SELECT	@Loop = 5;
+	SELECT	@StepId = 5;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'4'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -634,7 +639,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -732,17 +737,17 @@ WAITFOR DELAY ''00:00:03'';
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 6 ----
 BEGIN;
-	SELECT	@Loop = 6;
+	SELECT	@StepId = 6;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'5'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -754,7 +759,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -852,17 +857,17 @@ WAITFOR DELAY ''00:00:03'';
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 7 ----
 BEGIN;
-	SELECT	@Loop = 7;
+	SELECT	@StepId = 7;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'6'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -874,7 +879,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -972,17 +977,17 @@ WAITFOR DELAY ''00:00:03'';
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 8 ----
 BEGIN;
-	SELECT	@Loop = 8;
+	SELECT	@StepId = 8;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'7'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -994,7 +999,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME);
 DECLARE @wldate SMALLDATETIME
 , @WaitFor VARCHAR(50);
@@ -1092,17 +1097,17 @@ WAITFOR DELAY ''00:00:03'';
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 9 ----
 BEGIN;
-	SELECT	@Loop = 9;
+	SELECT	@StepId = 9;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'Last Round'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 1
 						,	@on_success_step_id			= 0
@@ -1114,7 +1119,7 @@ BEGIN;
 						,	@subsystem					= N'TSQL'
 						,	@database_name				= N'bodb02'
 						,	@flags						= 0
-						,	@command					= N'
+						,	@command					= N'\
 DECLARE @archiveDate TABLE (rid INT PRIMARY KEY IDENTITY(1,1), winlostdate SMALLDATETIME)
 
 INSERT INTO @archiveDate (winlostdate)
@@ -1152,7 +1157,7 @@ ORDER BY winlostdate;
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Job start at step ----
