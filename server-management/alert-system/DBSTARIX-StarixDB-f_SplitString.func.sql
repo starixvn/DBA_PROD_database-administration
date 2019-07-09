@@ -39,7 +39,8 @@ BEGIN;
 	SELECT	[id]	= cte.id
 		,	[val]	= LTRIM(RTRIM(SUBSTRING(@string, cte.start, cte.finish - cte.start)))
 	FROM	cte
-	WHERE	cte.id = ISNULL(@id, cte.id);
+	WHERE	cte.id = ISNULL(@id, cte.id)
+	OPTION (MAXRECURSION 0);
 
 	RETURN;
 END;
