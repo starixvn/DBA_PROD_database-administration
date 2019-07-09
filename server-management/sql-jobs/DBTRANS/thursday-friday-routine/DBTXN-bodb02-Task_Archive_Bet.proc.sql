@@ -135,7 +135,7 @@ BEGIN
 
 		INSERT INTO	@transList (TransId)
 		SELECT	tbl.transid
-		FROM		dbo.MarkedTransaction AS tbl
+		FROM		dbo.MarkedTransaction AS tbl WITH (NOLOCK)
 		INNER JOIN	dbo.match14 AS m14 WITH (NOLOCK)
 				ON	tbl.MatchId = m14.matchid
 		WHERE	m14.eventdate <= @winlostdate;
