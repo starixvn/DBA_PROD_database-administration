@@ -165,6 +165,8 @@ BEGIN
 			SELECT	@WaitFor = dbo.f_BU_GetDelayTime('FriRoutine');
 			WAITFOR DELAY @WaitFor;
 		END;
+
+		RETURN;
 	END;
 END
 GO
