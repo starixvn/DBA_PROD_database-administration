@@ -7,17 +7,18 @@ AS
 	Creator:	20190124@Billy
 	Task:		Alert Procedure for Replication - [Redmine: #107814]
 	Database:	DBSTARIX.StarixDB
-	
+
 	Revisions:
 		- 20190124@Billy:	Initial - [Redmine: #107814]
 		- 20190201@Billy:	Replication Monitor Phase 2 - [Redmine: #107814]
 		- 20190202@Billy:	Fix NULL message - [Redmine: #000000]
 		- 20190219@Helen:	Capture running statement when replication latency - [Redmine:109072]
 		- 20190524@Billy:	Change Letstalk linked server - [Redmine: #113125]
-		
+		- 20190709@Billy:	Fix Ticket Latency not trigger new alert - [Redmine: #110664]
+
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
-		
+
 */
 BEGIN;
 	SET NOCOUNT ON;
@@ -32,8 +33,8 @@ BEGIN;
 
 	DECLARE	@Msg			NVARCHAR(MAX)
 		,	@ServerName		NVARCHAR(128)
-		,	@DatabaseName	VARCHAR(128);
-		
+		,	@DatabaseName	VARCHAR(128)
+		;
 
 	DECLARE	@ReplInstances AS TABLE (
 				Publisher		NVARCHAR(128)
@@ -188,6 +189,7 @@ BEGIN;
 			AND	r.Subscriber = arr.Subscriber
 	INNER JOIN	dbo.vnDBA_Alert_Repl_Publications AS arp WITH (NOLOCK)
 			ON	r.Publication = arp.Publication
+			OR	(r.Publication = N'Ticket Latency' AND arp.Publication = N'DBTrans_Bet')
 	INNER JOIN	dbo.vnDBA_Alert_Repl_Subsribers AS ars WITH (NOLOCK)
 			ON	r.Subscriber = ars.Subscriber
 	INNER JOIN	dbo.vnDBA_Alert_Repl_Thresholds AS art WITH (NOLOCK)
@@ -236,7 +238,7 @@ BEGIN;
 				) AS rp
 				CROSS APPLY	(
 					SELECT	N'
-    \- ' + f.formater + _rs.Subscriber + CASE _rs.Status WHEN '-' THEN N'' ELSE N': ' END + CASE _rs.Publication WHEN N'Ticket Latency' THEN CAST(ISNULL(_rs.CounterValue, N'') AS NVARCHAR(MAX)) ELSE ISNULL(dr.duration, N'') END + f.formater
+    \- ' + f.formater + _rs.Subscriber + CASE _rs.Status WHEN '-' THEN N'' ELSE N': ' + CASE _rs.Publication WHEN N'Ticket Latency' THEN CAST(ISNULL(_rs.CounterValue, N'') AS NVARCHAR(MAX)) ELSE ISNULL(dr.duration, N'') END END + f.formater
 					FROM		@Results AS _rs
 					CROSS APPLY	(
 						SELECT	[formater] = CASE _rs.Status WHEN '+' THEN N'__' WHEN '-' THEN N'~~' ELSE N'' END
@@ -293,7 +295,7 @@ BEGIN;
 				) AS rp
 				CROSS APPLY	(
 					SELECT	N'
-    \- ' + f.formater + _rs.Subscriber + CASE _rs.Status WHEN '-' THEN N'' ELSE N': ' END + CASE _rs.Publication WHEN N'Ticket Latency' THEN CAST(ISNULL(_rs.CounterValue, N'') AS NVARCHAR(MAX)) ELSE ISNULL(dr.duration, N'') END + f.formater
+    \- ' + f.formater + _rs.Subscriber + CASE _rs.Status WHEN '-' THEN N'' ELSE N': ' + CASE _rs.Publication WHEN N'Ticket Latency' THEN CAST(ISNULL(_rs.CounterValue, N'') AS NVARCHAR(MAX)) ELSE ISNULL(dr.duration, N'') END END + f.formater
 					FROM		@Results AS _rs
 					CROSS APPLY	(
 						SELECT	[formater] = CASE _rs.Status WHEN '+' THEN N'__' WHEN '-' THEN N'~~' ELSE N'' END
@@ -329,7 +331,7 @@ BEGIN;
 				AND	m.IsActive = 1
 				AND	m.IsAlertReplication = 1
 		WHERE	ISNULL(r.Status, '') NOT IN ('-');
-		
+
 		WHILE	(1 = 1)
 		BEGIN
 			UPDATE	TOP(1) tbl
