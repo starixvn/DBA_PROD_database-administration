@@ -18,6 +18,10 @@ CREATE UNIQUE NONCLUSTERED INDEX	UIX_SkypeGroup_SkypeGroupId ON dbo.DBA_SkypeGro
 										SkypeGroupId	ASC
 									) ON IDX;
 
+CREATE UNIQUE NONCLUSTERED INDEX	UIX_SkypeGroup_CodeName ON dbo.DBA_SkypeGroup (
+										CodeName	ASC
+									) ON IDX;
+
 CREATE TABLE	dbo.DBA_SkypeNotifications (
 					NotificationId		INT				NOT NULL	IDENTITY(1, 1)
 				,	ServerName			NVARCHAR(128)	NULL
