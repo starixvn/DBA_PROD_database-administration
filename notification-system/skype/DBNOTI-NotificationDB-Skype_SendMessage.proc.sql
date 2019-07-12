@@ -12,6 +12,7 @@ AS
 
 	Revisions:
 		- 20190710@Billy:	Initial - [Redmine: #110664]
+		- 20190711@Billy:	Control directly sent message using flag - [Redmine: #110664]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -25,7 +26,8 @@ BEGIN;
 
 	SELECT	@SkypeGroupId = SkypeGroupId
 	FROM	dbo.DBA_SkypeGroup WITH (NOLOCK)
-	WHERE	CodeName = @To;
+	WHERE	CodeName = @To
+		AND	SendDirectly = 1;
 
 	IF	@@ROWCOUNT = 0
 	BEGIN;

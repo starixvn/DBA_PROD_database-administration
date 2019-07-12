@@ -11,6 +11,8 @@ CREATE TABLE	dbo.DBA_SkypeGroup (
 				,	SkypeGroupId		VARCHAR(256)	NOT NULL
 				,	CodeName			VARCHAR(128)	NULL
 				,	SkypeName			NVARCHAR(128)	NULL
+				,	SendDirectly		BIT				NOT NULL
+						CONSTRAINT	DF_SkypeGroup DEFAULT (0)
 				,	CONSTRAINT	PK_SkypeGroup PRIMARY KEY CLUSTERED (GroupId ASC) ON DATA
 				);
 
@@ -20,7 +22,8 @@ CREATE UNIQUE NONCLUSTERED INDEX	UIX_SkypeGroup_SkypeGroupId ON dbo.DBA_SkypeGro
 
 CREATE UNIQUE NONCLUSTERED INDEX	UIX_SkypeGroup_CodeName ON dbo.DBA_SkypeGroup (
 										CodeName	ASC
-									) ON IDX;
+									)
+									INCLUDE (SendDirectly, SkypeGroupId) ON IDX;
 
 CREATE TABLE	dbo.DBA_SkypeNotifications (
 					NotificationId		INT				NOT NULL	IDENTITY(1, 1)
