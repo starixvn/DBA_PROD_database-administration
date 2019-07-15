@@ -28,6 +28,7 @@ BEGIN;
 		,	[Region]		= ipv6.region
 		,	[City]			= ipv6.city
 		,	[ISPName]		= ipv6.isp_name
+		,	[ID]			= ipv6.id
 	FROM	dbo.IPv62Location AS ipv6 WITH (NOLOCK)
 	WHERE	ipv6.id >= ISNULL(@FromId, 0)
 		AND	ipv6.id <= ISNULL(@ToId, CAST(0x7FFFFFFFFFFFFFFF AS BIGINT));
