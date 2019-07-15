@@ -2,6 +2,8 @@ SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
 CREATE PROCEDURE	dbo.GetAllIPv62Location
+						@FromId			BIGINT			= NULL
+					,	@ToId			BIGINT			= NULL
 AS
 /*
 	Creator:	20190705@Billy
@@ -10,6 +12,7 @@ AS
 
 	Revisions:
 		- 20190705@Billy:	Initial - [Redmine: #116251]
+		- 20190715@Billy:	Get IP by identity range - [Redmine: #116251]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -25,7 +28,9 @@ BEGIN;
 		,	[Region]		= ipv6.region
 		,	[City]			= ipv6.city
 		,	[ISPName]		= ipv6.isp_name
-	FROM	dbo.IPv62Location AS ipv6 WITH (NOLOCK);
+	FROM	dbo.IPv62Location AS ipv6 WITH (NOLOCK)
+	WHERE	ipv6.id >= ISNULL(@FromId, 0)
+		AND	ipv6.id <= ISNULL(@ToId, CAST(0x7FFFFFFFFFFFFFFF AS BIGINT));
 END;
 GO
 /*<info serverAlias="FPSADMIN-IPDB" executers="fpsWinService" viewers="" isFunction="0" isNested="0"></info>*/

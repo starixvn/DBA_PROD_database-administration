@@ -12,6 +12,7 @@ AS
 
 	Revisions:
 		- 20190624@Billy:	Initial - [Redmine: #000000]
+		- 20190715@Billy:	Add identity for IPv6 table - [Redmine: #116251]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -81,11 +82,16 @@ EXECUTE	sys.xp_dirtree N''' + @FilePath + N''', 1, 1;
 					,	region			VARCHAR(128)
 					,	city			VARCHAR(128)
 					,	isp_name		VARCHAR(256)
+					,	id				BIGINT			IDENTITY(1, 1)
 					,	CONSTRAINT	PK_tmp_IPv62Location_New PRIMARY KEY CLUSTERED (
-										ip_from		ASC
-									,	ip_to		ASC
+										id			ASC
 									) ON DATA
 					) ON DATA;
+
+	CREATE NONCLUSTERED INDEX	IX_IPv62Location_IPFrom ON dbo.tmp_IPv62Location_New (
+									ip_from		ASC
+								,	ip_to		ASC
+								) ON DATA
 
 	CREATE NONCLUSTERED INDEX	IX_IPv62Location_IPTo ON dbo.tmp_IPv62Location_New (
 									ip_to		ASC
