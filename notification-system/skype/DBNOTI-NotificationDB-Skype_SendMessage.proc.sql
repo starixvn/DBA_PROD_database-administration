@@ -30,6 +30,7 @@ BEGIN;
 	BEGIN;
 		SELECT	@Msg = N'\
 ▚▚▚▚▚▚▚▚▚▚▚▚▚▚  🅼 🅽 🅻  ▞▞▞▞▞▞▞▞▞▞▞▞▞▞
+
 ' + @Msg;
 
 		EXECUTE	DBNOTI.NotificationDB.dbo.Skype_SendMessage @To, @Msg;
