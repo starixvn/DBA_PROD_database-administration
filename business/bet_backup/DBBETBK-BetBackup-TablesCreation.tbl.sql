@@ -78,7 +78,7 @@ BEGIN;
 	CREATE NONCLUSTERED INDEX	IX_bettrans_matchid ON dbo.bettrans (
 									matchid		ASC
 								)
-								INCLUDE (winlostdate, oddsid) WITH (DATA_COMPRESSION = PAGE) ON bettrans_IDX;
+								INCLUDE (winlostdate, oddsid, bettype) WITH (DATA_COMPRESSION = PAGE) ON bettrans_IDX;
 
 	CREATE NONCLUSTERED INDEX	IX_bettrans_transdate ON dbo.bettrans (
 									transdate	ASC
@@ -127,7 +127,7 @@ BEGIN;
 	CREATE NONCLUSTERED INDEX	IX_bettransReject_matchid ON dbo.bettransReject (
 									matchid		ASC
 								)
-								INCLUDE (winlostdate, oddsid) WITH (DATA_COMPRESSION = PAGE) ON bettransReject_IDX;
+								INCLUDE (winlostdate, oddsid, bettype) WITH (DATA_COMPRESSION = PAGE) ON bettransReject_IDX;
 END;
 
 
