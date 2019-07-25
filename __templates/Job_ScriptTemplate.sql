@@ -15,7 +15,7 @@ BEGIN TRANSACTION;
 
 DECLARE @ReturnCode		INT
 	,	@JobId			BINARY(16)
-	,	@Loop			INT
+	,	@StepId			INT
 	,	@StepName		NVARCHAR(128)
 	,	@Msg			NVARCHAR(MAX)
 	;
@@ -86,23 +86,23 @@ END;
 
 -- Init job steps --
 BEGIN;
-	SELECT	@Loop	= 1
+	SELECT	@StepId	= 1
 		;
 
-	WHILE	@Loop <= @Steps
+	WHILE	@StepId <= @Steps
 	BEGIN;
-		SELECT	@StepName	= N'Step ' + CAST(@Loop AS NVARCHAR);
+		SELECT	@StepName	= N'Step ' + CAST(@StepId AS NVARCHAR);
 
 		EXECUTE	@ReturnCode	= msdb.dbo.sp_add_jobstep
 								@job_id						= @JobId
 							,	@step_name					= @StepName
-							,	@step_id					= @Loop
+							,	@step_id					= @StepId
 							;
 					
 		IF	@@ERROR <> 0 OR @ReturnCode <> 0
 			GOTO QuitWithRollback;
 
-		SELECT	@Loop = @Loop + 1;
+		SELECT	@StepId = @StepId + 1;
 	END;
 
 	SELECT	@Msg = N'INITIATED ' + CAST(@Steps AS NVARCHAR) + N' STEPS';
@@ -136,12 +136,12 @@ END;
 -- Define job steps --
 ---- Step 1 ----
 BEGIN;
-	SELECT	@Loop = 1;
+	SELECT	@StepId = 1;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'CmdExec'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -159,17 +159,17 @@ BEGIN;
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d ADDED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Step 2 ----
 BEGIN;
-	SELECT	@Loop = 2;
+	SELECT	@StepId = 2;
 
 	EXECUTE	@ReturnCode	= msdb.dbo.sp_update_jobstep
 							@job_id						= @JobId
 						,	@step_name					= N'TSQL'
-						,	@step_id					= @Loop
+						,	@step_id					= @StepId
 						,	@cmdexec_success_code		= 0
 						,	@on_success_action			= 3
 						,	@on_success_step_id			= 0
@@ -187,7 +187,7 @@ BEGIN;
 		GOTO QuitWithRollback;
 
 	SELECT	@Msg = N'STEP %d UPDATED';
-	RAISERROR(@Msg, 0, 0, @Loop) WITH NOWAIT;
+	RAISERROR(@Msg, 0, 0, @StepId) WITH NOWAIT;
 END;
 
 ---- Job start at step ----
