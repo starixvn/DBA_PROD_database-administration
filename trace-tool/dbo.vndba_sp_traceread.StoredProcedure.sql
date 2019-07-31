@@ -1,6 +1,4 @@
-/*<info serverAlias="DB06-MonDB,DB052-MonDB,DB053-MonDB,DB05-MonDB" executers="bodbAdminNet,vnteam,vndba" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
-USE [MONDB]
-GO
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DB042-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [vndba_sp_traceread]
 	@TraceID INT = 0,
 	@TraceFilename VARCHAR(200) = ''
@@ -15,6 +13,7 @@ AS
 			20170701@Daniel: 
 				- no trace specified -> get the latest trace from user session
 				- Add writes column output
+			20190731@Daniel: Resolve some servers don't have G:\
 		
 		Parameter's Explanation:
 		  
@@ -25,7 +24,9 @@ BEGIN
 	SET NOCOUNT ON
 
 	DECLARE @file TABLE ([path] VARCHAR(200))
-	DECLARE @folder NVARCHAR(100) = 'G:\TraceFiles\'
+	DECLARE @folder NVARCHAR(100)
+	IF (@@SERVERNAME LIKE 'DB2%' OR @@SERVERNAME LIKE 'DBDW%' OR @@SERVERNAME LIKE 'FPS_DB01%') SET @folder =  'D:\TraceFiles\' 
+	ELSE SET @folder =  'G:\TraceFiles\'	
 
 	IF (@TraceFilename = '' AND @TraceID = 0) --no trace specified -> get the latest trace from user session
 		SELECT TOP 1 @TraceID = id
