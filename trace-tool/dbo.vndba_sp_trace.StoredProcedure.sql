@@ -23,6 +23,7 @@ AS
 		
 		Revisions:
 			20170712@Daniel: Add write column data
+			20190731@Daniel: Resolve some servers don't have G:\
 		
 		Parameter's Explanation:
 		  . @TraceTimer: Set trace duration string in seconds, not allow set more than 30min/1800s
@@ -195,7 +196,7 @@ END
 --Create a trace 
 DECLARE @id INT, @path NVARCHAR(200), @stoptime DATETIME, @maxfilesize BIGINT = 10
 DECLARE @folder NVARCHAR(100)
-IF (@@SERVERNAME LIKE 'DB2%') SET @folder =  'D:\TraceFiles\' 
+IF (@@SERVERNAME LIKE 'DB2%' OR @@SERVERNAME LIKE 'DBDW%' OR @@SERVERNAME LIKE 'FPS_DB01%') SET @folder =  'D:\TraceFiles\' 
 ELSE SET @folder =  'G:\TraceFiles\' 
 
 --Generate trace filename:

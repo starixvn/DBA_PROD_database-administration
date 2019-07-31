@@ -13,6 +13,7 @@ AS
 			20170701@Daniel: 
 				- no trace specified -> get the latest trace from user session
 				- Add writes column output
+			20190731@Daniel: Resolve some servers don't have G:\
 		
 		Parameter's Explanation:
 		  
@@ -23,7 +24,9 @@ BEGIN
 	SET NOCOUNT ON
 
 	DECLARE @file TABLE ([path] VARCHAR(200))
-	DECLARE @folder NVARCHAR(100) = 'G:\TraceFiles\'
+	DECLARE @folder NVARCHAR(100)
+	IF (@@SERVERNAME LIKE 'DB2%' OR @@SERVERNAME LIKE 'DBDW%' OR @@SERVERNAME LIKE 'FPS_DB01%') SET @folder =  'D:\TraceFiles\' 
+	ELSE SET @folder =  'G:\TraceFiles\'	
 
 	IF (@TraceFilename = '' AND @TraceID = 0) --no trace specified -> get the latest trace from user session
 		SELECT TOP 1 @TraceID = id
