@@ -73,4 +73,4 @@ BEGIN;
 			;
 END;
 GO
-/*<info serverAlias="DBARC-bodb_Archive" executers="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DB06x-msdb" executers="" viewers="" isFunction="0" isNested="0"></info>*/
