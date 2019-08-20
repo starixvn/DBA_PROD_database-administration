@@ -1,8 +1,6 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-USE	msdb;
-GO
 CREATE PROCEDURE	dbo.Task_Job_InstantResultNotification
 						@JobName	NVARCHAR(128)
 AS
