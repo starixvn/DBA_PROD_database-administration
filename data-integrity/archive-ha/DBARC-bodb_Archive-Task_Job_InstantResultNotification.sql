@@ -14,6 +14,7 @@ AS
 	Revisions:
 		- 20190419@Billy:	Initial - [Redmine: #111418]
 		- 20190524@Billy:	Change Letstalk linked server - [Redmine: #113125]
+		- 20190820@Billy:	Switch to fast notification - [Redmine: #118932]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -58,7 +59,7 @@ BEGIN;
 		ORDER BY j.name;
 	END CATCH;
 
-	SELECT	@msg	= N'Job completed.
+	SELECT	@msg	= @JobName + N' completed.
 	Duration: '		+ CASE WHEN @Time / 1000 / 60 / 60 / 24 = 0 THEN '' ELSE CAST(@Time / 1000 / 60 / 60 / 24 AS NVARCHAR) + ' d ' END
 					+ CASE WHEN @Time / 1000 / 60 / 60 % 60 < 10 THEN '0' + CAST(@Time / 1000 / 60 / 60 % 60 AS NVARCHAR) ELSE CAST(@Time / 1000 / 60 / 60 % 60 AS NVARCHAR) END
 	+ ':'			+ CASE WHEN @Time / 1000 / 60 % 60 < 10 THEN '0' + CAST(@Time / 1000 / 60 % 60 AS NVARCHAR) ELSE CAST(@Time / 1000 / 60 % 60 AS NVARCHAR) END
@@ -66,11 +67,9 @@ BEGIN;
 	+ '.'			+ CASE WHEN @Time % 1000 < 10 THEN '00' + CAST(@Time % 1000 AS NVARCHAR) WHEN @Time % 1000 < 100 THEN '0' + CAST(@Time % 1000 AS NVARCHAR) ELSE CAST(@Time % 1000 AS NVARCHAR) END
 	;
 
-	EXECUTE DBNOTI.NotificationDB.dbo.DBA_Letstalk_NewJobMessage
-				@ServerName	= @@SERVERNAME
-			,	@JobId		= NULL
-			,	@JobName	= @JobName
-			,	@Message	= @msg
+	EXECUTE DBNOTI.NotificationDB.dbo.Skype_SendMessage
+				@To			= N'PONTUS'
+			,	@Msg		= @msg
 			;
 END;
 GO
