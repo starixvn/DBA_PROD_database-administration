@@ -79,3 +79,5 @@ CREATE TABLE	dbo.ChecksumData_Result (
 								,	ValueTo			ASC
 								) ON DATA
 				) ON DATA;
+GO
+/*<info serverAlias="DBTP-bodb02" executers="" viewers="" isFunction="0" isNested="0"></info>*/
