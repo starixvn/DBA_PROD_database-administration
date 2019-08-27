@@ -7,7 +7,7 @@ AS
 	Creator:	20190213@Billy
 	Task:		Select [bettransm] data for Thursday Routine - [Redmine: #000000]
 	Database:	DBTXN.bodb02
-	
+
 	Revisions:
 		- 20190213@Billy:	Initial - [Redmine: #000000]
 		- 20190213@Billy:	Add column [SecAcceptFlag] of [bettransm] - [Redmine: #108780]
