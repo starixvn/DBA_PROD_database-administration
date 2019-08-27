@@ -43,6 +43,7 @@ AS
 		-- 20181204@Billy:	Add [oddsES] & [ResultDetailES] tables - [Redmine: #105816]
 		-- 20190325@Billy:	Add [SMP_Market] & [SMP_MarketSelection] tables - [Redmine: #109926]
 		-- 20190402@Billy:	Add [ShowTimeDT] of [match] - [Redmine: #109926]
+		-- 20190717@Sylvia: Add match14 [ChildMatchType] column
 */
 
 BEGIN
@@ -138,11 +139,11 @@ SET NOCOUNT ON
 		INSERT INTO	dbo.match14 (
 				matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore, finalhomescore, finalawayscore, creator, matchcode
 			,	kickofftime, closedtime, showtime, hthomescore, htawayscore, ruben, multiple, yenbet, exrisk, sporttype, tstamp, homeid2, awayid2, DisplayMode
-			,	LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, settletime, GlobalShowTime, ParentID, IsAutoPayout, AutoSetting, ShowTimeDT
+			,	LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, settletime, GlobalShowTime, ParentID, IsAutoPayout, AutoSetting, ShowTimeDT, ChildMatchType
 			)
 		SELECT	matchid, leagueid, homeid, awayid, eventdate, eventstatus, betstatus, livehomescore, liveawayscore, finalhomescore, finalawayscore, creator, matchcode
 			,	kickofftime, closedtime, showtime, hthomescore, htawayscore, ruben, multiple, yenbet, exrisk, sporttype, tstamp, homeid2, awayid2, DisplayMode
-			,	LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, settletime, GlobalShowTime, ParentID, IsAutoPayout, AutoSetting, ShowTimeDT
+			,	LeaguePatternID, HomeDisplayPatternID, AwayDisplayPatternID, IsNeutral, GoalRecord, settletime, GlobalShowTime, ParentID, IsAutoPayout, AutoSetting, ShowTimeDT, ChildMatchType
 		FROM	dbo.match WITH (NOLOCK)
 		WHERE	matchid IN (SELECT id FROM #__tempData);
 
