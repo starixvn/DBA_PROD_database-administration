@@ -38,7 +38,7 @@ BEGIN;
 		AND	b.winlostdate >= @CurrentBU_Date 
 		AND	b.winlostdate < @BU_Date
 		AND custid <> 0
-	GROUP BY b.custid, bt.typenamee, b.transdesc, b.transdate, b.transid, CASE WHEN b.OddsId = 1 THEN CONVERT (NVARCHAR(128), 'COLL') ELSE b.typenamee END
+	GROUP BY b.custid, bt.typenamee, b.transdesc, b.transdate, b.transid, CASE WHEN b.OddsId = 1 THEN CONVERT (NVARCHAR(128), 'COLL') ELSE bt.typenamee END
 	HAVING SUM(winlost - actual_stake) <> 0;
 END;
 GO
