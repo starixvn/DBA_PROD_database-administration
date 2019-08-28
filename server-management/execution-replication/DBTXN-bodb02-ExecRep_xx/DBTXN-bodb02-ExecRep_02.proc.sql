@@ -24,6 +24,7 @@ AS
 		- 20180725@Billy:	Change the way of deleting data (except [bettransm14]) - [Redmine: #98857]
 		- 20181106@Sophia:	Add delete Transfer_Coll [Redmine: #98621]
 		- 20190704@Billy:	Add [MarkedTransaction] to Friday Routine - [Redmine: #115199]
+		- 20190828@Billy:	Add table [bettransInfo] to Friday Routine - [Redmine: #119219]
 */
 -- =======================
 -- Parameter check\control
@@ -31,6 +32,11 @@ AS
 BEGIN 
 
 	SET NOCOUNT ON
+
+	-- 20190828@Billy: Temp variable table for deleting [bettransInfo14]
+	DECLARE	@__tmpTransId AS TABLE (
+				id		BIGINT
+			);
 
 	IF @Command IS NULL OR @winlostdate IS NULL
 	BEGIN
@@ -61,19 +67,40 @@ BEGIN
 			-- if specific command come, do it and quit
 			IF CONVERT(varchar(50), @tmp1) = 'Delete bettrans14 by custid range'
 			BEGIN
-				DELETE B14
-				FROM dbo.bettrans14 B14 WITH (ROWLOCK)
-				WHERE winlostdate = @winlostdate
-					AND custid BETWEEN CAST(@tmp2 AS int) AND CAST(@tmp3 AS int)
+				DELETE	@__tmpTransId;
+
+				DELETE	B14
+				OUTPUT	Deleted.transid
+				INTO	@__tmpTransId (id)
+				FROM	dbo.bettrans14 AS B14 WITH (ROWLOCK)
+				WHERE	winlostdate = @winlostdate
+					AND	custid BETWEEN CAST(@tmp2 AS int) AND CAST(@tmp3 AS int)
+
+				-- 20190828@Billy: Add [bettransInfo] table
+				DELETE	tbl
+				FROM		@__tmpTransId AS tmp
+				INNER JOIN	dbo.BettransInfo14 AS tbl WITH (ROWLOCK)
+						ON	tmp.id = tbl.transid;
 
 				RETURN
 			END
- 
-			DELETE TOP (2500) B14
-			FROM dbo.bettrans14 B14 WITH (ROWLOCK, INDEX=IX_bettrans14)
-			WHERE winlostdate = @winlostdate
 
-			SET @rowcount = @@ROWCOUNT
+			DELETE	@__tmpTransId;
+
+			DELETE	TOP(2500) B14
+			OUTPUT	Deleted.transid
+			INTO	@__tmpTransId (id)
+			FROM	dbo.bettrans14 AS B14 WITH (ROWLOCK, INDEX = IX_bettrans14)
+			WHERE	winlostdate = @winlostdate;
+
+			SET @rowcount = @@ROWCOUNT;
+
+			-- 20190828@Billy: Add [bettransInfo] table
+			DELETE	tbl
+			FROM		@__tmpTransId AS tmp
+			INNER JOIN	dbo.BettransInfo14 AS tbl WITH (ROWLOCK)
+					ON	tmp.id = tbl.transid;
+
 			RETURN
 		END --- end of deleting bettrans14
 
