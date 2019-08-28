@@ -1,7 +1,7 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-CREATE PROCEDURE	[dbo].[ExecRep_09]
+CREATE PROCEDURE	dbo.ExecRep_09
 	@recommend int,
 	@winlostdate smalldatetime,
 	@parlay tinyint = 0,
@@ -34,6 +34,7 @@ AS
 			+ When processing a line then insert itself and upline's to [List]
 		- 20180329@Percy: Enhance MBBU process [RedmineID: #92391]
 		- 20181222@Billy:   Remove Queue processing on DBTP - [Redmine: #000000]
+		- 20190828@Billy:	Add table [bettransInfo] - [Redmine: #119219]
  */
 BEGIN
 	--SET NOCOUNT ON
@@ -48,6 +49,11 @@ BEGIN
 		RETURN
 	END
 */
+
+	-- 20190828@Billy: Temp variable table for deleting [bettransInfo]
+	DECLARE	@__tmpTransId AS TABLE (
+				id		BIGINT
+			);
 
 	IF @tableName = 'SystemSettings'
 	BEGIN
@@ -200,18 +206,44 @@ BEGIN
 		IF @tableName = 'bettrans'
 		BEGIN
 			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02')
-			BEGIN
-				DELETE TOP (2000) FROM bettrans WITH(ROWLOCK)
-				WHERE recommend = @recommend AND winlostdate = @winlostdate AND bettype < 19999
+			BEGIN;
+				DELETE	@__tmpTransId;
 
-				SET @RowDeleted = @@ROWCOUNT
+				DELETE	TOP (2000)
+				FROM	dbo.bettrans WITH (ROWLOCK)
+				OUTPUT	Deleted.transid
+				INTO	@__tmpTransId (id)
+				WHERE	recommend = @recommend
+					AND	winlostdate = @winlostdate
+					AND	bettype < 19999;
+
+				SET @RowDeleted = @@ROWCOUNT;
+
+				-- 20190828@Billy: Add [bettransInfo] table
+				DELETE	tbl
+				FROM		@__tmpTransId AS tmp
+				INNER JOIN	dbo.BettransInfo AS tbl WITH (ROWLOCK)
+						ON	tmp.id = tbl.transid;
 			END
 			ELSE IF @firstRound = 1 --for all replicated servers, will delete by recommend
-			BEGIN
-				DELETE FROM bettrans WITH(ROWLOCK)
-				WHERE recommend = @recommend AND winlostdate = @winlostdate AND bettype < 19999
+			BEGIN;
+				DELETE	@__tmpTransId;
 
-				SET @RowDeleted = @@ROWCOUNT
+				DELETE
+				FROM	dbo.bettrans WITH (ROWLOCK)
+				OUTPUT	Deleted.transid
+				INTO	@__tmpTransId (id)
+				WHERE	recommend = @recommend
+					AND	winlostdate = @winlostdate
+					AND	bettype < 19999;
+
+				SET @RowDeleted = @@ROWCOUNT;
+
+				-- 20190828@Billy: Add [bettransInfo] table
+				DELETE	tbl
+				FROM		@__tmpTransId AS tmp
+				INNER JOIN	dbo.BettransInfo AS tbl WITH (ROWLOCK)
+						ON	tmp.id = tbl.transid;
 			END
 
 			RETURN
