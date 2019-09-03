@@ -56,7 +56,7 @@ BEGIN
 
 	-- 20190828@Billy: Temp variable table for deleting [bettransInfo]
 	DECLARE	@__tmpTransId AS TABLE (
-				id		BIGINT
+				id		BIGINT		PRIMARY KEY CLUSTERED
 			);
 
 	IF @tableName = 'SystemSettings'
