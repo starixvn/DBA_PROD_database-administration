@@ -49,10 +49,10 @@ BEGIN
 END
 */
 
--- 20190828@Billy:	Temp table contain output transid for copy [bettransInfo]
-CREATE TABLE	#__tmpTransId (
-					id		BIGINT
-				);
+-- 20190828@Billy:	Temp table variable contain output transid for copy [bettransInfo]
+DECLARE	@__tmpTransId AS TABLE (
+			id		BIGINT		PRIMARY KEY CLUSTERED
+		);
 
 IF @@SERVERNAME NOT LIKE 'DB04%'
 BEGIN
@@ -68,7 +68,7 @@ BEGIN
 		,	RefCode, SettlementTime
 		)
 	OUTPUT	Inserted.transid
-	INTO	#__tmpTransId (id)
+	INTO	@__tmpTransId (id)
 	SELECT	transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, status, winlost, awinlost, mwinlost
 		,	playercomm, comm, acomm, apositiontaking, mpositiontaking, tpositiontaking, playerdiscount
 		,	discount, adiscount, livehomescore, liveawayscore, liveindicator, betteam, creator, refno, comstatus
@@ -87,7 +87,7 @@ BEGIN
 		(	transid, SecAcceptTime, LiveBetAcceptTime)
 	SELECT	transid, SecAcceptTime, LiveBetAcceptTime
 	FROM		dbo.BettransInfo AS bi WITH (NOLOCK)
-	INNER JOIN	#__tmpTransId AS tmp WITH (NOLOCK)
+	INNER JOIN	@__tmpTransId AS tmp
 			ON	bi.transid = tmp.id;
 
 	insert into translog14 
@@ -155,7 +155,7 @@ BEGIN
 		,	RefCode, SettlementTime
 		)
 	OUTPUT	Inserted.transid
-	INTO	#__tmpTransId (id)
+	INTO	@__tmpTransId (id)
 	SELECT	transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, status, winlost, awinlost, mwinlost
 		,	playercomm, comm, acomm, apositiontaking, mpositiontaking, tpositiontaking, playerdiscount
 		,	discount, adiscount, livehomescore, liveawayscore, liveindicator, betteam, creator, refno, comstatus
@@ -174,7 +174,7 @@ BEGIN
 		(	transid, SecAcceptTime, LiveBetAcceptTime)
 	SELECT	transid, SecAcceptTime, LiveBetAcceptTime
 	FROM		dbo.BettransInfo AS bi WITH (NOLOCK)
-	INNER JOIN	#__tmpTransId AS tmp WITH (NOLOCK)
+	INNER JOIN	@__tmpTransId AS tmp
 			ON	bi.transid = tmp.id;
 END
 

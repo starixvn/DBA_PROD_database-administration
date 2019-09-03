@@ -35,7 +35,7 @@ BEGIN
 
 	-- 20190828@Billy: Temp variable table for deleting [bettransInfo14]
 	DECLARE	@__tmpTransId AS TABLE (
-				id		BIGINT
+				id		BIGINT		PRIMARY KEY CLUSTERED
 			);
 
 	IF @Command IS NULL OR @winlostdate IS NULL
