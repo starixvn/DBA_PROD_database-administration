@@ -1,14 +1,15 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-CREATE PROCEDURE	[dbo].[ExecRep_09]
+CREATE PROCEDURE	dbo.ExecRep_09
 	@recommend int,
 	@winlostdate smalldatetime,
 	@parlay tinyint = 0,
 	@tableName varchar(125) = '',
 	@refnos varchar(max) = '',
 	@rowDeleted int = 0 OUTPUT,
-	@firstRound bit = 0
+	@firstRound bit = 0,
+	@matchId int = 0
 AS
 -- *** IMPORTANT ***
 -- IF code altered, must to go check related SP of ExecRep_Queue @ DBTP
@@ -34,6 +35,10 @@ AS
 			+ When processing a line then insert itself and upline's to [List]
 		- 20180329@Percy: Enhance MBBU process [RedmineID: #92391]
 		- 20181222@Billy:   Remove Queue processing on DBTP - [Redmine: #000000]
+		- 20190131@Patrick: Delete bettransm batch by batch at replicated servers to reduce lock escalation [RedmineID: #108581]
+		- 20190319@Patrick: DB06 migration [RedmineID: #110208]
+		- 20190701@Percy: Update directly flag of MBBU process [RedmineID: #115877]
+		- 20190828@Billy:	Add table [bettransInfo] - [Redmine: #119219]
  */
 BEGIN
 	--SET NOCOUNT ON
@@ -49,6 +54,11 @@ BEGIN
 	END
 */
 
+	-- 20190828@Billy: Temp variable table for deleting [bettransInfo]
+	DECLARE	@__tmpTransId AS TABLE (
+				id		BIGINT		PRIMARY KEY CLUSTERED
+			);
+
 	IF @tableName = 'SystemSettings'
 	BEGIN
 		IF EXISTS (
@@ -63,44 +73,39 @@ BEGIN
 				5: BU on
 				6: BU off
 			*/
-			DECLARE @flag TINYINT, @VName VARCHAR(200)
+			DECLARE @VName VARCHAR(50)
+			SELECT  @VName = CASE WHEN @parlay IN (3,4) THEN 'isMovingBet_Local' WHEN @parlay IN (5,6) THEN 'isArchivingBet_Local' END
 
-			SELECT @VName = CASE WHEN @parlay IN (3,4) THEN 'isMovingBet_Local' WHEN @parlay IN (5,6) THEN 'isArchivingBet_Local' END
+			DECLARE @updatedFlag TABLE (VValue VARCHAR(200))
 
-			SELECT @flag = CONVERT(TINYINT, VValue)
-			FROM dbo.SystemSettings WITH (NOLOCK)
-			WHERE VName = @VName
-			
 			--//@parlay = 3,5: turn on flag --> input start time, @parlay = 4,6: turn off flag --> input end time
 			IF @parlay IN (3,5)
 			BEGIN
-				IF @flag = 0
+				UPDATE dbo.SystemSettings WITH (ROWLOCK)
+				SET VValue = CONVERT(VARCHAR(200), CONVERT(SMALLINT, VValue) + 1)
+				OUTPUT DELETED.VValue INTO @updatedFlag (VValue)
+				WHERE VName = @VName
+
+				IF EXISTS (SELECT 1 FROM @updatedFlag WHERE VValue = '0')
 				BEGIN
-					UPDATE dbo.SystemSettings WITH (ROWLOCK, UPDLOCK)
+					UPDATE dbo.SystemSettings WITH (ROWLOCK)
 					SET VValue = CONVERT(VARCHAR(200), GETDATE(), 121)
 					WHERE VName = 'StartMoving_Local'
 				END
-
-				SELECT @flag = @flag + 1
-
-				UPDATE dbo.SystemSettings WITH (ROWLOCK, UPDLOCK)
-				SET VValue = CONVERT(VARCHAR(200), @flag)
-				WHERE VName = @VName
 			END
 			ELSE IF @parlay IN (4,6)
 			BEGIN
-				IF @flag = 1
+				UPDATE dbo.SystemSettings WITH (ROWLOCK)
+				SET VValue = CONVERT(VARCHAR(200), CONVERT(SMALLINT, VValue) - 1)
+				OUTPUT INSERTED.VValue INTO @updatedFlag (VValue)
+				WHERE VName = @VName
+
+				IF EXISTS (SELECT 1 FROM @updatedFlag WHERE VValue = '0')
 				BEGIN
-					UPDATE dbo.SystemSettings WITH (ROWLOCK, UPDLOCK)
+					UPDATE dbo.SystemSettings WITH (ROWLOCK)
 					SET VValue = CONVERT(VARCHAR(200), GETDATE(), 121)
 					WHERE VName = 'EndMoving_Local'
 				END
-
-				SELECT @flag = @flag - 1
-
-				UPDATE dbo.SystemSettings WITH (ROWLOCK, UPDLOCK)
-				SET VValue = CONVERT(VARCHAR(200), @flag)
-				WHERE VName = @VName
 			END
 		END
 		RETURN
@@ -199,19 +204,45 @@ BEGIN
 		--//for bettrans
 		IF @tableName = 'bettrans'
 		BEGIN
-			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02')
-			BEGIN
-				DELETE TOP (2000) FROM bettrans WITH(ROWLOCK)
-				WHERE recommend = @recommend AND winlostdate = @winlostdate AND bettype < 19999
+			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02', 'DB061', 'DB062')
+			BEGIN;
+				DELETE	@__tmpTransId;
 
-				SET @RowDeleted = @@ROWCOUNT
+				DELETE	TOP (2000)
+				FROM	dbo.bettrans WITH (ROWLOCK)
+				OUTPUT	Deleted.transid
+				INTO	@__tmpTransId (id)
+				WHERE	recommend = @recommend
+					AND	winlostdate = @winlostdate
+					AND	bettype < 19999;
+
+				SET @RowDeleted = @@ROWCOUNT;
+
+				-- 20190828@Billy: Add [bettransInfo] table
+				DELETE	tbl
+				FROM		@__tmpTransId AS tmp
+				INNER JOIN	dbo.BettransInfo AS tbl WITH (ROWLOCK)
+						ON	tmp.id = tbl.transid;
 			END
 			ELSE IF @firstRound = 1 --for all replicated servers, will delete by recommend
-			BEGIN
-				DELETE FROM bettrans WITH(ROWLOCK)
-				WHERE recommend = @recommend AND winlostdate = @winlostdate AND bettype < 19999
+			BEGIN;
+				DELETE	@__tmpTransId;
 
-				SET @RowDeleted = @@ROWCOUNT
+				DELETE
+				FROM	dbo.bettrans WITH (ROWLOCK)
+				OUTPUT	Deleted.transid
+				INTO	@__tmpTransId (id)
+				WHERE	recommend = @recommend
+					AND	winlostdate = @winlostdate
+					AND	bettype < 19999;
+
+				SET @RowDeleted = @@ROWCOUNT;
+
+				-- 20190828@Billy: Add [bettransInfo] table
+				DELETE	tbl
+				FROM		@__tmpTransId AS tmp
+				INNER JOIN	dbo.BettransInfo AS tbl WITH (ROWLOCK)
+						ON	tmp.id = tbl.transid;
 			END
 
 			RETURN
@@ -220,7 +251,7 @@ BEGIN
 		--//for translog
 		IF @tableName = 'translog'
 		BEGIN
-			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02')
+			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02', 'DB061', 'DB062')
 			BEGIN
 				DELETE TOP (2000) FROM translog WITH(ROWLOCK)
 				WHERE recommend = @recommend AND winlostdate = @winlostdate
@@ -241,7 +272,7 @@ BEGIN
 		--//for bettransLC
 		IF @tableName = 'bettransLC'
 		BEGIN
-			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02')
+			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02', 'DB061', 'DB062')
 			BEGIN	
 				DELETE TOP (2000) FROM bettransLC WITH(ROWLOCK)
 				WHERE recommend = @recommend AND winlostdate = @winlostdate  
@@ -262,7 +293,7 @@ BEGIN
 		--//for bettransRNG
 		IF @tableName = 'bettransRNG'
 		BEGIN
-			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02')
+			IF @@SERVERNAME IN ('DBTRANS', 'DB06', 'DBLICAPI', 'DBLicApi02', 'DB061', 'DB062')
 			BEGIN
 				DELETE TOP (2000) FROM bettransRNG WITH(ROWLOCK)
 				WHERE recommend = @recommend AND winlostdate = @winlostdate 
@@ -283,34 +314,22 @@ BEGIN
 
 	IF @parlay = 1
 	BEGIN
-		Declare @rc int, @rn int, @rn2 int
-		Declare @matchid int
-		CREATE TABLE #m (rn int PRIMARY KEY IDENTITY(1,1), matchid int)
+		IF @tableName = 'bettransM' AND @matchId > 0
+		BEGIN
+			WHILE 1 = 1
+			BEGIN
+				DELETE TOP(2000) FROM bettransm WITH(ROWLOCK)
+				WHERE matchid = @matchId
 
-		INSERT INTO #m (matchid)
-		SELECT DISTINCT m.matchid
-		FROM dbo.bettransm b with (nolock)
-			INNER JOIN dbo.match m with (nolock) ON b.matchid = m.matchid
-		WHERE winlostdate = @winlostdate
-
-		SET @rn2 = @@ROWCOUNT
-	
-		SET @rn = 1
-
-		NextMatchIDm:
-		SELECT @matchid = matchid FROM #m WHERE rn = @rn
-		IF @@ROWCOUNT = 0 GOTO NoMoreMatchIDm
-	
-		DELETE FROM bettransm WITH(ROWLOCK) WHERE matchid = @matchid
-
-		DELETE FROM #m WHERE rn = @rn
-		SET @rn = @rn + 1
-		GOTO NextMatchIDm
-	
-		NoMoreMatchIDm:
-		DELETE FROM bettransm WITH(ROWLOCK, UPDLOCK) WHERE winlostdate = @winlostdate
-	
-		DROP TABLE #m
+				IF @@ROWCOUNT < 2000
+					BREAK
+			END
+		END
+		ELSE IF @tableName = 'bettransM' AND @matchId = -1 -- last round
+		BEGIN
+			DELETE FROM bettransm WITH(ROWLOCK)
+			WHERE winlostdate = @winlostdate
+		END
 	END
 
 	IF @parlay = 2

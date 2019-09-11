@@ -1,7 +1,7 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-CREATE PROCEDURE	[dbo].[ExecRep_08]
+CREATE PROCEDURE	dbo.ExecRep_08
 	@recommend int,
 	@winlostdate smalldatetime,
 	@parlay bit = 0
@@ -32,6 +32,7 @@ AS
 		- 20181222@Billy:	Remove Queue processing on DBTP - [Redmine: #000000]
 		- 20190213@Billy:	Add column [SecAcceptFlag] of [bettransm] - [Redmine: #108780]
 		- 20190424@Billy:	Add column [SettlementTime] of [bettrans] - [Redmine: #112464]
+		- 20190828@Billy:	Add table [bettransInfo] & column [SecAcceptTime], [LiveBetAcceptTime] of [bettransm] - [Redmine: #119219]
 	 */
 	 
 DECLARE @__winlostdate SMALLDATETIME, @__recommend INT
@@ -48,6 +49,11 @@ BEGIN
 END
 */
 
+-- 20190828@Billy:	Temp table variable contain output transid for copy [bettransInfo]
+DECLARE	@__tmpTransId AS TABLE (
+			id		BIGINT		PRIMARY KEY CLUSTERED
+		);
+
 IF @@SERVERNAME NOT LIKE 'DB04%'
 BEGIN
 	-- Note: Exclude columns: [tstamp], [recommdate]
@@ -61,6 +67,8 @@ BEGIN
 		,	oddstype, statusID, currency2, balance, SecAcceptFlag, transid2, ExtraInfo, WalletType, BonusID
 		,	RefCode, SettlementTime
 		)
+	OUTPUT	Inserted.transid
+	INTO	@__tmpTransId (id)
 	SELECT	transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, status, winlost, awinlost, mwinlost
 		,	playercomm, comm, acomm, apositiontaking, mpositiontaking, tpositiontaking, playerdiscount
 		,	discount, adiscount, livehomescore, liveawayscore, liveindicator, betteam, creator, refno, comstatus
@@ -73,6 +81,14 @@ BEGIN
 	WHERE	recommend = @__recommend
 		AND	winlostdate = @__winlostdate
 		AND	bettype <= 19000;
+
+	-- 20190828@Billy: Add [bettransInfo]
+	INSERT INTO	dbo.BettransInfo14
+		(	transid, SecAcceptTime, LiveBetAcceptTime)
+	SELECT	transid, SecAcceptTime, LiveBetAcceptTime
+	FROM		dbo.BettransInfo AS bi WITH (NOLOCK)
+	INNER JOIN	@__tmpTransId AS tmp
+			ON	bi.transid = tmp.id;
 
 	insert into translog14 
 		(
@@ -138,6 +154,8 @@ BEGIN
 		,	oddstype, statusID, currency2, balance, SecAcceptFlag, transid2, ExtraInfo, WalletType, BonusID
 		,	RefCode, SettlementTime
 		)
+	OUTPUT	Inserted.transid
+	INTO	@__tmpTransId (id)
 	SELECT	transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, status, winlost, awinlost, mwinlost
 		,	playercomm, comm, acomm, apositiontaking, mpositiontaking, tpositiontaking, playerdiscount
 		,	discount, adiscount, livehomescore, liveawayscore, liveindicator, betteam, creator, refno, comstatus
@@ -150,6 +168,14 @@ BEGIN
 	WHERE	recommend = @__recommend
 		AND	winlostdate = @__winlostdate
 		AND	bettype IN (9, 29);
+
+	-- 20190828@Billy: Add [bettransInfo]
+	INSERT INTO	dbo.BettransInfo14
+		(	transid, SecAcceptTime, LiveBetAcceptTime)
+	SELECT	transid, SecAcceptTime, LiveBetAcceptTime
+	FROM		dbo.BettransInfo AS bi WITH (NOLOCK)
+	INNER JOIN	@__tmpTransId AS tmp
+			ON	bi.transid = tmp.id;
 END
 
 
@@ -168,20 +194,21 @@ BEGIN
 		--	END
 		--END
 
+		-- 20190828@Billy: Add [SecAcceptTime], [LiveBetAcceptTime] of [bettransm]
 		INSERT INTO	dbo.bettransm14 (
 				transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, [status], winlost, livehomescore
 			,	liveawayscore, liveindicator, betteam, creator, refno, comstatus, winlostdate, betfrom, betcheck
 			,	checktime, oddsspread, apositiontaking, mpositiontaking, tpositiontaking, awinlost, mwinlost
 			,	playerdiscount, discount, adiscount, playercomm, comm, acomm, actualrate, matchid, matchdate
 			,	finalodds, isfinish, statuswinlost, ruben, bettype, spositiontaking, swinlost, sdiscount, scomm
-			,	statusID, transdesc, SecAcceptFlag
+			,	statusID, transdesc, SecAcceptFlag, SecAcceptTime, LiveBetAcceptTime
 			)
 		SELECT	transid, custid, transdate, oddsid, hdp1, hdp2, odds, stake, [status], winlost, livehomescore
 			,	liveawayscore, liveindicator, betteam, creator, refno, comstatus, winlostdate, betfrom, betcheck
 			,	checktime, oddsspread, apositiontaking, mpositiontaking, tpositiontaking, awinlost, mwinlost
 			,	playerdiscount, discount, adiscount, playercomm, comm, acomm, actualrate, matchid, matchdate
 			,	finalodds, isfinish, statuswinlost, ruben, bettype, spositiontaking, swinlost, sdiscount, scomm
-			,	statusID, transdesc, SecAcceptFlag
+			,	statusID, transdesc, SecAcceptFlag, SecAcceptTime, LiveBetAcceptTime
 		FROM	dbo.bettransm AS b WITH (NOLOCK)
 		WHERE	winlostdate = @__winlostdate;
 
@@ -218,7 +245,6 @@ BEGIN
 			WHERE WinlostDate = @__winlostdate
 		END
 	END
-	
 END
 GO
 /*<info serverAlias="DBTXN-bodb02" executers="" viewers="" isFunction="0" isNested="1"></info>*/
