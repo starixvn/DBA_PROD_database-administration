@@ -52,7 +52,7 @@ SELECT custid
 FROM bettransLC with (NOLOCK) WHERE custid NOT IN(select custid from bodb_report.dbo.tempCustID)
 
 --update exception list
-EXEC dbo.DBA_ArchiveAccount_UpdateAcception
+EXEC dbo.DBA_ArchiveAccount_UpdateException
 
 
 --Get cust from s3

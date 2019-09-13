@@ -49,7 +49,7 @@ FROM bettransLC with (NOLOCK) WHERE custid NOT IN(select custid from bodb_report
 
 
 --update exception list
-EXEC dbo.DBA_ArchiveAccount_UpdateAcception
+EXEC dbo.DBA_ArchiveAccount_UpdateException
 
 SELECT ag.custid, isnull(MemCount, 0) [Member Count]
 INTO #tmpAg

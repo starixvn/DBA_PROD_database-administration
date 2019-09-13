@@ -54,7 +54,7 @@ FROM bettransLC with (NOLOCK) WHERE custid NOT IN(select custid from bodb_report
 
 
 --update exception list
-EXEC dbo.DBA_ArchiveAccount_UpdateAcception
+EXEC dbo.DBA_ArchiveAccount_UpdateException
 
 --Get cust from s1
 SELECT ag.recommend custid, isnull(MemCount, 0) [Member Count]

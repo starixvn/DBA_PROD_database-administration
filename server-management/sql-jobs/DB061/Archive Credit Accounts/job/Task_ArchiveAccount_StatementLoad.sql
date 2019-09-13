@@ -1,10 +1,10 @@
-/*<info serverAlias="DBACC-bodb_Report" executers="" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBRPT-bodb_Report" executers="" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [Task_ArchiveAccount_StatementLoad]
 AS
 /*
 	Task: Load statement data incrementally to check credit customers to be archived, used for various stages
 	Created: Daniel@20190519
-	Database: DBACC.bodb_Report
+	Database: DBRPT.bodb_Report
 
 	Revisions:
 	- 20190519@Daniel: Created
