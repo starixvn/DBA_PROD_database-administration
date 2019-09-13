@@ -12,7 +12,7 @@ AS
 	DB: DBCUST/CustDB
 	
 	Revisions:
-		20180305: clone fro old SP DBA_ArchiveAccount1_DisableAgentLine:
+		20180305@Daniel: clone fro old SP DBA_ArchiveAccount1_DisableAgentLine:
 		 + Rename sp for stage No 2- start from 1 instead of 0
 		 + support new custinfo columns
 
