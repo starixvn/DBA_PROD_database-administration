@@ -8,8 +8,8 @@ AS
 	Original: DBA_ArchiveAccount0_CloseAgent_GenScript
 
 	Revisions:
-		Daniel@20180222: cloned & renamed from old sp DBA_ArchiveAccount0_CloseAgent_GenScript, get masterID for send message to masters
-		Daniel@20190218: use permanent temp table bodb_report.dbo.tempCustID instead, the table need to be prepared outside, this avoid sp timeout when exec via linked server
+		20180222@Daniel: cloned & renamed from old sp DBA_ArchiveAccount0_CloseAgent_GenScript, get masterID for send message to masters
+		20190218@Daniel: use permanent temp table bodb_report.dbo.tempCustID instead, the table need to be prepared outside, this avoid sp timeout when exec via linked server
 
 		
 	Param's Explanation:

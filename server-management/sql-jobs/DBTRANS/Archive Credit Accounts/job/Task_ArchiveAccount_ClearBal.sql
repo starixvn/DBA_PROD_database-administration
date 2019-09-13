@@ -7,6 +7,9 @@ AS
 	Date: 20190708
 	Database: DBTRANS.custdb
 
+	Revisions:
+		- 20190708@Daniel: Created
+
 */
 BEGIN
 

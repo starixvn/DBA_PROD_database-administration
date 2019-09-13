@@ -5,6 +5,10 @@ AS
 	Task: Load statement data incrementally to check credit customers to be archived, used for various stages
 	Created: Daniel@20190519
 	Database: DBACC.bodb_Report
+
+	Revisions:
+	- 20190519@Daniel: Created
+
 */
 BEGIN
 	SET NOCOUNT ON

@@ -12,6 +12,7 @@ AS
 	DB: DBCUST/CustDB
 	
 	Revisions:
+		20180222@Daniel: Created
 
 */
     

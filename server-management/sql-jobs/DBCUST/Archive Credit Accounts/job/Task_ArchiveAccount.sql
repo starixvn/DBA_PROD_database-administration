@@ -7,6 +7,9 @@ AS
 	Created: Daniel@20190519
 	Database: DBCUST.CustDB
 
+	Revisions:
+		- 20190519@Daniel: Created
+
 	Param:
 		+ @stage: input stage to run archive
 */
