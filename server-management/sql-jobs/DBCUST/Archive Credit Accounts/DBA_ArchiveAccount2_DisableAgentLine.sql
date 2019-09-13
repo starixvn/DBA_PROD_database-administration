@@ -6,7 +6,7 @@ ALTER PROCEDURE [DBA_ArchiveAccount2_DisableAgentLine]
 	@ErrCode int = 0 OUTPUT
 AS
 /*
-	Created by: Daniel
+	Created: Daniel
 	Date: 2018-03-05
 	Task: Archive Acc (New) - sp for stage 2 - backup data & disable+clear credit of whole agent line 
 	DB: DBCUST/CustDB

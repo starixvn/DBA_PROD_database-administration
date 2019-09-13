@@ -2,7 +2,7 @@
 ALTER PROCEDURE [DBA_ArchiveAccount1_CloseAgentLine_GenScript]
 AS
 /*
-	Created: 20151116@Daniel
+	Created: Daniel@20151116
 	Task: Archive Acc - Gen script batch run sp for stage 0 - close agent
 	DB: DBACC/bodb02
 	Original: DBA_ArchiveAccount0_CloseAgent_GenScript

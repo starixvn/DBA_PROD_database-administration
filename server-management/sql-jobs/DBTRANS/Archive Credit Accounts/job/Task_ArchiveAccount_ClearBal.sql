@@ -3,7 +3,8 @@ ALTER PROCEDURE [Task_ArchiveAccount_ClearBal]
 AS
 /*
 	Task: Archive unused credit account - step 3: clear balance
-	Created: Daniel@20190708
+	Creator:	@Daniel
+	Date: 20190708
 	Database: DBTRANS.custdb
 
 */
