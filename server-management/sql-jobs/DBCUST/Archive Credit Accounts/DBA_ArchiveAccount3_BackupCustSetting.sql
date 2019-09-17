@@ -13,6 +13,8 @@ AS
 	Revisions:
 		20180320@Daniel: rename SP to count stage from 1 => No. 3 for this stage
 		20180520@Daniel: Remove table custVirtualRate
+		20190917@Daniel: Remove inactive products - unused custinfo columns (#117439 - P2)
+
 
 */
     
@@ -92,27 +94,23 @@ insert into DBARCCUST.bodb_Customer.dbo.custinfo_old(
 	   [ArchiveDate],
 		username, custid, currency, roleid, srecommend, mrecommend, recommend, dangercust, autosuspend, reject, credit, closed, MatchLimit, 
                       VirtualMultiplier, maxpermatch, maxpermatch2, maxpermatch3, maxpermatch5, maxpermatch8, maxpermatch10, maxpermatch11, maxpermatch12, 
-                      maxpermatch99, Enabled, danger, maxpermatch151, maxpermatch201, DisableHorseRacing, DisableFinancial, DisableCasino, SyncCasino, danger2, 
-                      danger3, DisableOutright, DisableOpenTote, maxpermatch151_OT, MaxPerMatch99MP, DisableBingo, DisableNumber, maxpermatch161, SyncBingo, 
-                      MaxPerBall161, MaxPerMatch151_AU, MaxPerMatch152_UK, MaxPerMatch152_AU, MaxPerMatch153_AU, Disable151_AU, Disable152_UK, 
-                      Disable152_AU, Disable153_AU, MaxtransferP2P, IsAutoResetP2P, DisableP2P, DisableFunP2P, DisableLiveCasino, SyncLiveCasino, 
-                      DisableVirtualSports, HideVirtualSports, maxpermatch180, Abnormal, DoubleCommLosing, isAutoResetLiveCasino, MaxWinLiveCasino, 
-                      maxpermatch186, maxpermatch181, maxpermatch182, DisableCasinoBonus, maxpermatch184, DisableHRFixedOdds, maxpermatch154, 
-                      autosuspend2, maxpermatch183, maxpermatch185, HideKeno, DisableEsports, HideGoldDeluxe, DisableGoldDeluxe,  
-                      DisableSuperLive, DisableColossusBet, HideColossusBet, MaxPerMatch44, DisableMicrogameLC, DisableMicrogameRNG, DisableBinaryOptions, 
+                      maxpermatch99, Enabled, danger, DisableCasino, SyncCasino, danger2, 
+                      danger3, DisableOutright, MaxPerMatch99MP, DisableNumber, maxpermatch161, 
+                      MaxPerBall161,
+                      Abnormal, DoubleCommLosing,
+                      autosuspend2, HideKeno, DisableEsports, HideGoldDeluxe, DisableGoldDeluxe,  
+                      DisableSuperLive, DisableColossusBet, HideColossusBet, 
                       LockUpd, MaxPerMatch1MP, BonusWalletFlag
 )
 select	@Now, 
 		username, custid, currency, roleid, srecommend, mrecommend, recommend, dangercust, autosuspend, reject, credit, closed, MatchLimit, 
                       VirtualMultiplier, maxpermatch, maxpermatch2, maxpermatch3, maxpermatch5, maxpermatch8, maxpermatch10, maxpermatch11, maxpermatch12, 
-                      maxpermatch99, Enabled, danger, maxpermatch151, maxpermatch201, DisableHorseRacing, DisableFinancial, DisableCasino, SyncCasino, danger2, 
-                      danger3, DisableOutright, DisableOpenTote, maxpermatch151_OT, MaxPerMatch99MP, DisableBingo, DisableNumber, maxpermatch161, SyncBingo, 
-                      MaxPerBall161, MaxPerMatch151_AU, MaxPerMatch152_UK, MaxPerMatch152_AU, MaxPerMatch153_AU, Disable151_AU, Disable152_UK, 
-                      Disable152_AU, Disable153_AU, MaxtransferP2P, IsAutoResetP2P, DisableP2P, DisableFunP2P, DisableLiveCasino, SyncLiveCasino, 
-                      DisableVirtualSports, HideVirtualSports, maxpermatch180, Abnormal, DoubleCommLosing, isAutoResetLiveCasino, MaxWinLiveCasino, 
-                      maxpermatch186, maxpermatch181, maxpermatch182, DisableCasinoBonus, maxpermatch184, DisableHRFixedOdds, maxpermatch154, 
-                      autosuspend2, maxpermatch183, maxpermatch185, HideKeno, DisableEsports, HideGoldDeluxe, DisableGoldDeluxe,  
-                      DisableSuperLive, DisableColossusBet, HideColossusBet, MaxPerMatch44, DisableMicrogameLC, DisableMicrogameRNG, DisableBinaryOptions, 
+                      maxpermatch99, Enabled, danger, DisableCasino, SyncCasino, danger2, 
+                      danger3, DisableOutright, MaxPerMatch99MP, DisableNumber, maxpermatch161, 
+                      MaxPerBall161,
+                      Abnormal, DoubleCommLosing,
+                      autosuspend2, HideKeno, DisableEsports, HideGoldDeluxe, DisableGoldDeluxe,  
+                      DisableSuperLive, DisableColossusBet, HideColossusBet, 
                       LockUpd, MaxPerMatch1MP, BonusWalletFlag   
 from	custinfo (nolock)
 where	custid IN (	select custid from custinfo with (nolock) where recommend = @AgentID)

@@ -13,6 +13,7 @@ AS
 	Revision:
 		20180126@Daniel: add pre-stage - close agents and downnlines (@Type = -1)
 		20180822@Daniel: Remove table custVirtuaRate
+		20190917@Daniel: Remove unused tables P2PGameSetting, P2PGroupComm for clean up inactive product (#117439 - P2)
 
 	Param's Explanation:
 		@Type: 
@@ -98,33 +99,6 @@ BEGIN
 			END
 		END
 	
-	     IF (dbo.f_CheckRepTable('P2PGameSetting') = 1 
-		  AND dbo.f_CheckRepTable('P2PGroupComm') = 1 
-	     )
-		BEGIN			
-			WHILE(1=1)
-			BEGIN
-				DELETE TOP(10000) dbo.[P2PGameSetting] WITH (UPDLOCK,ROWLOCK)
-				WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
-									WHERE roleid = 1 
-										AND recommend = @AgentID
-										)
-				IF @@ROWCOUNT < 10000 
-					BREAK
-			END			
-			
-			WHILE(1=1)
-			BEGIN
-				DELETE TOP(10000) dbo.[P2PGroupComm] WITH (UPDLOCK,ROWLOCK)
-				WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
-										WHERE roleid = 1 
-											AND recommend = @AgentID
-											)
-				IF @@ROWCOUNT < 10000 
-					BREAK
-			END				
-		END		
-
 	     IF (dbo.f_CheckRepTable('CustSettingGame') = 1 
 		  AND dbo.f_CheckRepTable('CustGameType') = 1 
 	     )
