@@ -5,6 +5,7 @@
 
 	Revision:
 		- 20190611@Billy:	Initialization - [Redmine: #114307]
+		- 20190927@Billy:	Remove DBLICAPI - [Redmine: #120468]
 */
 
 
@@ -72,7 +73,7 @@ CREATE TABLE	#ResultMNL (
 				);
 
 SELECT	@LinkedServerQuery = N'';
-SELECT	@LinkedServerQuery = @LinkedServerQuery + N'
+SELECT	@LinkedServerQuery += N'\
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 SET NOCOUNT ON;
 
@@ -127,8 +128,6 @@ VALUES	('KBTDBTRANS'	, 'MNL_DBTRANS')
 	,	('KBTDB061'		, 'MNL_DB06')
 	,	('KBTDBDW'		, 'MNL_DBDW')
 	,	('KBTDBDW2'		, 'MNL_DBDW')
-	,	('KBTDBLICAPI'	, 'MNL_DBLICAPI')
-	,	('KBTDBLICAPI02', 'MNL_DBLICAPI')
 	;
 
 
