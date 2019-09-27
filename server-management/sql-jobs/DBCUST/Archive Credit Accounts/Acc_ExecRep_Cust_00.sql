@@ -14,6 +14,7 @@ AS
 		20180126@Daniel: add pre-stage - close agents and downnlines (@Type = -1)
 		20180822@Daniel: Remove table custVirtuaRate
 		20190917@Daniel: Remove unused tables P2PGameSetting, P2PGroupComm for clean up inactive product (#117439 - P2)
+		20190925@Daniel: Remove SP Recompile & involve more setting tables
 
 	Param's Explanation:
 		@Type: 
