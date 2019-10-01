@@ -2,6 +2,7 @@ SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
 CREATE PROCEDURE	dbo.Task_CorrectTransactionsLocationData
+						@ByPassSafetyCheck	BIT				= 0
 AS
 /*
 	Creator:	20190712@Billy
@@ -10,6 +11,7 @@ AS
 
 	Revisions:
 		- 20190712@Billy:	Initial - [Redmine: #116536]
+		- 20191001@Billy:	Add safety check to avoid correct data of last month - [Redmine: #000000]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -32,6 +34,22 @@ BEGIN;
 
 	DECLARE	@Message	NVARCHAR(MAX)
 		;
+
+
+	IF	@ByPassSafetyCheck = 0 AND DATEPART(DAY, GETDATE()) > 7
+	BEGIN;
+		SELECT	@Message = N'';
+		SELECT	@Message += N'\
+[Terminated] - FPS IPDB Correction Job is terminated due to safety check failed.
+    Current time: ' + CONVERT(NVARCHAR(25), GETDATE(), 121) + N'
+    Condition failed: (DATEPART(DAY) = ' + CAST(DATEPART(DAY, GETDATE()) AS NVARCHAR) + N' <= 7
+';
+		EXECUTE	DBNOTI.NotificationDB.dbo.Skype_SendMessage N'JOBFPS', @Message;
+
+		RAISERROR('Safety check failed!', 16, 1) WITH NOWAIT;
+		RETURN;
+	END;
+
 
 	IF	OBJECT_ID('tempdb..#Subscribers') IS NOT NULL
 		DROP TABLE	#Subscribers;
