@@ -275,6 +275,9 @@ BEGIN;
 						,	@database_name				= N'IPDB'
 						,	@flags						= 0
 						,	@command					= N'\
+UPDATE	dbo.IPDBVersion WITH (ROWLOCK)
+SET		version_date = DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0);
+
 DECLARE	@Message NVARCHAR(MAX);
 SELECT	@Message = N'''';
 SELECT	@Message = @Message + N''[JOB Done]@'' + @@SERVERNAME + N'': [IPDB] - Import IP2Location'';
