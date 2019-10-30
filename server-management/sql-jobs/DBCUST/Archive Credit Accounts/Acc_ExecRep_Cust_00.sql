@@ -2,7 +2,6 @@
 ALTER PROCEDURE [Acc_ExecRep_Cust_00]
 	@AgentID	INT,
 	@Type		SMALLINT
-WITH RECOMPILE	
 AS 
 /*
 	Created by: Daniel
@@ -13,6 +12,8 @@ AS
 	Revision:
 		20180126@Daniel: add pre-stage - close agents and downnlines (@Type = -1)
 		20180822@Daniel: Remove table custVirtuaRate
+		20190917@Daniel: Remove unused tables P2PGameSetting, P2PGroupComm for clean up inactive product (#117439 - P2)
+		20190925@Daniel: Remove SP Recompile & involve more setting tables
 
 	Param's Explanation:
 		@Type: 
@@ -98,33 +99,6 @@ BEGIN
 			END
 		END
 	
-	     IF (dbo.f_CheckRepTable('P2PGameSetting') = 1 
-		  AND dbo.f_CheckRepTable('P2PGroupComm') = 1 
-	     )
-		BEGIN			
-			WHILE(1=1)
-			BEGIN
-				DELETE TOP(10000) dbo.[P2PGameSetting] WITH (UPDLOCK,ROWLOCK)
-				WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
-									WHERE roleid = 1 
-										AND recommend = @AgentID
-										)
-				IF @@ROWCOUNT < 10000 
-					BREAK
-			END			
-			
-			WHILE(1=1)
-			BEGIN
-				DELETE TOP(10000) dbo.[P2PGroupComm] WITH (UPDLOCK,ROWLOCK)
-				WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
-										WHERE roleid = 1 
-											AND recommend = @AgentID
-											)
-				IF @@ROWCOUNT < 10000 
-					BREAK
-			END				
-		END		
-
 	     IF (dbo.f_CheckRepTable('CustSettingGame') = 1 
 		  AND dbo.f_CheckRepTable('CustGameType') = 1 
 	     )
@@ -150,7 +124,133 @@ BEGIN
 				IF @@ROWCOUNT < 10000 
 					BREAK
 			END				
-		END	
+		END
+
+
+		--------- Archive more settings data (new tables/DCS)
+
+		IF dbo.f_CheckRepTable('CustBetSetting3rd_Member') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustBetSetting3rd_Member WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('CustCommRate') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustCommRate WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('CustDiscount3rd_Member') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustDiscount3rd_Member WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('custOverride') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.custOverride WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('custOverride3rd') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.custOverride3rd WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('CustOverrideGame') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustOverrideGame WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('CustProductStatus') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustProductStatus WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('CustPTSetting3rd_Member') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustPTSetting3rd_Member WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('CustSettingMode3rd') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustSettingMode3rd WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('CustStakeLevel_Member') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustStakeLevel_Member WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
+
+
+
 	END 
 	ELSE IF @Type = 2
 	BEGIN
@@ -254,9 +354,9 @@ BEGIN
 
 		END -- END of DBTRANS - delete balance tables
 				
-	     IF (dbo.f_CheckRepTable('Custinfo') = 1 
+	    IF (dbo.f_CheckRepTable('Custinfo') = 1 
 		  AND dbo.f_CheckRepTable('Customer') = 1 
-	     )
+	    )
 		BEGIN
 			WHILE(1=1)
 			BEGIN
@@ -274,7 +374,33 @@ BEGIN
 					BREAK			
 			END
 		END
-		
+
+		----- add more tables
+		IF dbo.f_CheckRepTable('custSearch') = 1 
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(5000) dbo.custSearch WITH (ROWLOCK)
+			WHERE username IN(SELECT username from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
+			IF @@ROWCOUNT < 5000
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('custSub') = 1 
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.custSub WITH (ROWLOCK)
+			WHERE custid IN(SELECT custid from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
+			IF @@ROWCOUNT < 10000
+				BREAK
+		END 
+
+		IF dbo.f_CheckRepTable('CustLoginInfo_Member') = 1 
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.custSub WITH (ROWLOCK)
+			WHERE custid IN(SELECT custid from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
+			IF @@ROWCOUNT < 10000
+				BREAK
+		END 
 	END 
 END
-
