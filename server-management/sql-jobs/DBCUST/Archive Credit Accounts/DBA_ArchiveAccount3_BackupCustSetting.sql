@@ -14,6 +14,7 @@ AS
 		20180320@Daniel: rename SP to count stage from 1 => No. 3 for this stage
 		20180520@Daniel: Remove table custVirtualRate
 		20190917@Daniel: Remove inactive products - unused custinfo columns (#117439 - P2)
+		20190929@Daniel: Involve more setting tables
 
 
 */
@@ -275,5 +276,90 @@ INSERT INTO DBARCCUST.bodb_Customer.dbo.CustVirtualSetting_Old(custid, seqNo, bi
 SELECT custid, seqNo, bitmapVirtual
 FROM [dbo].CustVirtualSetting WITH(NOLOCK)
 WHERE custid IN (SELECT custid FROM custinfo WITH(NOLOCK) WHERE recommend = @AgentID AND roleid = 1)
+
+
+--------- Involve more tables (new tables/DCS)
+
+insert into DBARCCUST.bodb_Customer.dbo.CustBetSetting3rd_old(
+	CustID, SportType, BetType, MinBet, MaxBet, MaxPerMatch
+) 
+SELECT	CustID, SportType, BetType, MinBet, MaxBet, MaxPerMatch
+FROM	CustBetSetting3rd_Member WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)		
+
+insert into DBARCCUST.bodb_Customer.dbo.CustCommRate_old(
+	CustID, SportType, BetType, sdiscount, adiscount, discount, playerdiscount
+) 
+SELECT	CustID, SportType, BetType, sdiscount, adiscount, discount, playerdiscount
+FROM	CustCommRate WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
+
+insert into DBARCCUST.bodb_Customer.dbo.CustDiscount3rd_Member_old(
+	CustID, SportType, BetType, PlayerDiscount, AgentDiscount, MasterDiscount, SuperDiscount
+) 
+SELECT	CustID, SportType, BetType, PlayerDiscount, AgentDiscount, MasterDiscount, SuperDiscount
+FROM	CustDiscount3rd_Member WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)	
+
+insert into DBARCCUST.bodb_Customer.dbo.custOverride_old(
+	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
+) 
+SELECT	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
+FROM	custOverride WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)	
+
+insert into DBARCCUST.bodb_Customer.dbo.custOverride3rd_old(
+	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
+) 
+SELECT	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
+FROM	custOverride3rd WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)	
+
+insert into DBARCCUST.bodb_Customer.dbo.CustOverrideGame_old(
+	 CustID, Bettype, Sporttype, minpositiontaking
+) 
+SELECT	 CustID, Bettype, Sporttype, minpositiontaking
+FROM	CustOverrideGame WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)	
+
+insert into DBARCCUST.bodb_Customer.dbo.CustProductStatus_old(
+	 CustID, bitmapHasSynced, bitmapIsHidden, bitmapIsDisabled, SuspendInfo
+) 
+SELECT	 CustID, bitmapHasSynced, bitmapIsHidden, bitmapIsDisabled, SuspendInfo
+FROM	CustProductStatus WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
+
+insert into DBARCCUST.bodb_Customer.dbo.CustPTSetting3rd_Member_old(
+	 CustID, SportType, BetType, IsLive, SuperPT, MasterPT, AgentPT, IsAutoMasterPT, AutoMasterPT, IsAutoSuperPT, AutoSuperPT
+) 
+SELECT	 CustID, SportType, BetType, IsLive, SuperPT, MasterPT, AgentPT, IsAutoMasterPT, AutoMasterPT, IsAutoSuperPT, AutoSuperPT
+FROM	CustPTSetting3rd_Member WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
+
+insert into DBARCCUST.bodb_Customer.dbo.CustSettingMode3rd_old(
+	 CustID, IsGrouped
+) 
+SELECT	 CustID, IsGrouped
+FROM	CustSettingMode3rd WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
+
+insert into DBARCCUST.bodb_Customer.dbo.CustStakeLevel_Member_old(
+	 CustID, SportType, BetType, StakeLevelList, LastUpdated
+) 
+SELECT	CustID, SportType, BetType, StakeLevelList, LastUpdated
+FROM	CustStakeLevel_Member WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
+
+insert into DBARCCUST.bodb_Customer.dbo.CustLoginInfo_Member_old(
+	 CustID, SecurityCode, IP, LastChangedID, LastChangedDate, OddsType, LayoutMode, BetStake, DefaultLanguage, OddsSort, BetterOdds, ShowLiveCasino, SportSort, CusStake1, CusStake2, 
+     ShowScoreMap, ShowBanner, AutoRefresh, MarketType, AutoRefreshMatch, MobileOthersType, gesture, failedcount, lastlogged, OddsColorStyle, ClosedReason, notify, recommendation
+) 
+SELECT CustID, SecurityCode, IP, LastChangedID, LastChangedDate, OddsType, LayoutMode, BetStake, DefaultLanguage, OddsSort, BetterOdds, ShowLiveCasino, SportSort, CusStake1, CusStake2, 
+     ShowScoreMap, ShowBanner, AutoRefresh, MarketType, AutoRefreshMatch, MobileOthersType, gesture, failedcount, lastlogged, OddsColorStyle, ClosedReason, notify, recommendation
+FROM	CustLoginInfo_Member WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
+
+-----------------------------------------------------------------------------------------------------------
+
 
 print  @AccName +':'+ 'END:' + convert(varchar(50), getdate(), 113)
