@@ -280,7 +280,7 @@ WHERE custid IN (SELECT custid FROM custinfo WITH(NOLOCK) WHERE recommend = @Age
 
 --------- Involve more tables (new tables/DCS)
 
-insert into DBARCCUST.bodb_Customer.dbo.CustBetSetting3rd_old(
+insert into DBARCCUST.bodb_Customer.dbo.CustBetSetting3rd_Member_old(
 	CustID, SportType, BetType, MinBet, MaxBet, MaxPerMatch
 ) 
 SELECT	CustID, SportType, BetType, MinBet, MaxBet, MaxPerMatch
