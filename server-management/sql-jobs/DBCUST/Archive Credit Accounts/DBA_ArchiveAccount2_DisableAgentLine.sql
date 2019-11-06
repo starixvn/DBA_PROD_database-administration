@@ -363,27 +363,6 @@ SELECT	CustID, SportType, BetType, PlayerDiscount, AgentDiscount, MasterDiscount
 FROM	CustDiscount3rd_Member WITH (NOLOCK)
 WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)	
 
-insert into DBARCCUST.bodb_Customer.dbo.custOverride_old(
-	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
-) 
-SELECT	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
-FROM	custOverride WITH (NOLOCK)
-WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)	
-
-insert into DBARCCUST.bodb_Customer.dbo.custOverride3rd_old(
-	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
-) 
-SELECT	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
-FROM	custOverride3rd WITH (NOLOCK)
-WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)	
-
-insert into DBARCCUST.bodb_Customer.dbo.CustOverrideGame_old(
-	 CustID, Bettype, Sporttype, minpositiontaking
-) 
-SELECT	 CustID, Bettype, Sporttype, minpositiontaking
-FROM	CustOverrideGame WITH (NOLOCK)
-WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)	
-
 insert into DBARCCUST.bodb_Customer.dbo.CustProductStatus_old(
 	 CustID, bitmapHasSynced, bitmapIsHidden, bitmapIsDisabled, SuspendInfo
 ) 
