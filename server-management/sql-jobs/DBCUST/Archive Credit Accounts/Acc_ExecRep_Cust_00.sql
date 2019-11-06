@@ -213,7 +213,17 @@ BEGIN
 				BREAK
 		END
 
-
+		IF dbo.f_CheckRepTable('CustWinLossLimit_Member') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustWinLossLimit_Member WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
 
 	END 
 	ELSE IF @Type = 2

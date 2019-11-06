@@ -338,6 +338,13 @@ SELECT CustID, SecurityCode, IP, LastChangedID, LastChangedDate, OddsType, Layou
 FROM	CustLoginInfo_Member WITH (NOLOCK)
 WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
 
+insert into DBARCCUST.bodb_Customer.dbo.CustWinLossLimit_Member_old(
+	CustId, SportType, BetType, MaxWinLimit, MaxLossLimit, IsAutoReset
+) 
+SELECT CustId, SportType, BetType, MaxWinLimit, MaxLossLimit, IsAutoReset
+FROM	CustWinLossLimit_Member WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
+
 -----------------------------------------------------------------------------------------------------------
 
 
