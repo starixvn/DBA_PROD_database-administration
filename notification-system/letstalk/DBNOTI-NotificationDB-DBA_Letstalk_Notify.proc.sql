@@ -43,7 +43,7 @@ BEGIN
 	-- Get all unnotified messages from @minute ago filtered by @type --
 	UPDATE	ln
 	SET		ln.isNoticed = 1
-	OUTPUT	Deleted.ServerName, Deleted.Title, REPLACE(Deleted.MsgInfo, N'▚▚▚▚▚▚▚▚▚▚▚▚▚▚  🅼 🅽 🅻  ▞▞▞▞▞▞▞▞▞▞▞▞▞▞', N'__[  MNL  ]__'), Deleted.LogDate, Deleted.TargetName, Deleted.SkypeGroupId
+	OUTPUT	Deleted.ServerName, Deleted.Title, REPLACE(REPLACE(Deleted.MsgInfo, N'＼＼＼＼＼＼＼＼＼＼＼＼＼＼', N'＼＼＼'), N'／／／／／／／／／／／／／／', N'／／／'), Deleted.LogDate, Deleted.TargetName, Deleted.SkypeGroupId
 	INTO	@Messages (ServerName, Title, MsgInfo, LogDate, TargetName, SkypeGroupId)
 	FROM	dbo.DBA_LetstalkNotifications AS ln WITH (ROWLOCK, UPDLOCK)
 	WHERE	ln.MessageType = ISNULL(@type, ln.MessageType)		-- @type = NULL means get all types

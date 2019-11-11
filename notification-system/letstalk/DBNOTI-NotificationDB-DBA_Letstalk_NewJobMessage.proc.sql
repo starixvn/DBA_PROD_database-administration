@@ -45,7 +45,7 @@ BEGIN
 		DECLARE	@Msg			NVARCHAR(4000);
 
 		SELECT	@Msg = N'\
-▚▚▚▚▚▚▚▚▚▚▚▚▚▚  🅼 🅽 🅻  ▞▞▞▞▞▞▞▞▞▞▞▞▞▞
+＼＼＼＼＼＼＼＼＼＼＼＼＼＼__[  MNL  ]__／／／／／／／／／／／／／／
 
 ' + @Message;
 
