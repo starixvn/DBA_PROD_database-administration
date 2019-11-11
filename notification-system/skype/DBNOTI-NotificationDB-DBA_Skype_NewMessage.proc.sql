@@ -3,7 +3,7 @@ SET QUOTED_IDENTIFIER ON;
 GO
 CREATE PROCEDURE	dbo.DBA_Skype_NewMessage
 						@ServerName			NVARCHAR(128)
-					,	@JobId				CHAR(36)
+					,	@JobId				CHAR(36)		= NULL
 					,	@JobName			NVARCHAR(128)	= NULL
 					,	@Message			NVARCHAR(4000)
 					,	@CaseId				TINYINT			= 1
@@ -17,6 +17,7 @@ AS
 	Revisions:
 		- 20180906@Billy:	Initialization - [Redmine: #101021]
 		- 20190523@Billy:	Move system to DBSPARE - [Redmine: #113125]
+		- 20191111@Billy:	Support MNL & Remove check on JobId - [Redmine: #123657]
 
 	Parameters:
 		@ServerName			: The name of server where job's message comes from
@@ -32,6 +33,27 @@ BEGIN
 							JobName			NVARCHAR(128)
 						,	SkypeGroupId	VARCHAR(256)
 						);
+
+	IF	DB_ID(N'_This_MNL_DR_site') IS NOT NULL
+	-- MNL environment --
+	BEGIN;
+		DECLARE	@Msg			NVARCHAR(4000);
+
+		SELECT	@Msg = N'\
+▚▚▚▚▚▚▚▚▚▚▚▚▚▚  🅼 🅽 🅻  ▞▞▞▞▞▞▞▞▞▞▞▞▞▞
+
+' + @Message;
+
+		EXECUTE	DBNOTI.NotificationDB.dbo.DBA_Skype_NewMessage
+					@ServerName = @ServerName
+				,	@JobId		= @JobId
+				,	@JobName	= @JobName
+				,	@Message	= @Msg
+				,	@CaseId		= @CaseId
+				,	@isSimple	= @isSimple
+				;
+		RETURN;
+	END;
 
 	-- If @JobId and @JobName are both NULL, we cannot identify the job, RETURN --
 	IF	@JobId IS NULL AND @JobName IS NULL

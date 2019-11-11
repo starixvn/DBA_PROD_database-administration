@@ -3,7 +3,7 @@ SET QUOTED_IDENTIFIER ON;
 GO
 CREATE PROCEDURE	dbo.DBA_Letstalk_NewJobMessage
 						@ServerName			NVARCHAR(128)
-					,	@JobId				CHAR(36)
+					,	@JobId				CHAR(36)		= NULL
 					,	@JobName			NVARCHAR(128)	= NULL
 					,	@Message			NVARCHAR(4000)
 					,	@CaseId				TINYINT			= 1
@@ -20,6 +20,7 @@ AS
 		- 20180202@Billy:	Support Skype notification - [Redmine: #90474]
 		- 20180906@Billy:	Support new Skype notification - [Redmine: #101021]
 		- 20190523@Billy:	Move system to DBSPARE - [Redmine: #113125]
+		- 20191111@Billy:	Support MNL & Remove check on JobId - [Redmine: #123657]
 
 	Parameters:
 		@ServerName			: The name of server where job's message comes from
@@ -36,6 +37,29 @@ BEGIN
 						,	TargetName		VARCHAR(128)
 						,	SkypeGroupId	INT
 						);
+
+
+	IF	DB_ID(N'_This_MNL_DR_site') IS NOT NULL
+	-- MNL environment --
+	BEGIN;
+		DECLARE	@Msg			NVARCHAR(4000);
+
+		SELECT	@Msg = N'\
+▚▚▚▚▚▚▚▚▚▚▚▚▚▚  🅼 🅽 🅻  ▞▞▞▞▞▞▞▞▞▞▞▞▞▞
+
+' + @Message;
+
+		EXECUTE	DBNOTI.NotificationDB.dbo.DBA_Letstalk_NewJobMessage
+					@ServerName = @ServerName
+				,	@JobId		= @JobId
+				,	@JobName	= @JobName
+				,	@Message	= @Msg
+				,	@CaseId		= @CaseId
+				,	@isSimple	= @isSimple
+				;
+		RETURN;
+	END;
+
 
 	-- If @JobId and @JobName are both NULL, we cannot identify the job, RETURN --
 	IF	@JobId IS NULL AND @JobName IS NULL
@@ -86,7 +110,14 @@ BEGIN
 	FROM	@JobRoom AS jr;
 
 	-- Insert new message for Skype notification --
-	EXECUTE	dbo.DBA_Skype_NewMessage @ServerName = @ServerName, @JobId = @JobId, @JobName = @JobName, @Message = @Message, @CaseId = @CaseId, @isSimple = @isSimple;
+	EXECUTE	dbo.DBA_Skype_NewMessage
+				@ServerName		= @ServerName
+			,	@JobId			= @JobId
+			,	@JobName		= @JobName
+			,	@Message		= @Message
+			,	@CaseId			= @CaseId
+			,	@isSimple		= @isSimple
+			;
 END;
 GO
 /*<info serverAlias="DBNOTI-NotificationDB" executers="sqlLink" viewers="" isFunction="0" isNested="0"></info>*/
