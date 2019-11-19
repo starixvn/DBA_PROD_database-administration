@@ -165,42 +165,6 @@ BEGIN
 				BREAK
 		END
 
-		IF dbo.f_CheckRepTable('custOverride') = 1 		
-		WHILE(1=1)
-		BEGIN
-			DELETE TOP(10000) dbo.custOverride WITH (ROWLOCK)
-			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
-								WHERE roleid = 1 
-									AND recommend = @AgentID
-									)
-			IF @@ROWCOUNT < 10000 
-				BREAK
-		END
-
-		IF dbo.f_CheckRepTable('custOverride3rd') = 1 		
-		WHILE(1=1)
-		BEGIN
-			DELETE TOP(10000) dbo.custOverride3rd WITH (ROWLOCK)
-			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
-								WHERE roleid = 1 
-									AND recommend = @AgentID
-									)
-			IF @@ROWCOUNT < 10000 
-				BREAK
-		END
-
-		IF dbo.f_CheckRepTable('CustOverrideGame') = 1 		
-		WHILE(1=1)
-		BEGIN
-			DELETE TOP(10000) dbo.CustOverrideGame WITH (ROWLOCK)
-			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
-								WHERE roleid = 1 
-									AND recommend = @AgentID
-									)
-			IF @@ROWCOUNT < 10000 
-				BREAK
-		END
-
 		IF dbo.f_CheckRepTable('CustProductStatus') = 1 		
 		WHILE(1=1)
 		BEGIN
@@ -249,7 +213,17 @@ BEGIN
 				BREAK
 		END
 
-
+		IF dbo.f_CheckRepTable('CustWinLossLimit_Member') = 1 		
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustWinLossLimit_Member WITH (ROWLOCK)
+			WHERE	custid IN (SELECT custid FROM Custinfo WITH (NOLOCK) 
+								WHERE roleid = 1 
+									AND recommend = @AgentID
+									)
+			IF @@ROWCOUNT < 10000 
+				BREAK
+		END
 
 	END 
 	ELSE IF @Type = 2
@@ -385,19 +359,10 @@ BEGIN
 				BREAK
 		END
 
-		IF dbo.f_CheckRepTable('custSub') = 1 
-		WHILE(1=1)
-		BEGIN
-			DELETE TOP(10000) dbo.custSub WITH (ROWLOCK)
-			WHERE custid IN(SELECT custid from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
-			IF @@ROWCOUNT < 10000
-				BREAK
-		END 
-
 		IF dbo.f_CheckRepTable('CustLoginInfo_Member') = 1 
 		WHILE(1=1)
 		BEGIN
-			DELETE TOP(10000) dbo.custSub WITH (ROWLOCK)
+			DELETE TOP(10000) dbo.CustLoginInfo_Member WITH (ROWLOCK)
 			WHERE custid IN(SELECT custid from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
 			IF @@ROWCOUNT < 10000
 				BREAK

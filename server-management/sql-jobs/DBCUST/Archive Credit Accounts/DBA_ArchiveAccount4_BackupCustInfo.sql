@@ -15,6 +15,7 @@ AS
 			+rename SP to count stage from 1 => No. 4 for this stage
 			+support more columns custinfo
 		20190917@Daniel: Remove inactive products - unused custinfo columns (#117439 - P2)
+		20190929@Daniel: Involve more setting tables
 
 */
     
@@ -101,5 +102,18 @@ select	@Now,
                       LockUpd, MaxPerMatch1MP, BonusWalletFlag 
 from	custinfo (nolock)
 where	custid IN (	select custid from custinfo with (nolock) where recommend = @AgentID)
+
+
+--------- Involve more tables (new tables/DCS)
+
+insert into DBARCCUST.bodb_Customer.dbo.CustLoginInfo_Member_old(
+	 CustID, SecurityCode, IP, LastChangedID, LastChangedDate, OddsType, LayoutMode, BetStake, DefaultLanguage, OddsSort, BetterOdds, ShowLiveCasino, SportSort, CusStake1, CusStake2, 
+     ShowScoreMap, ShowBanner, AutoRefresh, MarketType, AutoRefreshMatch, MobileOthersType, gesture, failedcount, lastlogged, OddsColorStyle, ClosedReason, notify, recommendation
+) 
+SELECT CustID, SecurityCode, IP, LastChangedID, LastChangedDate, OddsType, LayoutMode, BetStake, DefaultLanguage, OddsSort, BetterOdds, ShowLiveCasino, SportSort, CusStake1, CusStake2, 
+     ShowScoreMap, ShowBanner, AutoRefresh, MarketType, AutoRefreshMatch, MobileOthersType, gesture, failedcount, lastlogged, OddsColorStyle, ClosedReason, notify, recommendation
+FROM	CustLoginInfo_Member WITH (NOLOCK)
+WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
+
 
 print  @AccName +':'+ 'END Backup cust info:' + convert(varchar(50), getdate(), 113) 
