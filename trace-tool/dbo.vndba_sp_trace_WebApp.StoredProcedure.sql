@@ -21,6 +21,7 @@ AS
 			20161202@Daniel: Support more site
 			20180912@Daniel: Support DBCUST.NAP_UserControl
 			20180917@Daniel: Support Core .NET service app
+			20191125@Daniel: Support site 'Ploutos'
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -79,6 +80,7 @@ BEGIN
 			WHEN @Site = 'FPS' THEN 'fps%'
 			WHEN @Site = 'FD' THEN 'bodbSPUNet'
 			WHEN @Site = 'OWP' THEN 'bodbOWPNet'
+			WHEN @Site = 'Ploutos' THEN 'bodbPloutosNet'
 		END
 		
 	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2')
