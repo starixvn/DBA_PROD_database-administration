@@ -49,9 +49,9 @@ BEGIN
 
 	SET NOCOUNT ON
 
-	IF (ISNULL(@Site, '') NOT IN ('NAP','EX-NAP','DW','PRMS','LC','ALPHA','LICENSEE', 'AFF', 'MEMBER', 'FPS', 'FD', 'OWP'))
+	IF (ISNULL(@Site, '') NOT IN ('NAP','EX-NAP','DW','PRMS','LC','ALPHA','LICENSEE', 'AFF', 'MEMBER', 'FPS', 'FD', 'OWP','Ploutos'))
 	BEGIN
-		SET @ErrorMsg = '@Site input error! Please set one site to filter (NAP/EX-NAP/DW/PRMS/LC/ALPHA/LICENSEE/AFF/MEMBER/FPS/FD/OWP). Ex: @Site = ''NAP'''
+		SET @ErrorMsg = '@Site input error! Please set one site to filter (NAP/EX-NAP/DW/PRMS/LC/ALPHA/LICENSEE/AFF/MEMBER/FPS/FD/OWP/Ploutos). Ex: @Site = ''NAP'''
 		SET @HasError = 1
 		PRINT @ErrorMsg
 		RETURN
