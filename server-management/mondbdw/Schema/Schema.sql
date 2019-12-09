@@ -1,0 +1,139 @@
+/*
+	Creator:	20190930@Billy
+	Task:		Description - [Redmine: #124921]
+	Server:		DBMON.MonDBDW
+*/
+
+CREATE TABLE	dbo.vnDBA_SPPF_ServerList_Filtered (
+					ServerId			SMALLINT
+				,	ServerName			NVARCHAR(128)
+				,	isEnabled			BIT
+						CONSTRAINT	DF_ServerList_Enabled DEFAULT (1)
+				,	CONSTRAINT	PK_ServerList PRIMARY KEY CLUSTERED (ServerId ASC) ON vnDBA
+				) ON vnDBA;
+
+CREATE TABLE	dbo.vnDBA_SPPF_HourlySummary_ExecutionCount (
+					ServerId			SMALLINT
+				,	SPId				INT
+				,	EventTime			SMALLDATETIME
+				,	ValCount			BIGINT
+				,	ValSum				BIGINT
+				,	ValStdDev			DECIMAL(28,9)
+				,	ValMin				BIGINT
+				,	ValFirstQuartile	BIGINT
+				,	ValMedian			BIGINT
+				,	ValThirdQuartile	BIGINT
+				,	ValMax				BIGINT
+				,	CONSTRAINT	PK_SPPF_HourlySummary_ExecutionCount PRIMARY KEY CLUSTERED (
+									ServerId	ASC
+								,	SPId		ASC
+								,	EventTime	ASC
+								) WITH (DATA_COMPRESSION = PAGE) ON vnDBA
+				) ON vnDBA;
+
+CREATE NONCLUSTERED INDEX	IX_SPPF_HourlySummary_ExecutionCount_EventTime ON dbo.vnDBA_SPPF_HourlySummary_ExecutionCount (
+								EventTime	ASC
+							,	ServerId	ASC
+							,	SPId		ASC
+							) WITH (DATA_COMPRESSION = PAGE) ON vnDBA;
+
+CREATE TABLE	dbo.vnDBA_SPPF_HourlySummary_CPUTime (
+					ServerId			SMALLINT
+				,	SPId				INT
+				,	EventTime			SMALLDATETIME
+				,	ValCount			BIGINT
+				,	ValSum				BIGINT
+				,	ValStdDev			DECIMAL(28,9)
+				,	ValMin				BIGINT
+				,	ValFirstQuartile	BIGINT
+				,	ValMedian			BIGINT
+				,	ValThirdQuartile	BIGINT
+				,	ValMax				BIGINT
+				,	CONSTRAINT	PK_SPPF_HourlySummary_CPUTime PRIMARY KEY CLUSTERED (
+									ServerId	ASC
+								,	SPId		ASC
+								,	EventTime	ASC
+								) WITH (DATA_COMPRESSION = PAGE) ON vnDBA
+				) ON vnDBA;
+
+CREATE NONCLUSTERED INDEX	IX_SPPF_HourlySummary_CPUTime_EventTime ON dbo.vnDBA_SPPF_HourlySummary_CPUTime (
+								EventTime	ASC
+							,	ServerId	ASC
+							,	SPId		ASC
+							) WITH (DATA_COMPRESSION = PAGE) ON vnDBA;
+
+CREATE TABLE	dbo.vnDBA_SPPF_HourlySummary_LogicalReads (
+					ServerId			SMALLINT
+				,	SPId				INT
+				,	EventTime			SMALLDATETIME
+				,	ValCount			BIGINT
+				,	ValSum				BIGINT
+				,	ValStdDev			DECIMAL(28,9)
+				,	ValMin				BIGINT
+				,	ValFirstQuartile	BIGINT
+				,	ValMedian			BIGINT
+				,	ValThirdQuartile	BIGINT
+				,	ValMax				BIGINT
+				,	CONSTRAINT	PK_SPPF_HourlySummary_LogicalReads PRIMARY KEY CLUSTERED (
+									ServerId	ASC
+								,	SPId		ASC
+								,	EventTime	ASC
+								) WITH (DATA_COMPRESSION = PAGE) ON vnDBA
+				) ON vnDBA;
+
+CREATE NONCLUSTERED INDEX	IX_SPPF_HourlySummary_LogicalReads_EventTime ON dbo.vnDBA_SPPF_HourlySummary_LogicalReads (
+								EventTime	ASC
+							,	ServerId	ASC
+							,	SPId		ASC
+							) WITH (DATA_COMPRESSION = PAGE) ON vnDBA;
+
+CREATE TABLE	dbo.vnDBA_SPPF_HourlySummary_LogicalWrites (
+					ServerId			SMALLINT
+				,	SPId				INT
+				,	EventTime			SMALLDATETIME
+				,	ValCount			BIGINT
+				,	ValSum				BIGINT
+				,	ValStdDev			DECIMAL(28,9)
+				,	ValMin				BIGINT
+				,	ValFirstQuartile	BIGINT
+				,	ValMedian			BIGINT
+				,	ValThirdQuartile	BIGINT
+				,	ValMax				BIGINT
+				,	CONSTRAINT	PK_SPPF_HourlySummary_LogicalWrites PRIMARY KEY CLUSTERED (
+									ServerId	ASC
+								,	SPId		ASC
+								,	EventTime	ASC
+								) WITH (DATA_COMPRESSION = PAGE) ON vnDBA
+				) ON vnDBA;
+
+CREATE NONCLUSTERED INDEX	IX_SPPF_HourlySummary_LogicalWrites_EventTime ON dbo.vnDBA_SPPF_HourlySummary_LogicalWrites (
+								EventTime	ASC
+							,	ServerId	ASC
+							,	SPId		ASC
+							) WITH (DATA_COMPRESSION = PAGE) ON vnDBA;
+
+CREATE TABLE	dbo.vnDBA_SPPF_HourlySummary_ElapsedTime (
+					ServerId			SMALLINT
+				,	SPId				INT
+				,	EventTime			SMALLDATETIME
+				,	ValCount			BIGINT
+				,	ValSum				BIGINT
+				,	ValStdDev			DECIMAL(28,9)
+				,	ValMin				BIGINT
+				,	ValFirstQuartile	BIGINT
+				,	ValMedian			BIGINT
+				,	ValThirdQuartile	BIGINT
+				,	ValMax				BIGINT
+				,	CONSTRAINT	PK_SPPF_HourlySummary_ElapsedTime PRIMARY KEY CLUSTERED (
+									ServerId	ASC
+								,	SPId		ASC
+								,	EventTime	ASC
+								) WITH (DATA_COMPRESSION = PAGE) ON vnDBA
+				) ON vnDBA;
+
+CREATE NONCLUSTERED INDEX	IX_SPPF_HourlySummary_ElapsedTime_EventTime ON dbo.vnDBA_SPPF_HourlySummary_ElapsedTime (
+								EventTime	ASC
+							,	ServerId	ASC
+							,	SPId		ASC
+							) WITH (DATA_COMPRESSION = PAGE) ON vnDBA;
+
