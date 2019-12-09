@@ -354,6 +354,8 @@ BEGIN;
 			) AS _ana
 			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.75)
 		) AS ThirdQuartile;
+
+		SELECT	@StartTime = DATEADD(HOUR, 1, @StartTime);
 	END;
 END;
 GO
