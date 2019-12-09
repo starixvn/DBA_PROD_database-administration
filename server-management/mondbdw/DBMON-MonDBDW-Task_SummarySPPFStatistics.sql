@@ -12,7 +12,6 @@ AS
 
 	Revisions:
 		- 20191209@Billy:	Initial - [Redmine: #124921]
-		- 20191211@Billy:	Fix bug of cannot produce 1 row quartile - [Redmine: #124921]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -105,7 +104,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.25)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.25)
 		) AS FirstQuartile
 		CROSS APPLY	(
 			SELECT	_ana.ExecutionCount
@@ -115,7 +114,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.5)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.5)
 		) AS Median
 		CROSS APPLY	(
 			SELECT	_ana.ExecutionCount
@@ -125,7 +124,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.75)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.75)
 		) AS ThirdQuartile;
 
 
@@ -162,7 +161,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.25)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.25)
 		) AS FirstQuartile
 		CROSS APPLY	(
 			SELECT	_ana.CPUTime
@@ -172,7 +171,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.5)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.5)
 		) AS Median
 		CROSS APPLY	(
 			SELECT	_ana.CPUTime
@@ -182,7 +181,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.75)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.75)
 		) AS ThirdQuartile;
 
 
@@ -219,7 +218,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.25)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.25)
 		) AS FirstQuartile
 		CROSS APPLY	(
 			SELECT	_ana.LogicalReads
@@ -229,7 +228,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.5)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.5)
 		) AS Median
 		CROSS APPLY	(
 			SELECT	_ana.LogicalReads
@@ -239,7 +238,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.75)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.75)
 		) AS ThirdQuartile;
 
 
@@ -276,7 +275,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.25)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.25)
 		) AS FirstQuartile
 		CROSS APPLY	(
 			SELECT	_ana.LogicalWrites
@@ -286,7 +285,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.5)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.5)
 		) AS Median
 		CROSS APPLY	(
 			SELECT	_ana.LogicalWrites
@@ -296,7 +295,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.75)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.75)
 		) AS ThirdQuartile;
 
 
@@ -333,7 +332,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.25)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.25)
 		) AS FirstQuartile
 		CROSS APPLY	(
 			SELECT	_ana.ElapsedTime
@@ -343,7 +342,7 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.5)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.5)
 		) AS Median
 		CROSS APPLY	(
 			SELECT	_ana.ElapsedTime
@@ -353,10 +352,8 @@ BEGIN;
 				WHERE	_rn.ServerId = agg.ServerId
 					AND	_rn.SPId = agg.SPId
 			) AS _ana
-			WHERE	_ana.rn = CEILING(agg.ValCount * 0.75)
+			WHERE	_ana.rn = FLOOR(agg.ValCount * 0.75)
 		) AS ThirdQuartile;
-
-		SELECT	@StartTime = DATEADD(HOUR, 1, @StartTime);
 	END;
 END;
 GO
