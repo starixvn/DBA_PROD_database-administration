@@ -4,7 +4,7 @@ GO
 CREATE PROCEDURE	dbo.GetSPsExecutionCounts
 						@From				DATETIME
 					,	@To					DATETIME
-					,	@Server				NVARCHAR(128)
+					,	@Server				NVARCHAR(128)	= NULL
 					,	@Database			VARCHAR(128)	= NULL
 AS
 /*
