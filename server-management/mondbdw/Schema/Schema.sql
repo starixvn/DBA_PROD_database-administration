@@ -4,6 +4,8 @@
 	Server:		DBMON.MonDBDW
 */
 
+USE	MonDBDW;
+
 CREATE TABLE	dbo.vnDBA_SPPF_ServerList_Filtered (
 					ServerId			SMALLINT
 				,	ServerName			NVARCHAR(128)
