@@ -40,7 +40,7 @@ BEGIN
 		FROM tmpCustArchived_DisabledAgents_NoBal t
 		WHERE IsFinished = 0
 
-		IF (@@ROWCOUNT < 3000) BREAK
+		IF (@@ROWCOUNT = 0) BREAK
 
 		SELECT @CustIDs = @CustIDs + cast(custid AS VARCHAR(10)) + ','
 		FROM @batchCustIDs		
