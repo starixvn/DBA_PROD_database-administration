@@ -37,7 +37,7 @@ BEGIN
 		EXEC Acc_ExecRep_Cust_01 @CustIDs = @CustIDs
 
 		EXEC DBLOG.bodb_CustomerLog.dbo.[WriteLog_UserLog_RunSP_MultiCust] 
-			  @UserID = 266622
+			  @UserID = 360418
 			, @CustIDList = @CustIDs
 			, @NewPT_XML = ''
 			, @OldPT_XML = ''
