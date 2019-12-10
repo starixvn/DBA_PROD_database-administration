@@ -21,6 +21,9 @@ END
 
 SET NOCOUNT ON
 
+--update exception list
+EXEC dbo.DBA_ArchiveAccount_UpdateException
+
 SELECT s.username Super, m.username Master, a.username Agent, a.custid recommend
 FROM custinfo a with(nolock)
 	inner join custagent ca with (nolock) on a.custid = ca.custid
