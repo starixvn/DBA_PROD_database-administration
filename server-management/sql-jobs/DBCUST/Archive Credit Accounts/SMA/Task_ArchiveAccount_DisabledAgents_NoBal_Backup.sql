@@ -257,7 +257,7 @@ BEGIN
 		FROM	custOverride WITH (NOLOCK)
 		WHERE	custid IN(select custid from @batchCustIDs)	
 
-		insert into DBARCCUST.bodb_Customer.custOverride3rd_old(
+		insert into DBARCCUST.bodb_Customer.dbo.custOverride3rd_old(
 			custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
 		) 
 		SELECT	custid, bettype, sporttype, minpositiontaking, maxpositiontaking, minlivepositiontaking, maxlivepositiontaking
