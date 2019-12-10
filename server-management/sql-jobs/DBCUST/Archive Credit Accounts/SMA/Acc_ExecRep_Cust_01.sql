@@ -21,11 +21,104 @@ AS
 	INSERT INTO @tmpCust(custid)	
 	SELECT val
 	FROM dbo.strSplit(@CustIDs,',')
+
+	IF dbo.f_CheckRepTable('AgentCommRate') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.AgentCommRate WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
 	
 	IF dbo.f_CheckRepTable('CustBetSetting3rd_Agent') = 1 		
 	WHILE(1=1)
 	BEGIN
 		DELETE TOP(10000) dbo.CustBetSetting3rd_Agent WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustDiscount3rd_Agent') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustDiscount3rd_Agent WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustGameType') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustGameType WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+
+	IF dbo.f_CheckRepTable('custOverride') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.custOverride WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+
+	IF dbo.f_CheckRepTable('custOverride3rd') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.custOverride3rd WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+
+	IF dbo.f_CheckRepTable('CustOverrideGame') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustOverrideGame WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustProductStatus') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustProductStatus WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustPTGroupSetting3rd_Member') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustPTGroupSetting3rd_Member WITH (ROWLOCK)
+		WHERE	agentid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustPTSetting3rd_Agent') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustPTSetting3rd_Agent WITH (ROWLOCK)
 		WHERE	custid IN (SELECT custid FROM @tmpCust) 
 	
 		IF @@ROWCOUNT < 10000 
@@ -42,12 +135,73 @@ AS
 			BREAK
 	END
 
-	-----------------------------------
-
-	IF dbo.f_CheckRepTable('customer') = 1 		
+	IF dbo.f_CheckRepTable('CustSetting3rd') = 1 		
 	WHILE(1=1)
 	BEGIN
-		DELETE TOP(10000) dbo.customer WITH (ROWLOCK)
+		DELETE TOP(10000) dbo.CustSetting3rd WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustSettingGame') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustSettingGame WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustStakeLevel_Agent') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustStakeLevel_Agent WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustVirtualSetting') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustVirtualSetting WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustWinLimit') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustWinLimit WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustWinLossLimit_Agent') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustWinLossLimit_Agent WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+
+	-----------------------------------
+
+	IF dbo.f_CheckRepTable('CustAgent') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustAgent WITH (ROWLOCK)
 		WHERE	custid IN (SELECT custid FROM @tmpCust) 
 	
 		IF @@ROWCOUNT < 10000 
@@ -63,5 +217,35 @@ AS
 		IF @@ROWCOUNT < 10000 
 			BREAK
 	END
+
+	IF dbo.f_CheckRepTable('customer') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.customer WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('custSub') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.custSub WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('custSearch') = 1 
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(5000) dbo.custSearch WITH (ROWLOCK)
+		WHERE username IN(SELECT username from custinfo WITH (NOLOCK) WHERE custid IN (SELECT custid FROM @tmpCust)) 
+		IF @@ROWCOUNT < 5000
+			BREAK
+	END
+
 
 
