@@ -243,6 +243,20 @@ BEGIN
 		FROM	custSub WITH (NOLOCK)
 		WHERE	custid IN(select custid from @batchCustIDs)	
 
+		insert into DBARCCUST.bodb_Customer.dbo.CustLoginInfoSub_Old(
+			SubAccID, CustID, OldUserPwd, PwdExpiry, LastChangedPwdDate, isFirstLogin, SecurityCode, LastChangedSecurityCodeDate, SecurityCodeCount, isLocked, isForcedChangeSecurityCode, VerifyOTPCount
+		) 
+		SELECT	SubAccID, CustID, OldUserPwd, PwdExpiry, LastChangedPwdDate, isFirstLogin, SecurityCode, LastChangedSecurityCodeDate, SecurityCodeCount, isLocked, isForcedChangeSecurityCode, VerifyOTPCount
+		FROM	CustLoginInfoSub WITH (NOLOCK)
+		WHERE	custid IN(select custid from @batchCustIDs)	
+
+		insert into DBARCCUST.bodb_Customer.dbo.CustLoginInfo_Old(
+					CustID, OldUserPwd, LastChangedPwdDate, isFirstLogin, SecurityCode, LastChangedSecurityCodeDate, SecurityCodeCount, isLocked, isForcedChangeSecurityCode, VerifyOTPCount, ClosedReason
+		) 
+		SELECT	CustID, OldUserPwd, LastChangedPwdDate, isFirstLogin, SecurityCode, LastChangedSecurityCodeDate, SecurityCodeCount, isLocked, isForcedChangeSecurityCode, VerifyOTPCount, ClosedReason
+		FROM	CustLoginInfo WITH (NOLOCK)
+		WHERE	custid IN(select custid from @batchCustIDs)	
+
 		insert into DBARCCUST.bodb_Customer.dbo.CustAgent_Old(
 			custid, MaxCredit, IsInternal, TransferOption, LimitPerIP, SelectedBetting, NicknameLoginOnly, site, creationRemark, IsMonitorPT
 		) 

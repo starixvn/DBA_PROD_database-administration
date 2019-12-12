@@ -228,10 +228,30 @@ AS
 			BREAK
 	END
 
+	IF dbo.f_CheckRepTable('CustLoginInfo') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustLoginInfo WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
 	IF dbo.f_CheckRepTable('custSub') = 1 		
 	WHILE(1=1)
 	BEGIN
 		DELETE TOP(10000) dbo.custSub WITH (ROWLOCK)
+		WHERE	custid IN (SELECT custid FROM @tmpCust) 
+	
+		IF @@ROWCOUNT < 10000 
+			BREAK
+	END
+
+	IF dbo.f_CheckRepTable('CustLoginInfoSub') = 1 		
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(10000) dbo.CustLoginInfoSub WITH (ROWLOCK)
 		WHERE	custid IN (SELECT custid FROM @tmpCust) 
 	
 		IF @@ROWCOUNT < 10000 
