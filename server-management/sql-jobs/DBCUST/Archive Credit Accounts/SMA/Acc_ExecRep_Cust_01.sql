@@ -208,6 +208,15 @@ AS
 			BREAK
 	END
 
+	IF dbo.f_CheckRepTable('custSearch') = 1 
+	WHILE(1=1)
+	BEGIN
+		DELETE TOP(5000) dbo.custSearch WITH (ROWLOCK)
+		WHERE username IN(SELECT username from custinfo WITH (NOLOCK) WHERE custid IN (SELECT custid FROM @tmpCust)) 
+		IF @@ROWCOUNT < 5000
+			BREAK
+	END
+
 	IF dbo.f_CheckRepTable('custinfo') = 1 		
 	WHILE(1=1)
 	BEGIN
@@ -258,14 +267,7 @@ AS
 			BREAK
 	END
 
-	IF dbo.f_CheckRepTable('custSearch') = 1 
-	WHILE(1=1)
-	BEGIN
-		DELETE TOP(5000) dbo.custSearch WITH (ROWLOCK)
-		WHERE username IN(SELECT username from custinfo WITH (NOLOCK) WHERE custid IN (SELECT custid FROM @tmpCust)) 
-		IF @@ROWCOUNT < 5000
-			BREAK
-	END
+
 
 
 
