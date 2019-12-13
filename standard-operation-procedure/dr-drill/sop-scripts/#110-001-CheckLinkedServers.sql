@@ -6,6 +6,7 @@
 	Revision:
 		- 20190611@Billy:	Initialization - [Redmine: #114307]
 		- 20190927@Billy:	Remove DBLICAPI - [Redmine: #120468]
+		- 20191213@Billy: UI improvement - [Redmine: #125425]
 */
 
 
@@ -166,11 +167,11 @@ SELECT	kbt.ID
 	,	kbt.ServerName, kbt.LinkedServer, kbt.Provider, kbt.DataSource, kbt.DefaultLogin, kbt.ConnectTimeout, kbt.QueryTimeout
 	,	[||] = '||'
 	,	mnl.ServerName, mnl.LinkedServer, mnl.Provider, mnl.DataSource, mnl.DefaultLogin, mnl.ConnectTimeout, mnl.QueryTimeout
-	,	[Linked] = CAST(kbt.Linked AS CHAR(1)) + CAST(mnl.Linked AS CHAR(1))
-	,	[DataAccess] = CAST(kbt.DataAccess AS CHAR(1)) + CAST(mnl.DataAccess AS CHAR(1))
-	,	[RPC] = CAST(kbt.RPC AS CHAR(1)) + CAST(mnl.RPC AS CHAR(1))
-	,	[RPCOut] = CAST(kbt.RPCOut AS CHAR(1)) + CAST(mnl.RPCOut AS CHAR(1))
-	,	[RemoteTransPromote] = CAST(kbt.RemoteTransPromote AS CHAR(1)) + CAST(mnl.RemoteTransPromote AS CHAR(1))
+	,	[Linked] = ISNULL(CAST(kbt.Linked AS CHAR(1)), '_') + ISNULL(CAST(mnl.Linked AS CHAR(1)), '_')
+	,	[DataAccess] = ISNULL(CAST(kbt.DataAccess AS CHAR(1)), '_') + ISNULL(CAST(mnl.DataAccess AS CHAR(1)), '_')
+	,	[RPC] = ISNULL(CAST(kbt.RPC AS CHAR(1)), '_') + ISNULL(CAST(mnl.RPC AS CHAR(1)), '_')
+	,	[RPCOut] = ISNULL(CAST(kbt.RPCOut AS CHAR(1)), '_') + ISNULL(CAST(mnl.RPCOut AS CHAR(1)), '_')
+	,	[RemoteTransPromote] = ISNULL(CAST(kbt.RemoteTransPromote AS CHAR(1)), '_') + ISNULL(CAST(mnl.RemoteTransPromote AS CHAR(1)), '_')
 FROM			#ResultKBT AS kbt WITH (NOLOCK)
 FULL OUTER JOIN	#ResultMNL AS mnl WITH (NOLOCK)
 			ON	kbt.ID = mnl.ID
