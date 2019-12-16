@@ -45,5 +45,5 @@ BEGIN
 		select @stage = case @status when 'Stage 1 - Running' then 1 when 'Stage 2 - Running' then 2 else 0 end
 	end
 	
-	if (@stage in(1, 2, 11)) EXEC DBMSG.bodb_message.dbo.DBA_Archive_PrivateMessageForMasterAcc @MasterList = @MasterList, @stage = @stage
+	if (@stage in(1,2)) EXEC DBMSG.bodb_message.dbo.DBA_Archive_PrivateMessageForMasterAcc @MasterList = @MasterList, @stage = @stage
 END
