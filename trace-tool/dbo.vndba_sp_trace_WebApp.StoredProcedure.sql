@@ -22,6 +22,7 @@ AS
 			20180912@Daniel: Support DBCUST.NAP_UserControl
 			20180917@Daniel: Support Core .NET service app
 			20191125@Daniel: Support site 'Ploutos'
+			20191211@Daniel: on_user DB: Support DB05BK1 & Remove DBTP
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -94,7 +95,7 @@ BEGIN
 	ELSE 
 		SET @DatabaseNameLike = 'bodb%'
 	
-	IF (@@SERVERNAME IN('DB05', 'DB03', 'DBTP') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
+	IF (@@SERVERNAME IN('DB05', 'DB03', 'DB05BK1') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
 		SET @DatabaseNameLike2 = 'ON_USER'
 
 	IF (@@SERVERNAME IN('DB052', 'DB054') AND @Site = 'NAP')
