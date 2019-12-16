@@ -18,7 +18,7 @@ BEGIN
 	CREATE TABLE #tmpMaster(MasterID INT, Username VARCHAR(30))
 
 	INSERT #tmpMaster
-	SELECT DISTINCT NULL MasterID, master Username FROM tmpCustArchived_DisabledAgents_NoBal WHERE ErrMsg = ''
+	SELECT DISTINCT NULL MasterID, master Username FROM tmpCustArchived_DisabledAgents_NoBal
 
 	UPDATE b SET b.MasterID = c.custid
 	FROM #tmpMaster b INNER JOIN dbo.custinfo c with (nolock) on b.username = c.username
