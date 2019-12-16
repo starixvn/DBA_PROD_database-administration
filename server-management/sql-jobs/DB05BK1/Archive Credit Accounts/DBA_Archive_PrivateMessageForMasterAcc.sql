@@ -104,23 +104,23 @@ BEGIN
 
 	-- VietNamese
 	SET @Content_vn11 = N'Kính gửi quý khách hàng, '
-						+ N'<br />' + N'Một số đại lý của bạn đã bị đóng vì các thành viên của họ đã Không Có Hoạt Động Nào trong 3 tháng qua. Bạn có thể mở lại nếu bạn muốn giữ những đại lý này. '
+						+ N'<br />' + N'Xin lưu ý rằng bạn không thể tìm hoặc xem dữ liệu cấp dưới của những tài khoản agent đã bị vô hiệu hoá do dữ liệu của những agent này đã bị xoá khỏi hệ thống. '
 						+ N'<br />' + N'Trân Trọng. '
 
 	-- Chinese Traditional
 	SET @Content_ch11 = N'尊敬的代理們，'
-						+ N'<br />' + N'由於您代理及其會員賬號已長達近 3 個月無活躍操作因此已關閉。倘若關閉賬號持有者有意繼續進行生意仍可重啟賬號。 '
+						+ N'<br />' + N'請知悉，您旗下已被禁用的代理賬號已從代理網中移除， 因此您無法從下線列表中搜索或查看其信息。 '
 						+ N'<br />' + N'謝謝。'
 
 	-- Chinese Simplified
 	SET @Content_cs11 = N'尊敬的代理们，'
-						+ N'<br />' + N'由于您代理及其会员账号已长达近 3 个月无活跃操作因此已关闭。倘若关闭账号持有者有意继续进行生意仍可重启账号。 '
+						+ N'<br />' + N'请知悉，您旗下已被禁用的代理账号已从代理网中移除， 因此您无法从下线列表中搜索或查看其信息。 '
 						+ N'<br />' + N'谢谢。 '
 
 	-- Thai
 	SET @Content_th11 = N'เรียนเอเจนต์ทุกท่าน '
-						+ N'<br />' + N'เอเจนต์ของคุณบางบัญชีถูกปิดเนื่องจากบัญชีสมาชิกไม่มีการใช้งานใดๆ ในช่วง 3เดือนที่ผ่านมา คุณสามารถเปิดกลับอีกครั้งหากต้องการทำธุรกิจต่อและรักษาบัญชีดังกล่าวไว้ '
-						+ N'<br />' + N'ขอบคุณค่ะ '
+						+ N'<br />' + N'โปรดทราบ บัญชีเอเจนต์ที่ปิดการใช้งานของคุณถูกลบออกจากระบบ ดังนั้นคุณจึงไม่สามารถค้นหาหรือดูข้อมูลจากรายการดาวน์ไลน์ '
+						+ N'<br />' + N'ขอบพระคุณ '
 
 
 	IF @Stage = 1
@@ -144,7 +144,7 @@ BEGIN
 	    SELECT @Content_en = @Content_en11,
 				@Content_ch = @Content_ch11,
 				@Content_cs = @Content_cs11,
-				@Content_vn = @Content_vn11
+				@Content_vn = @Content_vn11,
 				@Content_th = @Content_th11
 	END
 		
