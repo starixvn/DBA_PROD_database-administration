@@ -327,6 +327,26 @@ BEGIN
 			END
 
 		END -- END of DBTRANS - delete balance tables
+
+		----- add more tables----------------------------
+		IF dbo.f_CheckRepTable('custSearch') = 1 
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(5000) dbo.custSearch WITH (ROWLOCK)
+			WHERE username IN(SELECT username from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
+			IF @@ROWCOUNT < 5000
+				BREAK
+		END
+
+		IF dbo.f_CheckRepTable('CustLoginInfo_Member') = 1 
+		WHILE(1=1)
+		BEGIN
+			DELETE TOP(10000) dbo.CustLoginInfo_Member WITH (ROWLOCK)
+			WHERE custid IN(SELECT custid from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
+			IF @@ROWCOUNT < 10000
+				BREAK
+		END 
+		--------------------------------------------------
 				
 	    IF (dbo.f_CheckRepTable('Custinfo') = 1 
 		  AND dbo.f_CheckRepTable('Customer') = 1 
@@ -349,23 +369,5 @@ BEGIN
 			END
 		END
 
-		----- add more tables
-		IF dbo.f_CheckRepTable('custSearch') = 1 
-		WHILE(1=1)
-		BEGIN
-			DELETE TOP(5000) dbo.custSearch WITH (ROWLOCK)
-			WHERE username IN(SELECT username from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
-			IF @@ROWCOUNT < 5000
-				BREAK
-		END
-
-		IF dbo.f_CheckRepTable('CustLoginInfo_Member') = 1 
-		WHILE(1=1)
-		BEGIN
-			DELETE TOP(10000) dbo.CustLoginInfo_Member WITH (ROWLOCK)
-			WHERE custid IN(SELECT custid from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
-			IF @@ROWCOUNT < 10000
-				BREAK
-		END 
 	END 
 END
