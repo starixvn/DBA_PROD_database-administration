@@ -33,6 +33,7 @@ FROM custinfo a with(nolock)
 	left join(
 		select recommend, count(1) MemCnt from customer with (nolock) where roleid = 1 group by recommend) mem on a.custid = mem.recommend
 WHERE a.enabled = 0
+	and a.credit = 0
 	and a.srecommend NOT IN (select custid FROM dbo.Dep_CustSuper with (nolock))
 	and ca.isInternal = 0
 	and a.custid NOT IN(
