@@ -14,6 +14,7 @@ AS
 		20180822@Daniel: Remove table custVirtuaRate
 		20190917@Daniel: Remove unused tables P2PGameSetting, P2PGroupComm for clean up inactive product (#117439 - P2)
 		20190925@Daniel: Remove SP Recompile & involve more setting tables
+		20191217@Daniel: Remove delete custsearch due to perf issue
 
 	Param's Explanation:
 		@Type: 
@@ -329,21 +330,12 @@ BEGIN
 		END -- END of DBTRANS - delete balance tables
 
 		----- add more tables----------------------------
-		IF dbo.f_CheckRepTable('custSearch') = 1 
-		WHILE(1=1)
-		BEGIN
-			DELETE TOP(5000) dbo.custSearch WITH (ROWLOCK)
-			WHERE username IN(SELECT username from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
-			IF @@ROWCOUNT < 5000
-				BREAK
-		END
-
 		IF dbo.f_CheckRepTable('CustLoginInfo_Member') = 1 
 		WHILE(1=1)
 		BEGIN
-			DELETE TOP(10000) dbo.CustLoginInfo_Member WITH (ROWLOCK)
+			DELETE TOP(5000) dbo.CustLoginInfo_Member WITH (ROWLOCK)
 			WHERE custid IN(SELECT custid from custinfo WITH (NOLOCK) WHERE roleid = 1 AND recommend = @AgentID) 
-			IF @@ROWCOUNT < 10000
+			IF @@ROWCOUNT < 5000
 				BREAK
 		END 
 		--------------------------------------------------
