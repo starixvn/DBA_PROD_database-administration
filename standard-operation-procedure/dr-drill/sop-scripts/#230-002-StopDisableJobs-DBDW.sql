@@ -28,6 +28,7 @@ EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update Exchange';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update IP table';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update League';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update Oanda Daily Exchange for Licensee';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - Backup Full Weekly';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - System Database Backup';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - Update statistic';
