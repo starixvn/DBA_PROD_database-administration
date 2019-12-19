@@ -5,6 +5,7 @@
 
 	Revision:
 		- 20190617@Billy:	Initialization - [Redmine: #114307]
+		- 20191213@Billy:	Add new job - [Redmine: #125425]
 */
 
 IF	@@SERVERNAME <> N'DBDW' OR DB_ID(N'_This_MNL_DR_site') IS NULL

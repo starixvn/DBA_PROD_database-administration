@@ -6,7 +6,7 @@
 	Revision:
 		- 20190611@Billy:	Initialization - [Redmine: #114307]
 		- 20190927@Billy:	Remove DBLICAPI - [Redmine: #120468]
-		- 20191213@Billy: UI improvement - [Redmine: #125425]
+		- 20191213@Billy:	UI improvement - [Redmine: #125425]
 */
 
 
