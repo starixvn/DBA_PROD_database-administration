@@ -40,7 +40,7 @@ BEGIN;
 			);
 
 	-- Determine fixed time values --
-	SELECT	@Timezone = DATEDIFF(HOUR, GETDATE(), GETUTCDATE())
+	SELECT	@Timezone = DATEDIFF(HOUR, GETUTCDATE(), GETDATE())
 		,	@BaseTime = '2019-01-01'
 		;
 
