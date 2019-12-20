@@ -186,7 +186,7 @@ SELECT	[BrandCode]		= p.BrandCode
 	,	[DataCount]		= COUNT(DISTINCT p.CustID)
 FROM		dbo.PlayerProfile AS p WITH (NOLOCK)
 INNER JOIN	dbo.APIHistory_PlayerProfile AS h WITH (NOLOCK)
-		ON	h.PlayerNo = p.CustID
+		ON	h.PlayerNo = p.PlayerNo
 CROSS APPLY	(
 	SELECT	[sec] = DATEDIFF(SECOND, @BaseTime, h.ResponseTime)
 ) AS t
