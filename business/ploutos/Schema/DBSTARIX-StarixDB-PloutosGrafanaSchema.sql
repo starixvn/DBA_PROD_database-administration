@@ -19,9 +19,16 @@ CREATE TABLE	plo.TimeGroups (
 				);
 
 INSERT INTO	plo.TimeGroups
-		(GroupName, SecondGroup )
-VALUES	('SECOND' , 1           )
-	,	('MINUTE' , 60          )
-	,	('HOUR'   , 60 * 60     )
-	,	('DAY'    , 60 * 60 * 24)
+		(GroupName   , SecondGroup )
+VALUES	('SECOND'    , 1           )
+	,	('30 SECONDS', 30          )
+	,	('MINUTE'    , 60          )
+	,	('10 MINUTES', 60 * 10     )
+	,	('15 MINUTES', 60 * 15     )
+	,	('30 MINUTES', 60 * 30     )
+	,	('HOUR'      , 60 * 60     )
+	,	('3 HOURS'   , 60 * 60 * 3 )
+	,	('6 HOURS'   , 60 * 60 * 6 )
+	,	('12 HOURS'  , 60 * 60 * 12)
+	,	('DAY'       , 60 * 60 * 24)
 	;
