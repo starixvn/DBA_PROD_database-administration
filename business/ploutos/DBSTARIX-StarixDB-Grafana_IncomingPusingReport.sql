@@ -24,12 +24,17 @@ BEGIN;
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 	SET NOCOUNT ON;
 
+	-- Constants --
+	DECLARE	@DataPoints		SMALLINT		= 100
+		;
+
 	-- Time related variables --
 	DECLARE	@Timezone		SMALLINT
 		,	@BaseTime		DATETIME
 		,	@_From			INT
 		,	@_To			INT
 		,	@_TimeGroup		INT
+		,	@xTimeGroup		VARCHAR(128)
 		;
 
 	-- Temporary result timeline --
@@ -49,10 +54,20 @@ BEGIN;
 		,	@_To	= DATEDIFF(SECOND, @BaseTime, DATEADD(HOUR, @Timezone, @To))
 		;
 
-	-- Parse time group --
+	-- Parse time group -- Safety check: limit the number of data points to @DataPoints --
 	SELECT	@_TimeGroup	= SecondGroup
 	FROM	plo.TimeGroups WITH (NOLOCK)
 	WHERE	GroupName = @TimeGroup;
+
+	WHILE	CEILING((@_To - @_From) * 1.0 / @_TimeGroup) + 1 > @DataPoints
+	BEGIN;
+		SELECT	TOP(1)
+				@_TimeGroup = SecondGroup
+			,	@xTimeGroup = GroupName
+		FROM	plo.TimeGroups WITH (NOLOCK)
+		WHERE	SecondGroup > @_TimeGroup
+		ORDER BY SecondGroup ASC;
+	END;
 
 	-- Build timeline based on time group --
 	WITH cte AS (
