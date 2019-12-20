@@ -90,7 +90,8 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS tbl
-				ON	t.TimeTick = tbl.TimeGroup;
+				ON	t.TimeTick = tbl.TimeGroup
+		ORDER BY t.TimeTick;
 	END;
 
 	IF	@Type IN (N'IP', N'IncomingPlayer', N'Incoming Player')
@@ -111,7 +112,8 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS tbl
-				ON	t.TimeTick = tbl.TimeGroup;
+				ON	t.TimeTick = tbl.TimeGroup
+		ORDER BY t.TimeTick;
 	END;
 
 	IF	@Type IN (N'PT', N'APIPushingTicket', N'API Pushing Ticket')
@@ -132,7 +134,8 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS tbl
-				ON	t.TimeTick = tbl.TimeGroup;
+				ON	t.TimeTick = tbl.TimeGroup
+		ORDER BY t.TimeTick;
 	END;
 
 	IF	@Type IN (N'PP', N'APIPushingPlayer', N'API Pushing Player')
@@ -153,7 +156,8 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS tbl
-				ON	t.TimeTick = tbl.TimeGroup;
+				ON	t.TimeTick = tbl.TimeGroup
+		ORDER BY t.TimeTick;
 	END;
 
 	IF	@Type IN (N'DT', N'DeltaTicket', N'Delta Ticket')
@@ -187,7 +191,8 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS otbl
-				ON	t.TimeTick = otbl.TimeGroup;
+				ON	t.TimeTick = otbl.TimeGroup
+		ORDER BY t.TimeTick;
 	END;
 
 	IF	@Type IN (N'DP', N'DeltaPlayer', N'Delta Player')
@@ -221,7 +226,8 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS otbl
-				ON	t.TimeTick = otbl.TimeGroup;
+				ON	t.TimeTick = otbl.TimeGroup
+		ORDER BY t.TimeTick;
 	END;
 END;
 GO
