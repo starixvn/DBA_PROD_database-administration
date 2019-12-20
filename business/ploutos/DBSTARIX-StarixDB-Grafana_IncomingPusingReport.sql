@@ -10,7 +10,7 @@ CREATE PROCEDURE	plo.Grafana_IncomingPusingReport
 AS
 /*
 	Creator:	20191220@Billy
-	Task:		In / Out data rate report - [Redmine: #125807]
+	Task:		Description - [Redmine: #125807]
 	Database:	DBSTARIX.StarixDB
 
 	Revisions:
@@ -24,17 +24,12 @@ BEGIN;
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 	SET NOCOUNT ON;
 
-	-- Constants --
-	DECLARE	@DataPoints		SMALLINT		= 100
-		;
-
 	-- Time related variables --
 	DECLARE	@Timezone		SMALLINT
 		,	@BaseTime		DATETIME
 		,	@_From			INT
 		,	@_To			INT
 		,	@_TimeGroup		INT
-		,	@xTimeGroup		VARCHAR(128)
 		;
 
 	-- Temporary result timeline --
@@ -45,7 +40,7 @@ BEGIN;
 			);
 
 	-- Determine fixed time values --
-	SELECT	@Timezone = DATEDIFF(HOUR, GETUTCDATE(), GETDATE())
+	SELECT	@Timezone = DATEDIFF(HOUR, GETDATE(), GETUTCDATE())
 		,	@BaseTime = '2019-01-01'
 		;
 
@@ -54,20 +49,10 @@ BEGIN;
 		,	@_To	= DATEDIFF(SECOND, @BaseTime, DATEADD(HOUR, @Timezone, @To))
 		;
 
-	-- Parse time group -- Safety check: limit the number of data points to @DataPoints --
+	-- Parse time group --
 	SELECT	@_TimeGroup	= SecondGroup
 	FROM	plo.TimeGroups WITH (NOLOCK)
 	WHERE	GroupName = @TimeGroup;
-
-	WHILE	CEILING((@_To - @_From) * 1.0 / @_TimeGroup) + 1 > @DataPoints
-	BEGIN;
-		SELECT	TOP(1)
-				@_TimeGroup = SecondGroup
-			,	@xTimeGroup = GroupName
-		FROM	plo.TimeGroups WITH (NOLOCK)
-		WHERE	SecondGroup > @_TimeGroup
-		ORDER BY SecondGroup ASC;
-	END;
 
 	-- Build timeline based on time group --
 	WITH cte AS (
@@ -105,8 +90,7 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS tbl
-				ON	t.TimeTick = tbl.TimeGroup
-		ORDER BY t.TimeTick;
+				ON	t.TimeTick = tbl.TimeGroup;
 	END;
 
 	IF	@Type IN (N'IP', N'IncomingPlayer', N'Incoming Player')
@@ -127,8 +111,7 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS tbl
-				ON	t.TimeTick = tbl.TimeGroup
-		ORDER BY t.TimeTick;
+				ON	t.TimeTick = tbl.TimeGroup;
 	END;
 
 	IF	@Type IN (N'PT', N'APIPushingTicket', N'API Pushing Ticket')
@@ -149,8 +132,7 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS tbl
-				ON	t.TimeTick = tbl.TimeGroup
-		ORDER BY t.TimeTick;
+				ON	t.TimeTick = tbl.TimeGroup;
 	END;
 
 	IF	@Type IN (N'PP', N'APIPushingPlayer', N'API Pushing Player')
@@ -171,8 +153,7 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS tbl
-				ON	t.TimeTick = tbl.TimeGroup
-		ORDER BY t.TimeTick;
+				ON	t.TimeTick = tbl.TimeGroup;
 	END;
 
 	IF	@Type IN (N'DT', N'DeltaTicket', N'Delta Ticket')
@@ -206,8 +187,7 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS otbl
-				ON	t.TimeTick = otbl.TimeGroup
-		ORDER BY t.TimeTick;
+				ON	t.TimeTick = otbl.TimeGroup;
 	END;
 
 	IF	@Type IN (N'DP', N'DeltaPlayer', N'Delta Player')
@@ -241,8 +221,7 @@ BEGIN;
 				AND	_tbl.SecondStamp < @_To
 			GROUP BY _t.TimeGroup
 		) AS otbl
-				ON	t.TimeTick = otbl.TimeGroup
-		ORDER BY t.TimeTick;
+				ON	t.TimeTick = otbl.TimeGroup;
 	END;
 END;
 GO
