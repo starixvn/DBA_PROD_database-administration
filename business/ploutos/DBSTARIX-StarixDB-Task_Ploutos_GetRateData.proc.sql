@@ -20,6 +20,9 @@ AS
 BEGIN;
 	SET NOCOUNT ON;
 
+	DECLARE	@BaseTime	DATETIME
+		;
+
 	DECLARE	@Query		NVARCHAR(MAX)
 		,	@Param		NVARCHAR(MAX)
 		,	@ExecuteSP	NVARCHAR(256)
@@ -35,6 +38,9 @@ BEGIN;
 					,	DataCount		INT
 					,	PRIMARY KEY CLUSTERED (BrandCode, SecondStamp)
 					);
+
+	-- Fixed value --
+	SELECT	@BaseTime = '2019-01-01'
 
 	-- Determine data range -- If NULL then get data from the last 10 minutes
 	SELECT	@_From	= ISNULL(@From, DATEADD(MINUTE, DATEDIFF(MINUTE, '2000-01-01', GETDATE()) -10, '2000-01-01'))
@@ -56,7 +62,7 @@ SELECT	[BrandCode]		= b.BrandCode
 	,	[DataCount]		= COUNT(DISTINCT b.TransactionId)
 FROM		dbo.BetTicket AS b WITH (NOLOCK)
 CROSS APPLY	(
-	SELECT	[sec] = DATEDIFF(SECOND, ''2019-01-01'', b.CreatedDate)
+	SELECT	[sec] = DATEDIFF(SECOND, @BaseTime, b.CreatedDate)
 ) AS t
 WHERE	b.CreatedDate >= @From
 	AND	b.CreatedDate < @To
@@ -64,11 +70,11 @@ GROUP BY b.BrandCode, t.sec;
 ';
 
 		SELECT	@Param = N'';
-		SELECT	@Param += N'@From DATETIME, @To DATETIME';
+		SELECT	@Param += N'@BaseTime DATETIME, @From DATETIME, @To DATETIME';
 
 		TRUNCATE TABLE #TmpData;
 		INSERT INTO	#TmpData (BrandCode, SecondStamp, DataCount)
-		EXECUTE	@ExecuteSP @Query, @Param, @_From, @_To;
+		EXECUTE	@ExecuteSP @Query, @Param, @BaseTime, @_From, @_To;
 
 		MERGE INTO	plo.IncomingTicketRate WITH (ROWLOCK) AS rpt
 		USING		#TmpData AS src
@@ -80,6 +86,8 @@ GROUP BY b.BrandCode, t.sec;
 			THEN INSERT (    BrandCode,     SecondStamp,   TicketCount)
 				 VALUES (src.BrandCode, src.SecondStamp, src.DataCount)
 		;
+
+		RAISERROR('IncomingTicketRate - %d rows', 0, 0 , @@ROWCOUNT) WITH NOWAIT;
 	END;
 
 	-- API Pushing Ticket Rate --
@@ -98,7 +106,7 @@ INNER JOIN	dbo.APIHistory_BetTicket_Detail AS h WITH (NOLOCK)
 INNER JOIN	dbo.APIHistory_BetTicket_Batch AS _b WITH (NOLOCK)
 		ON	h.BatchID = _b.BatchID
 CROSS APPLY	(
-	SELECT	[sec] = DATEDIFF(SECOND, ''2019-01-01'', _b.ResponseTime)
+	SELECT	[sec] = DATEDIFF(SECOND, @BaseTime, _b.ResponseTime)
 ) AS t
 WHERE	_b.ResponseTime >= @From
 	AND	_b.ResponseTime < @To
@@ -106,11 +114,11 @@ GROUP BY b.BrandCode, t.sec;
 ';
 
 		SELECT	@Param = N'';
-		SELECT	@Param += N'@From DATETIME, @To DATETIME';
+		SELECT	@Param += N'@BaseTime DATETIME, @From DATETIME, @To DATETIME';
 
 		TRUNCATE TABLE #TmpData;
 		INSERT INTO	#TmpData (BrandCode, SecondStamp, DataCount)
-		EXECUTE	@ExecuteSP @Query, @Param, @_From, @_To;
+		EXECUTE	@ExecuteSP @Query, @Param, @BaseTime, @_From, @_To;
 
 		MERGE INTO	plo.APIPushingTicketRate WITH (ROWLOCK) AS rpt
 		USING		#TmpData AS src
@@ -122,6 +130,8 @@ GROUP BY b.BrandCode, t.sec;
 			THEN INSERT (    BrandCode,     SecondStamp,   TicketCount)
 				 VALUES (src.BrandCode, src.SecondStamp, src.DataCount)
 		;
+
+		RAISERROR('APIPushingTicketRate - %d rows', 0, 0 , @@ROWCOUNT) WITH NOWAIT;
 	END;
 
 	-- Incoming Player Rate --
@@ -136,7 +146,7 @@ SELECT	[BrandCode]		= p.BrandCode
 	,	[DataCount]		= COUNT(DISTINCT p.CustID)
 FROM		dbo.PlayerProfile AS p WITH (NOLOCK)
 CROSS APPLY	(
-	SELECT	[sec] = DATEDIFF(SECOND, ''2019-01-01'', p.CreatedDate)
+	SELECT	[sec] = DATEDIFF(SECOND, @BaseTime, p.CreatedDate)
 ) AS t
 WHERE	p.CreatedDate >= @From
 	AND	p.CreatedDate < @To
@@ -144,11 +154,11 @@ GROUP BY p.BrandCode, t.sec;
 ';
 
 		SELECT	@Param = N'';
-		SELECT	@Param += N'@From DATETIME, @To DATETIME';
+		SELECT	@Param += N'@BaseTime DATETIME, @From DATETIME, @To DATETIME';
 
 		TRUNCATE TABLE #TmpData;
 		INSERT INTO	#TmpData (BrandCode, SecondStamp, DataCount)
-		EXECUTE	@ExecuteSP @Query, @Param, @_From, @_To;
+		EXECUTE	@ExecuteSP @Query, @Param, @BaseTime, @_From, @_To;
 
 		MERGE INTO	plo.IncomingPlayerRate WITH (ROWLOCK) AS rpt
 		USING		#TmpData AS src
@@ -160,6 +170,8 @@ GROUP BY p.BrandCode, t.sec;
 			THEN INSERT (    BrandCode,     SecondStamp,   PlayerCount)
 				 VALUES (src.BrandCode, src.SecondStamp, src.DataCount)
 		;
+
+		RAISERROR('IncomingPlayerRate - %d rows', 0, 0 , @@ROWCOUNT) WITH NOWAIT;
 	END;
 
 	-- API Pushing Player Rate --
@@ -176,7 +188,7 @@ FROM		dbo.PlayerProfile AS p WITH (NOLOCK)
 INNER JOIN	dbo.APIHistory_PlayerProfile AS h WITH (NOLOCK)
 		ON	h.PlayerNo = p.CustID
 CROSS APPLY	(
-	SELECT	[sec] = DATEDIFF(SECOND, ''2019-01-01'', h.ResponseTime)
+	SELECT	[sec] = DATEDIFF(SECOND, @BaseTime, h.ResponseTime)
 ) AS t
 WHERE	h.ResponseTime >= @From
 	AND	h.ResponseTime < @To
@@ -184,11 +196,11 @@ GROUP BY p.BrandCode, t.sec;
 ';
 
 		SELECT	@Param = N'';
-		SELECT	@Param += N'@From DATETIME, @To DATETIME';
+		SELECT	@Param += N'@BaseTime DATETIME, @From DATETIME, @To DATETIME';
 
 		TRUNCATE TABLE #TmpData;
 		INSERT INTO	#TmpData (BrandCode, SecondStamp, DataCount)
-		EXECUTE	@ExecuteSP @Query, @Param, @_From, @_To;
+		EXECUTE	@ExecuteSP @Query, @Param, @BaseTime, @_From, @_To;
 
 		MERGE INTO	plo.APIPushingPlayerRate WITH (ROWLOCK) AS rpt
 		USING		#TmpData AS src
@@ -200,6 +212,8 @@ GROUP BY p.BrandCode, t.sec;
 			THEN INSERT (    BrandCode,     SecondStamp,   PlayerCount)
 				 VALUES (src.BrandCode, src.SecondStamp, src.DataCount)
 		;
+
+		RAISERROR('APIPushingPlayerRate - %d rows', 0, 0 , @@ROWCOUNT) WITH NOWAIT;
 	END;
 END;
 GO
