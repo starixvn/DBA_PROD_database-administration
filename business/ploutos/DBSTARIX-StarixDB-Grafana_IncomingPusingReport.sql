@@ -10,7 +10,7 @@ CREATE PROCEDURE	plo.Grafana_IncomingPusingReport
 AS
 /*
 	Creator:	20191220@Billy
-	Task:		Description - [Redmine: #125807]
+	Task:		In / Out data rate report - [Redmine: #125807]
 	Database:	DBSTARIX.StarixDB
 
 	Revisions:
