@@ -23,6 +23,8 @@ CREATE TABLE	dbo.DBA_LetstalkRooms (
 				,	RoomName		VARCHAR(100)	NOT NULL
 				,	isActive		BIT				NOT NULL
 						CONSTRAINT	DF_LetstalkRooms_isActive DEFAULT (1)
+				,	SendDirectly	BIT				NOT NULL
+						CONSTRAINT	DF_LetstalkRooms_SendDirectly DEFAULT (0)
 				,	CONSTRAINT PK_DBA_LetstalkRooms PRIMARY KEY CLUSTERED (RoomId ASC) ON DATA
 				) ON DATA;
 
