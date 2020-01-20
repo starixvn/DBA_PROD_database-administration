@@ -6,9 +6,9 @@ CREATE PROCEDURE	sync.ProcedureSynchronization_Single
 					,	@source_database		NVARCHAR(128)
 					,	@destination_server		NVARCHAR(128)
 					,	@destination_database	NVARCHAR(128)
-					,	@schema					NVARCHAR(128)	= NULL
 					,	@object					NVARCHAR(128)
-					,	@action					VARCHAR(128)
+					,	@schema					NVARCHAR(128)	= NULL
+					,	@action					VARCHAR(128)	= NULL
 AS
 /*
 	Creator:	20200120@Billy
@@ -129,7 +129,7 @@ CROSS APPLY	(
 	INNER JOIN	sys.database_principals AS usr WITH (NOLOCK)
 			ON	dp.grantee_principal_id = usr.principal_id
 	WHERE	dp.major_id = obj.object_id
-	FOR XML PATH ('')
+	FOR XML PATH ('''')
 	,	TYPE
 ) AS px(xml)
 CROSS APPLY	(
