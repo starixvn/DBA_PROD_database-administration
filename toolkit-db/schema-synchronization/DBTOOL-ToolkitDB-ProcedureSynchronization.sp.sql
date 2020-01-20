@@ -129,6 +129,7 @@ CROSS APPLY	(
 	INNER JOIN	sys.database_principals AS usr WITH (NOLOCK)
 			ON	dp.grantee_principal_id = usr.principal_id
 	WHERE	dp.major_id = obj.object_id
+		AND	usr.name NOT IN (''vnteam'', ''vndba'')
 	FOR XML PATH ('''')
 	,	TYPE
 ) AS px(xml)
