@@ -190,7 +190,7 @@ WHERE	sch.name = @schema
 ';
 
 		SELECT	@Param = N'';
-		SELECT	@Param += N'@schema NVARCHAR(128), @object NVARCHAR(128), @existing BIT OUTPUT, @type BIT OUTPUT';
+		SELECT	@Param += N'@schema NVARCHAR(128), @object NVARCHAR(128), @existing BIT OUTPUT, @type CHAR(2) OUTPUT';
 
 		SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
 		EXECUTE	@ExecuteSP @Query, @Param, @ObjectSchema, @ObjectName, @Existing OUTPUT, @ObjectType OUTPUT;
