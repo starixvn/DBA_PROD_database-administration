@@ -210,7 +210,13 @@ WHERE	sch.name = @schema
 		SELECT	ObjectId, ObjectType, ObjectName, ObjectDefinition, ObjectPermission, ObjectChecksum, DestinationChecksum, Existing
 		FROM	@ObjectModule;
 
-		IF	@action = 'SYNC'
+		IF	@action = 'SYNC' AND NOT EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum <> DestinationChecksum)
+		BEGIN;
+			RAISERROR(N'\
+[VERBOSE]		Object %s is synchronized, skipped synchronizing.
+', 0, 0, @ObjectName) WITH NOWAIT;
+		END;
+		ELSE IF	@action = 'SYNC'
 		BEGIN;
 			SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
 
