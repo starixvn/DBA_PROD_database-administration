@@ -208,18 +208,18 @@ SELECT	@existing = CASE WHEN OBJECT_ID(@object) IS NOT NULL THEN 1 ELSE 0 END;
 [SYNCING]		Object %s deployed to %s.%s.
 ', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
 
-			IF	LEN(LTRIM(RTRIM(@Permission))) < 10
-			BEGIN;
-				RAISERROR(N'\
-[SYNCING]		Object %s has no permissions. Skipped.
-', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
-			END;
-			ELSE
+			IF	LEN(LTRIM(RTRIM(@Permission))) > 10
 			BEGIN;
 				EXECUTE	@ExecuteSP @Permission;
 
 				RAISERROR(N'\
 [SYNCING]		Object %s''s permissions deployed to %s.%s.
+', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+			END;
+			ELSE
+			BEGIN;
+				RAISERROR(N'\
+[SYNCING]		Object %s has no permissions. Skipped.
 ', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
 			END;
 		END;
