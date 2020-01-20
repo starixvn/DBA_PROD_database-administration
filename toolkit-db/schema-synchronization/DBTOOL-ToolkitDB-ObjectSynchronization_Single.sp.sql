@@ -31,6 +31,7 @@ BEGIN;
 		,	@ObjectType		CHAR(2)
 		,	@ObjectSchema	NVARCHAR(128)
 		,	@ObjectName		NVARCHAR(128)
+		,	@ObjectChecksum	INT
 		,	@Definition		NVARCHAR(MAX)
 		,	@Permission		NVARCHAR(MAX)
 		,	@Existing		BIT
@@ -50,6 +51,8 @@ BEGIN;
 			,	ObjectName			NVARCHAR(128)
 			,	ObjectDefinition	NVARCHAR(MAX)
 			,	ObjectPermission	NVARCHAR(MAX)
+			,	ObjectChecksum		INT
+			,	DestinationChecksum	INT
 			,	Existing			BIT
 			);
 
@@ -121,6 +124,7 @@ SELECT	[ObjectId]			= obj.object_id
 	,	[ObjectName]		= obj.name
 	,	[ObjectDefinition]	= sm.definition
 	,	[ObjectPermission]	= ps.permission
+	,	[ObjectChecksum]	= BINARY_CHECKSUM(obj.name, obj.type, sm.definition)
 FROM		sys.schemas AS sch WITH (NOLOCK)
 INNER JOIN	sys.objects AS obj WITH (NOLOCK)
 		ON	sch.schema_id = obj.schema_id
@@ -149,7 +153,7 @@ WHERE	sch.name = ISNULL(@schema, sch.name)
 
 		SELECT	@ExecuteSP = QUOTENAME(@source_server) + N'.' + QUOTENAME(@source_database) + N'.sys.sp_executesql';
 
-		INSERT INTO	@ObjectModule (ObjectId, ObjectType, ObjectSchema, ObjectName, ObjectDefinition, ObjectPermission)
+		INSERT INTO	@ObjectModule (ObjectId, ObjectType, ObjectSchema, ObjectName, ObjectDefinition, ObjectPermission, ObjectChecksum)
 		EXECUTE	@ExecuteSP @Query, @Param, @schema, @object;
 
 		IF	NOT EXISTS (SELECT 1 FROM @ObjectModule)
@@ -182,23 +186,28 @@ SET NOCOUNT ON;
 
 SELECT	@existing	= CASE WHEN obj.object_id IS NOT NULL THEN 1 ELSE 0 END
 	,	@type		= obj.type
+	,	@checksum	= BINARY_CHECKSUM(obj.name, obj.type, sm.definition)
 FROM		sys.schemas AS sch WITH (NOLOCK)
 INNER JOIN	sys.objects AS obj WITH (NOLOCK)
 		ON	sch.schema_id = obj.schema_id
+INNER JOIN	sys.sql_modules AS sm WITH (NOLOCK)
+		ON	obj.object_id = sm.object_id
 WHERE	sch.name = @schema
 	AND	obj.name = @object;
 ';
 
 		SELECT	@Param = N'';
-		SELECT	@Param += N'@schema NVARCHAR(128), @object NVARCHAR(128), @existing BIT OUTPUT, @type CHAR(2) OUTPUT';
+		SELECT	@Param += N'@schema NVARCHAR(128), @object NVARCHAR(128), @existing BIT OUTPUT, @type CHAR(2) OUTPUT, @checksum INT OUTPUT';
 
 		SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
-		EXECUTE	@ExecuteSP @Query, @Param, @ObjectSchema, @ObjectName, @Existing OUTPUT, @ObjectType OUTPUT;
+		EXECUTE	@ExecuteSP @Query, @Param, @ObjectSchema, @ObjectName, @Existing OUTPUT, @ObjectType OUTPUT, @ObjectChecksum OUTPUT;
 
 		UPDATE	@ObjectModule
-		SET		Existing = @Existing;
+		SET		Existing = @Existing
+			,	DestinationChecksum = @ObjectChecksum
+			;
 
-		SELECT	ObjectId, ObjectType, ObjectName, ObjectDefinition, ObjectPermission, Existing
+		SELECT	ObjectId, ObjectType, ObjectName, ObjectDefinition, ObjectPermission, ObjectChecksum, DestinationChecksum, Existing
 		FROM	@ObjectModule;
 
 		IF	@action = 'SYNC'
