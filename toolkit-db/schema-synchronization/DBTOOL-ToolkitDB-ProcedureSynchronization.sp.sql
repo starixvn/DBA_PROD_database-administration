@@ -172,7 +172,7 @@ WHERE	sch.name = ISNULL(@schema, sch.name)
 
 		SELECT	@Query = N'';
 		SELECT	@Query += N'\
-SELECT	@existing = CASE WHEN OBJECT_ID(@object) IS NOT NULL THEN 1 ELSE O END;
+SELECT	@existing = CASE WHEN OBJECT_ID(@object) IS NOT NULL THEN 1 ELSE 0 END;
 ';
 
 		SELECT	@Param = N'';
