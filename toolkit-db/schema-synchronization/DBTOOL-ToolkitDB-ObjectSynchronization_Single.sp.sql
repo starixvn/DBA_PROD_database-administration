@@ -1,7 +1,7 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-CREATE PROCEDURE	sync.ProcedureSynchronization_Single
+CREATE PROCEDURE	sync.ObjectSynchronization_Single
 						@source_server			NVARCHAR(128)
 					,	@source_database		NVARCHAR(128)
 					,	@destination_server		NVARCHAR(128)
@@ -28,7 +28,9 @@ BEGIN;
 
 	-- Variables --
 	DECLARE	@DatabaseId		INT
-		,	@ObjectName		NVARCHAR(256)
+		,	@ObjectType		CHAR(2)
+		,	@ObjectSchema	NVARCHAR(128)
+		,	@ObjectName		NVARCHAR(128)
 		,	@Definition		NVARCHAR(MAX)
 		,	@Permission		NVARCHAR(MAX)
 		,	@Existing		BIT
@@ -44,7 +46,8 @@ BEGIN;
 	DECLARE	@ObjectModule AS TABLE (
 				ObjectId			INT
 			,	ObjectType			CHAR(2)
-			,	ObjectName			NVARCHAR(256)
+			,	ObjectSchema		NVARCHAR(128)
+			,	ObjectName			NVARCHAR(128)
 			,	ObjectDefinition	NVARCHAR(MAX)
 			,	ObjectPermission	NVARCHAR(MAX)
 			,	Existing			BIT
@@ -114,7 +117,8 @@ SET NOCOUNT ON;
 
 SELECT	[ObjectId]			= obj.object_id
 	,	[ObjectType]		= obj.type
-	,	[ObjectName]		= sch.name + N''.'' + obj.name
+	,	[ObjectSchema]		= sch.name
+	,	[ObjectName]		= obj.name
 	,	[ObjectDefinition]	= sm.definition
 	,	[ObjectPermission]	= ps.permission
 FROM		sys.schemas AS sch WITH (NOLOCK)
@@ -137,8 +141,7 @@ CROSS APPLY	(
 	SELECT	[permission] = px.xml.value(''.[1]'', ''NVARCHAR(MAX)'')
 ) AS ps
 WHERE	sch.name = ISNULL(@schema, sch.name)
-	AND	obj.name = @object
-	AND	obj.type = ''P'';
+	AND	obj.name = @object;
 ';
 
 		SELECT	@Param = N'';
@@ -146,7 +149,7 @@ WHERE	sch.name = ISNULL(@schema, sch.name)
 
 		SELECT	@ExecuteSP = QUOTENAME(@source_server) + N'.' + QUOTENAME(@source_database) + N'.sys.sp_executesql';
 
-		INSERT INTO	@ObjectModule (ObjectId, ObjectType, ObjectName, ObjectDefinition, ObjectPermission)
+		INSERT INTO	@ObjectModule (ObjectId, ObjectType, ObjectSchema, ObjectName, ObjectDefinition, ObjectPermission)
 		EXECUTE	@ExecuteSP @Query, @Param, @schema, @object;
 
 		IF	NOT EXISTS (SELECT 1 FROM @ObjectModule)
@@ -166,21 +169,31 @@ WHERE	sch.name = ISNULL(@schema, sch.name)
 		END;
 
 		SELECT	TOP(1)
-				@ObjectName = om.ObjectName
-			,	@Definition = om.ObjectDefinition
-			,	@Permission = om.ObjectPermission
+				@ObjectSchema	= om.ObjectSchema
+			,	@ObjectName		= om.ObjectName
+			,	@Definition		= om.ObjectDefinition
+			,	@Permission		= om.ObjectPermission
 		FROM	@ObjectModule AS om;
 
 		SELECT	@Query = N'';
 		SELECT	@Query += N'\
-SELECT	@existing = CASE WHEN OBJECT_ID(@object) IS NOT NULL THEN 1 ELSE 0 END;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SET NOCOUNT ON;
+
+SELECT	@existing	= CASE WHEN obj.object_id IS NOT NULL THEN 1 ELSE 0 END
+	,	@type		= obj.type
+FROM		sys.schemas AS sch WITH (NOLOCK)
+INNER JOIN	sys.objects AS obj WITH (NOLOCK)
+		ON	sch.schema_id = obj.schema_id
+WHERE	sch.name = @schema
+	AND	obj.name = @object;
 ';
 
 		SELECT	@Param = N'';
-		SELECT	@Param += N'@object NVARCHAR(256), @existing BIT OUTPUT';
+		SELECT	@Param += N'@schema NVARCHAR(128), @object NVARCHAR(128), @existing BIT OUTPUT, @type BIT OUTPUT';
 
 		SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
-		EXECUTE	@ExecuteSP @Query, @Param, @ObjectName, @Existing OUTPUT;
+		EXECUTE	@ExecuteSP @Query, @Param, @ObjectSchema, @ObjectName, @Existing OUTPUT, @ObjectType OUTPUT;
 
 		UPDATE	@ObjectModule
 		SET		Existing = @Existing;
@@ -190,6 +203,21 @@ SELECT	@existing = CASE WHEN OBJECT_ID(@object) IS NOT NULL THEN 1 ELSE 0 END;
 
 		IF	@action = 'SYNC'
 		BEGIN;
+			SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
+
+			IF	EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectType IN ('FN', 'IF', 'TF') AND ObjectType <> @ObjectType)
+			BEGIN;
+				SELECT	@Query = N'';
+				SELECT	@Query += N'DROP FUNCTION [~~SchemaName~~].[~~ObjectName~~];';
+				SELECT	@Query = REPLACE(REPLACE(@Query, N'~~SchemaName~~', @ObjectSchema), N'~~ObjectName~~', @ObjectName);
+
+				EXECUTE	@ExecuteSP @Query;
+
+				RAISERROR(N'\
+[SYNCING]		Object %s''s function type is changed, drop existing function.
+', 0, 0, @ObjectName) WITH NOWAIT;
+			END;
+
 			IF	@Existing = 1
 			BEGIN;
 				SELECT	@Definition = SUBSTRING(@Definition, 0, PATINDEX('%CREATE[ 	
@@ -201,7 +229,6 @@ SELECT	@existing = CASE WHEN OBJECT_ID(@object) IS NOT NULL THEN 1 ELSE 0 END;
 ', 0, 0, @ObjectName) WITH NOWAIT;
 			END;
 
-			SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
 			EXECUTE	@ExecuteSP @Definition;
 
 			RAISERROR(N'\
