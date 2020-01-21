@@ -17,6 +17,8 @@ AS
 
 	Revisions:
 		- 20200120@Billy:	Initial - [Redmine: #126744]
+		- 20200121@Billy:	Add table log
+							Add re-checksum step - [Redmine: #126945]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -54,6 +56,14 @@ BEGIN;
 			,	ObjectChecksum		INT
 			,	DestinationChecksum	INT
 			,	Existing			BIT
+			);
+
+	-- Log table --
+	DECLARE	@Log AS TABLE (
+				Id					INT				IDENTITY(1,1)
+					PRIMARY KEY CLUSTERED
+			,	Category			VARCHAR(128)
+			,	Message				NVARCHAR(MAX)
 			);
 
 	-- Parameter verification --
@@ -210,11 +220,15 @@ WHERE	sch.name = @schema
 		SELECT	ObjectId, ObjectType, ObjectName, ObjectDefinition, ObjectPermission, ObjectChecksum, DestinationChecksum, Existing
 		FROM	@ObjectModule;
 
+		-- Object synchronization --
 		IF	@action = 'SYNC' AND NOT EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum <> DestinationChecksum)
 		BEGIN;
 			RAISERROR(N'\
 [VERBOSE]		Object %s is synchronized, skipped synchronizing.
 ', 0, 0, @ObjectName) WITH NOWAIT;
+
+			INSERT INTO	@Log (Category, Message)
+			VALUES	('VERBOSE', N'Object ' + @ObjectName + N' is synchronized, skipped synchronizing.');
 		END;
 		ELSE IF	@action = 'SYNC'
 		BEGIN;
@@ -231,6 +245,9 @@ WHERE	sch.name = @schema
 				RAISERROR(N'\
 [SYNCING]		Object %s''s function type is changed, drop existing function.
 ', 0, 0, @ObjectName) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s function type is changed, drop existing function.');
 			END;
 
 			IF	@Existing = 1
@@ -239,33 +256,91 @@ WHERE	sch.name = @schema
 ]%', @Definition)) + N'ALTER' + SUBSTRING(@Definition, PATINDEX('%CREATE[ 	
 ]%', @Definition) + 6, LEN(@Definition));
 
-			RAISERROR(N'\
+				RAISERROR(N'\
 [SYNCING]		Object %s exists, changed definition to ALTER.
 ', 0, 0, @ObjectName) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N' exists, changed definition to ALTER.');
 			END;
 
 			EXECUTE	@ExecuteSP @Definition;
 
 			RAISERROR(N'\
-[SYNCING]		Object %s deployed to %s.%s.
+[SYNCING]		Object %s was deployed to %s.%s.
 ', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+			INSERT INTO	@Log (Category, Message)
+			VALUES	('SYNCING', N'Object ' + @ObjectName + N' was deployed to ' + @destination_server + N'.' + @destination_database + N'.');
 
 			IF	LEN(LTRIM(RTRIM(@Permission))) > 10
 			BEGIN;
 				EXECUTE	@ExecuteSP @Permission;
 
 				RAISERROR(N'\
-[SYNCING]		Object %s''s permissions deployed to %s.%s.
+[SYNCING]		Object %s''s permissions were deployed to %s.%s.
 ', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s permissions were deployed to ' + @destination_server + N'.' + @destination_database + N'.');
 			END;
 			ELSE
 			BEGIN;
 				RAISERROR(N'\
 [SYNCING]		Object %s has no permissions. Skipped.
 ', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N' has no permissions. Skipped.');
+			END;
+
+			-- Re-checksum --
+			SELECT	@Query = N'';
+			SELECT	@Query += N'\
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SET NOCOUNT ON;
+
+SELECT	@existing	= CASE WHEN obj.object_id IS NOT NULL THEN 1 ELSE 0 END
+	,	@type		= obj.type
+	,	@checksum	= BINARY_CHECKSUM(obj.name, obj.type, sm.definition)
+FROM		sys.schemas AS sch WITH (NOLOCK)
+INNER JOIN	sys.objects AS obj WITH (NOLOCK)
+		ON	sch.schema_id = obj.schema_id
+INNER JOIN	sys.sql_modules AS sm WITH (NOLOCK)
+		ON	obj.object_id = sm.object_id
+WHERE	sch.name = @schema
+	AND	obj.name = @object;
+';
+
+			SELECT	@Param = N'';
+			SELECT	@Param += N'@schema NVARCHAR(128), @object NVARCHAR(128), @existing BIT OUTPUT, @type CHAR(2) OUTPUT, @checksum INT OUTPUT';
+
+			SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
+			EXECUTE	@ExecuteSP @Query, @Param, @ObjectSchema, @ObjectName, @Existing OUTPUT, @ObjectType OUTPUT, @ObjectChecksum OUTPUT;
+
+			IF	EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum = @ObjectChecksum)
+			BEGIN;
+				RAISERROR(N'\
+[SYNCING]		Object %s''s checksum is OK.
+', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s checksum is OK.');
+			END;
+			ELSE
+			BEGIN;
+				RAISERROR(N'\
+[SYNCING]		Object %s''s checksum is NG. Please verify again.
+', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s checksum is NG. Please verify again.');
 			END;
 		END;
 	END;
+
+	SELECT	Category, Message
+	FROM	@Log;
 
 	RAISERROR(N'[DONE]', 0, 0) WITH NOWAIT;
 END;
