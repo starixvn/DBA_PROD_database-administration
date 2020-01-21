@@ -17,6 +17,7 @@ AS
 
 	Revisions:
 		- 20200120@Billy:	Initial - [Redmine: #126744]
+		- 20200121@Billy:	Add table log - [Redmine: #126945]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -54,6 +55,14 @@ BEGIN;
 			,	ObjectChecksum		INT
 			,	DestinationChecksum	INT
 			,	Existing			BIT
+			);
+
+	-- Log table --
+	DECLARE	@Log AS TABLE (
+				Id					INT				IDENTITY(1,1)
+					PRIMARY KEY CLUSTERED
+			,	Category			VARCHAR(128)
+			,	Message				NVARCHAR(MAX)
 			);
 
 	-- Parameter verification --
@@ -215,6 +224,9 @@ WHERE	sch.name = @schema
 			RAISERROR(N'\
 [VERBOSE]		Object %s is synchronized, skipped synchronizing.
 ', 0, 0, @ObjectName) WITH NOWAIT;
+
+			INSERT INTO	@Log (Category, Message)
+			VALUES	('VERBOSE', N'Object ' + @ObjectName + N' is synchronized, skipped synchronizing.');
 		END;
 		ELSE IF	@action = 'SYNC'
 		BEGIN;
@@ -231,6 +243,9 @@ WHERE	sch.name = @schema
 				RAISERROR(N'\
 [SYNCING]		Object %s''s function type is changed, drop existing function.
 ', 0, 0, @ObjectName) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s function type is changed, drop existing function.');
 			END;
 
 			IF	@Existing = 1
@@ -239,33 +254,48 @@ WHERE	sch.name = @schema
 ]%', @Definition)) + N'ALTER' + SUBSTRING(@Definition, PATINDEX('%CREATE[ 	
 ]%', @Definition) + 6, LEN(@Definition));
 
-			RAISERROR(N'\
+				RAISERROR(N'\
 [SYNCING]		Object %s exists, changed definition to ALTER.
 ', 0, 0, @ObjectName) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N' exists, changed definition to ALTER.');
 			END;
 
 			EXECUTE	@ExecuteSP @Definition;
 
 			RAISERROR(N'\
-[SYNCING]		Object %s deployed to %s.%s.
+[SYNCING]		Object %s was deployed to %s.%s.
 ', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+			INSERT INTO	@Log (Category, Message)
+			VALUES	('SYNCING', N'Object ' + @ObjectName + N' was deployed to ' + @destination_server + N'.' + @destination_database + N'.');
 
 			IF	LEN(LTRIM(RTRIM(@Permission))) > 10
 			BEGIN;
 				EXECUTE	@ExecuteSP @Permission;
 
 				RAISERROR(N'\
-[SYNCING]		Object %s''s permissions deployed to %s.%s.
+[SYNCING]		Object %s''s permissions were deployed to %s.%s.
 ', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s permissions were deployed to ' + @destination_server + N'.' + @destination_database + N'.');
 			END;
 			ELSE
 			BEGIN;
 				RAISERROR(N'\
 [SYNCING]		Object %s has no permissions. Skipped.
 ', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N' has no permissions. Skipped.');
 			END;
 		END;
 	END;
+
+	SELECT	Category, Message
+	FROM	@Log;
 
 	RAISERROR(N'[DONE]', 0, 0) WITH NOWAIT;
 END;
