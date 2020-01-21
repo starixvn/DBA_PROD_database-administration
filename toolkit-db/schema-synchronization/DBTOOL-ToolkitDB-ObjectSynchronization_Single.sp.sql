@@ -17,7 +17,8 @@ AS
 
 	Revisions:
 		- 20200120@Billy:	Initial - [Redmine: #126744]
-		- 20200121@Billy:	Add table log - [Redmine: #126945]
+		- 20200121@Billy:	Add table log
+							Add re-checksum step - [Redmine: #126945]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -219,6 +220,7 @@ WHERE	sch.name = @schema
 		SELECT	ObjectId, ObjectType, ObjectName, ObjectDefinition, ObjectPermission, ObjectChecksum, DestinationChecksum, Existing
 		FROM	@ObjectModule;
 
+		-- Object synchronization --
 		IF	@action = 'SYNC' AND NOT EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum <> DestinationChecksum)
 		BEGIN;
 			RAISERROR(N'\
@@ -290,6 +292,49 @@ WHERE	sch.name = @schema
 
 				INSERT INTO	@Log (Category, Message)
 				VALUES	('SYNCING', N'Object ' + @ObjectName + N' has no permissions. Skipped.');
+			END;
+
+			-- Re-checksum --
+			SELECT	@Query = N'';
+			SELECT	@Query += N'\
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SET NOCOUNT ON;
+
+SELECT	@existing	= CASE WHEN obj.object_id IS NOT NULL THEN 1 ELSE 0 END
+	,	@type		= obj.type
+	,	@checksum	= BINARY_CHECKSUM(obj.name, obj.type, sm.definition)
+FROM		sys.schemas AS sch WITH (NOLOCK)
+INNER JOIN	sys.objects AS obj WITH (NOLOCK)
+		ON	sch.schema_id = obj.schema_id
+INNER JOIN	sys.sql_modules AS sm WITH (NOLOCK)
+		ON	obj.object_id = sm.object_id
+WHERE	sch.name = @schema
+	AND	obj.name = @object;
+';
+
+			SELECT	@Param = N'';
+			SELECT	@Param += N'@schema NVARCHAR(128), @object NVARCHAR(128), @existing BIT OUTPUT, @type CHAR(2) OUTPUT, @checksum INT OUTPUT';
+
+			SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
+			EXECUTE	@ExecuteSP @Query, @Param, @ObjectSchema, @ObjectName, @Existing OUTPUT, @ObjectType OUTPUT, @ObjectChecksum OUTPUT;
+
+			IF	EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum = @ObjectChecksum)
+			BEGIN;
+				RAISERROR(N'\
+[SYNCING]		Object %s''s checksum is OK.
+', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s checksum is OK.');
+			END;
+			ELSE
+			BEGIN;
+				RAISERROR(N'\
+[SYNCING]		Object %s''s checksum is NG. Please verify again.
+', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+				INSERT INTO	@Log (Category, Message)
+				VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s checksum is NG. Please verify again.');
 			END;
 		END;
 	END;
