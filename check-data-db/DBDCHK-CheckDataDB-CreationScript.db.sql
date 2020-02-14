@@ -1,0 +1,42 @@
+/*
+	Creator:	20191007@Billy
+	Task:		Create database that is used for checking data - [Redmine: #127620]
+	Server:		DBDCHK
+*/
+
+SET NOCOUNT ON;
+
+USE	master;
+GO
+CREATE DATABASE CheckDataDB
+	ON	PRIMARY (
+			NAME		= N'CheckDataDB'
+		,	FILENAME	= N'G:\USER_DB\CheckDataDB\CheckDataDB.mdf'
+		,	SIZE		= 4096KB
+		,	FILEGROWTH	= 4096KB
+		)
+	,	FILEGROUP DATA DEFAULT (
+			NAME		= N'CheckDataDB_DATA'
+		,	FILENAME	= N'G:\USER_DB\CheckDataDB\CheckDataDB_DATA.ndf'
+		,	SIZE		= 131072KB
+		,	FILEGROWTH	= 131072KB
+		)
+	,	FILEGROUP IDX (
+			NAME		= N'CheckDataDB_IDX'
+		,	FILENAME	= N'G:\USER_DB\CheckDataDB\CheckDataDB_IDX.ndf'
+		,	SIZE		= 131072KB
+		,	FILEGROWTH	= 131072KB
+		)
+	LOG ON (
+		NAME		= N'CheckDataDB_log'
+	,	FILENAME	= N'G:\USER_DB\CheckDataDB\CheckDataDB_log.ldf'
+	,	SIZE		= 1048576KB
+	,	FILEGROWTH	= 524288KB
+	);
+GO
+ALTER AUTHORIZATION ON DATABASE::CheckDataDB TO sa;
+GO
+ALTER DATABASE CheckDataDB SET RECOVERY SIMPLE WITH NO_WAIT;
+GO
+ALTER DATABASE CheckDataDB SET ENABLE_BROKER WITH NO_WAIT;
+GO
