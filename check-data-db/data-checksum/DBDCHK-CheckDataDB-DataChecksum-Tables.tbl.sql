@@ -1,0 +1,139 @@
+/*
+	Creator:	20200123@Billy
+	Task:		Tables for data checksum - [Redmine: #127620]
+	Server:		DBDCHK.CheckDataDB
+*/
+
+
+SET NOCOUNT ON;
+
+USE	CheckDataDB;
+GO
+
+--	BEGIN TABLE : Targets
+--		Contains target databases that need to be checked
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE	chksum.Targets (
+					TargetId			INT				NOT NULL	IDENTITY(1, 1)
+				,	TargetServer		NVARCHAR(128)	NOT NULL
+				,	TargetDatabase		NVARCHAR(128)	NOT NULL
+				,	SrcTarget			INT				NULL
+				) ON DATA;
+
+CREATE UNIQUE CLUSTERED INDEX	CIX_Targets ON chksum.Targets (
+							TargetServer	ASC
+						,	TargetDatabase	ASC
+						) ON DATA;
+
+CREATE UNIQUE NONCLUSTERED INDEX	UQ_Targets_Id ON chksum.Targets (
+										TargetId
+									) INCLUDE (SrcTarget) ON IDX;
+
+CREATE NONCLUSTERED INDEX	IX_Targets_Src ON chksum.Targets (
+								SrcTarget
+							) INCLUDE (TargetId) ON IDX;
+GO
+
+
+--	BEGIN TABLE : TableConfigs
+--		Contains tables and its configurations
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE	chksum.TableConfigs (
+					TableId				INT				NOT NULL	IDENTITY(1, 1)
+				,	SchName				NVARCHAR(128)	NOT NULL
+				,	TblName				NVARCHAR(128)	NOT NULL
+				,	PartitionCol		NVARCHAR(128)	NOT NULL
+				,	PartitionInterval	BIGINT			NOT NULL
+				,	CONSTRAINT	PK_TableConfigs PRIMARY KEY NONCLUSTERED (
+									TableId	ASC
+								) ON IDX
+				);
+
+CREATE UNIQUE CLUSTERED INDEX	CIX_TableConfigs ON chksum.TableConfigs (
+							SchName		ASC
+						,	TblName		ASC
+						) ON DATA;
+GO
+
+
+--	BEGIN TABLE : Checklist
+--		Contains list of checking tables
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE	chksum.Checklist (
+					ItemId				INT				NOT NULL	IDENTITY(1, 1)
+				,	TableId				INT				NOT NULL
+				,	TargetId			INT				NOT NULL
+				,	SrcTarget			INT				NOT NULL
+				,	isActive			BIT				NOT NULL
+						CONSTRAINT	DF_Checklist_isActive DEFAULT (1)
+				,	CONSTRAINT	PK_Checklist PRIMARY KEY NONCLUSTERED (
+									ItemId	ASC
+								) ON IDX
+				) ON DATA;
+
+CREATE CLUSTERED INDEX	CIX_Checklist ON chksum.Checklist (
+							TableId		ASC
+						,	TargetId	ASC
+						) ON DATA;
+GO
+
+
+--	BEGIN TABLE : CheckExcluded
+--		Contains list of columns that need to be excluded
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE	chksum.CheckExcluded (
+					TblName				NVARCHAR(128)	NOT NULL
+				,	ColName				NVARCHAR(128)	NOT NULL
+				,	CONSTRAINT	PK_CheckExcluded PRIMARY KEY CLUSTERED (
+									TblName		ASC
+								,	ColName		ASC
+								) ON DATA
+				) ON DATA;
+GO
+
+
+--	BEGIN TABLE : CheckResults
+--		Contains check data results
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE	chksum.CheckResults (
+					ChkDate				DATETIME		NOT NULL
+				,	ItemId				INT				NOT NULL
+				,	IntervalFrom		BIGINT			NOT NULL
+				,	IntervalTo			BIGINT			NOT NULL
+				,	SrcCount			BIGINT			NULL
+				,	DstCount			BIGINT			NULL
+				,	SrcChecksum			BIGINT			NULL
+				,	DstChecksum			BIGINT			NULL
+				,	SrcStdev			BIGINT			NULL
+				,	DstStdev			BIGINT			NULL
+				,	SrcDuration			BIGINT			NULL
+				,	DstDuration			BIGINT			NULL
+				,	isDone				BIT				NOT NULL
+						CONSTRAINT	DF_CheckResults_isDone DEFAULT (0)
+				,	CONSTRAINT	PK_CheckResult PRIMARY KEY CLUSTERED (
+									ChkDate			ASC
+								,	ItemId			ASC
+								,	IntervalFrom	ASC
+								) ON DATA
+				) ON DATA;
+GO
+
+
+--	BEGIN TABLE : CheckHistory
+--		Contains execution time history
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE	chksum.CheckHistory (
+					ChkDate				DATETIME		NOT NULL
+				,	isFinished			BIT				NOT NULL
+						CONSTRAINT	DF_CheckHistory_isFinished DEFAULT (0)
+				,	CONSTRAINT	PK_CheckHistory PRIMARY KEY CLUSTERED (
+									ChkDate			ASC
+								) ON DATA
+				) ON DATA;
+GO
