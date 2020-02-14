@@ -70,8 +70,7 @@ BEGIN;
 			,	RowNum			INT
 			,	ColName			NVARCHAR(128)
 			,	ColType			NVARCHAR(256)
-			,	PK				INT
-			,	ID				BIT
+			,	PK				BIT
 			,	PRIMARY KEY CLUSTERED (TargetId, RowNum)
 			);
 
@@ -202,8 +201,7 @@ SELECT	[TargetId]		= @TargetId
 	,	[RowNum]		= ROW_NUMBER() OVER(ORDER BY c.column_id)
 	,	[ColName]		= c.name
 	,	[ColType]		= ft.name
-	,	[PK]			= ISNULL(idx.pk, 0)
-	,	[ID]			= c.is_identity
+	,	[PK]			= CAST(ISNULL(idx.pk, 0) AS BIT)
 FROM		sys.schemas AS s WITH (NOLOCK)
 INNER JOIN	sys.tables AS t WITH (NOLOCK)
 		ON	s.schema_id = t.schema_id
@@ -229,14 +227,13 @@ CROSS APPLY	(
 							)
 ) AS ft
 OUTER APPLY	(
-	SELECT	[pk]	= ic.key_ordinal
+	SELECT	[pk]	= MAX(CAST(i.is_primary_key AS TINYINT))
 	FROM		sys.indexes AS i WITH (NOLOCK)
 	INNER JOIN	sys.index_columns AS ic WITH (NOLOCK)
 			ON	ic.object_id = i.object_id
 			AND	ic.index_id = i.index_id
 	WHERE	i.object_id = t.object_id
 		AND	ic.column_id = c.column_id
-		AND	i.is_primary_key = 1
 ) AS idx
 WHERE	s.name = @SchName
 	AND	t.name = @TblName
@@ -264,7 +261,7 @@ WHERE	s.name = @SchName
 
 			SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 
-			INSERT INTO	@TargetSchemas (TargetId, RowNum, ColName, ColType, PK, ID)
+			INSERT INTO	@TargetSchemas (TargetId, RowNum, ColName, ColType, PK)
 			EXECUTE	@ExecuteSP @Query, @Param, @TargetId, @Schema, @Table;
 		END;
 
@@ -312,8 +309,6 @@ All targets'' schema are not matching with source target. Exiting...';
 
 			EXECUTE	DBNOTI.NotificationDB.dbo.Skype_SendMessage 'BILLY', @Msg;
 			RAISERROR(@Msg, 16, 1) WITH NOWAIT;
-
-			RETURN 16;
 		END;
 		ELSE IF	EXISTS (SELECT 1 FROM @Targets WHERE TargetStatus = 0 AND isSource = 0)
 		BEGIN;
@@ -389,7 +384,7 @@ SELECT	@Duration = DATEDIFF(MILLISECOND, @Start, GETDATE());'
 	) AS cols(str);
 
 	SELECT	@Param = N'';
-	SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT, @Count BIGINT OUTPUT, @Chksum BIGINT OUTPUT, @Stdev BIGINT OUTPUT, @Duration BIGINT OUTPUT';
+	SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT, @Count INT OUTPUT, @Chksum INT OUTPUT, @Stdev INT OUTPUT, @Duration INT OUTPUT';
 
 	-- Run checksum by interval --
 	WHILE	0 = 0
@@ -421,8 +416,6 @@ SELECT	@Duration = DATEDIFF(MILLISECOND, @Start, GETDATE());'
 
 			SELECT	@ExecuteSP = N'';
 			SELECT	@ExecuteSP = N'\
--- Task_CheckTableData --
-
 DECLARE	@Query			NVARCHAR(MAX)
 	,	@Param			NVARCHAR(MAX)
 
@@ -432,10 +425,10 @@ DECLARE	@Query			NVARCHAR(MAX)
 
 	,	@IntervalFrom	BIGINT
 	,	@IntervalTo		BIGINT
-	,	@Count			BIGINT
-	,	@Chksum			BIGINT
-	,	@Stdev			BIGINT
-	,	@Duration		BIGINT
+	,	@Count			INT
+	,	@Chksum			INT
+	,	@Stdev			INT
+	,	@Duration		INT
 	;
 
 SELECT	@Query = N'''';
@@ -444,7 +437,7 @@ SELECT	@Query += N''' + REPLACE(@Query, NCHAR(39), NCHAR(39) + NCHAR(39)) + N'''
 SELECT	@Param = N'''';
 SELECT	@Param += N''' + REPLACE(@Param, NCHAR(39), NCHAR(39) + NCHAR(39)) + N''';
 
-SELECT	@CheckTime		= ''' + CONVERT(NVARCHAR(MAX), @CheckTime, 121) + N'''
+SELECT	@CheckTime		= ''' + CONVERT(NVARCHAR, @CheckTime, 121) + N'''
 	,	@TableId		= ' + CAST(@TableId AS NVARCHAR) + N'
 	,	@TargetId		= ' + CAST(@TargetId AS NVARCHAR) + N'
 	,	@IntervalFrom	= ' + CAST(@IntervalFrom AS NVARCHAR) + N'
@@ -484,8 +477,7 @@ INNER JOIN	chksum.Checklist AS c WITH (NOLOCK)
 WHERE	r.ChkDate = @CheckTime
 	AND	r.IntervalFrom = @IntervalFrom
 	AND	r.IntervalTo = @IntervalTo
-	AND	c.TableId = @TableId
-OPTION (RECOMPILE);
+	AND	c.TableId = @TableId;
 ';
 
 			EXECUTE	async.ASyncExecution @ExecuteSP;

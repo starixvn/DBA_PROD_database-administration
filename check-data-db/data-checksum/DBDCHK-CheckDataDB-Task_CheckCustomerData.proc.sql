@@ -127,9 +127,9 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 	IF	@Debug = 1
 	BEGIN;
 		SELECT	@Msg = N'\
-[@CheckTime]		= ' + CONVERT(NVARCHAR(MAX), @CheckTime, 121) + N'
-[@MaxCreatedDate]	= ' + CONVERT(NVARCHAR(MAX), @MaxCreatedDate, 121) + N'
-[@MaxCustId]		= ' + CONVERT(NVARCHAR(MAX), @MaxCustId) + REPLICATE(N'
+[@CheckTime]		= ' + CONVERT(NVARCHAR, @CheckTime, 121) + N'
+[@MaxCreatedDate]	= ' + CONVERT(NVARCHAR, @MaxCreatedDate, 121) + N'
+[@MaxCustId]		= ' + CONVERT(NVARCHAR, @MaxCustId) + REPLICATE(N'
 ', 2);
 		RAISERROR(@Msg, 0, 0) WITH NOWAIT;
 	END;
@@ -153,8 +153,7 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 		IF	@Debug = 1
 		BEGIN;
 			SELECT	@Msg = N'\
-[VERBOSE]	Task_CheckCustomerData:
-			Checking data			(%s.%s)';
+[TASK]		Checking data			(%s.%s)';
 			RAISERROR(@Msg, 0, 0, @Schema, @Table) WITH NOWAIT;
 		END;
 
@@ -169,8 +168,7 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 		IF	@Debug = 1
 		BEGIN;
 			SELECT	@Msg = N'\
-[VERBOSE]	Task_CheckCustomerData:
-			Finished				(%s.%s)' + REPLICATE(N'
+[TASK]		Finished				(%s.%s)' + REPLICATE(N'
 ', 2);
 			RAISERROR(@Msg, 0, 0, @Schema, @Table) WITH NOWAIT;
 		END;
@@ -195,16 +193,8 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 
 		IF	@Debug = 1
 			RAISERROR('\
-[VERBOSE]	Task_CheckCustomerData:
-			Waiting...
+[TASK]		Waiting...
 			Deleted %d rows', 0, 0, @Rowcount) WITH NOWAIT;
-
-		-- Error Handling --
-		EXECUTE	async.ASyncErrorHandling
-					@Pattern	= N'-- Task_CheckTableData --'
-				,	@From		= @CheckTime
-				,	@Debug		= @Debug
-				;
 	END;
 
 	WAITFOR DELAY '00:01:00.000';
@@ -213,11 +203,6 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 	UPDATE	chksum.CheckHistory WITH (ROWLOCK)
 	SET		isFinished = 1
 	WHERE	ChkDate = @CheckTime;
-
-	-- Report result --
-	EXECUTE	chksum.Task_ReportCustomerData
-				@Debug = @Debug
-			;
 END;
 GO
 /*<info serverAlias="DBDCHK-CheckDataDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/
