@@ -69,15 +69,16 @@ CREATE TABLE	chksum.Checklist (
 				,	SrcTarget			INT				NOT NULL
 				,	isActive			BIT				NOT NULL
 						CONSTRAINT	DF_Checklist_isActive DEFAULT (1)
-				,	CONSTRAINT	PK_Checklist PRIMARY KEY NONCLUSTERED (
-									ItemId	ASC
-								) ON IDX
 				) ON DATA;
 
 CREATE CLUSTERED INDEX	CIX_Checklist ON chksum.Checklist (
 							TableId		ASC
 						,	TargetId	ASC
 						) ON DATA;
+
+CREATE UNIQUE NONCLUSTERED INDEX	UIX_Checklist_ItemId ON chksum.Checklist (
+										ItemId	ASC
+									) INCLUDE (SrcTarget) ON IDX;
 GO
 
 
@@ -113,7 +114,7 @@ CREATE TABLE	chksum.CheckResults (
 				,	DstStdev			BIGINT			NULL
 				,	SrcDuration			BIGINT			NULL
 				,	DstDuration			BIGINT			NULL
-				,	isDone				BIT				NOT NULL
+				,	isDone				TINYINT			NOT NULL
 						CONSTRAINT	DF_CheckResults_isDone DEFAULT (0)
 				,	CONSTRAINT	PK_CheckResult PRIMARY KEY CLUSTERED (
 									ChkDate			ASC
@@ -121,6 +122,12 @@ CREATE TABLE	chksum.CheckResults (
 								,	IntervalFrom	ASC
 								) ON DATA
 				) ON DATA;
+
+CREATE NONCLUSTERED INDEX	IX_CheckResults_Interval ON chksum.CheckResults (
+								ChkDate			ASC
+							,	IntervalFrom	ASC
+							,	ItemId			ASC
+							) INCLUDE (IntervalTo, isDone) ON IDX;
 GO
 
 
