@@ -153,7 +153,8 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 		IF	@Debug = 1
 		BEGIN;
 			SELECT	@Msg = N'\
-[TASK]		Checking data			(%s.%s)';
+[VERBOSE]	Task_CheckCustomerData:
+			Checking data			(%s.%s)';
 			RAISERROR(@Msg, 0, 0, @Schema, @Table) WITH NOWAIT;
 		END;
 
@@ -168,7 +169,8 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 		IF	@Debug = 1
 		BEGIN;
 			SELECT	@Msg = N'\
-[TASK]		Finished				(%s.%s)' + REPLICATE(N'
+[VERBOSE]	Task_CheckCustomerData:
+			Finished				(%s.%s)' + REPLICATE(N'
 ', 2);
 			RAISERROR(@Msg, 0, 0, @Schema, @Table) WITH NOWAIT;
 		END;
@@ -193,8 +195,16 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 
 		IF	@Debug = 1
 			RAISERROR('\
-[TASK]		Waiting...
+[VERBOSE]	Task_CheckCustomerData:
+			Waiting...
 			Deleted %d rows', 0, 0, @Rowcount) WITH NOWAIT;
+
+		-- Error Handling --
+		EXECUTE	async.ASyncErrorHandling
+					@Pattern	= N'-- Task_CheckTableData --'
+				,	@From		= @CheckTime
+				,	@Debug		= @Debug
+				;
 	END;
 
 	WAITFOR DELAY '00:01:00.000';
