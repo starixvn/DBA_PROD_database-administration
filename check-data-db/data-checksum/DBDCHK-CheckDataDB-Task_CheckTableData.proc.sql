@@ -70,7 +70,8 @@ BEGIN;
 			,	RowNum			INT
 			,	ColName			NVARCHAR(128)
 			,	ColType			NVARCHAR(256)
-			,	PK				BIT
+			,	PK				INT
+			,	ID				BIT
 			,	PRIMARY KEY CLUSTERED (TargetId, RowNum)
 			);
 
@@ -201,7 +202,8 @@ SELECT	[TargetId]		= @TargetId
 	,	[RowNum]		= ROW_NUMBER() OVER(ORDER BY c.column_id)
 	,	[ColName]		= c.name
 	,	[ColType]		= ft.name
-	,	[PK]			= CAST(ISNULL(idx.pk, 0) AS BIT)
+	,	[PK]			= ISNULL(idx.pk, 0)
+	,	[ID]			= c.is_identity
 FROM		sys.schemas AS s WITH (NOLOCK)
 INNER JOIN	sys.tables AS t WITH (NOLOCK)
 		ON	s.schema_id = t.schema_id
@@ -227,13 +229,14 @@ CROSS APPLY	(
 							)
 ) AS ft
 OUTER APPLY	(
-	SELECT	[pk]	= MAX(CAST(i.is_primary_key AS TINYINT))
+	SELECT	[pk]	= ic.key_ordinal
 	FROM		sys.indexes AS i WITH (NOLOCK)
 	INNER JOIN	sys.index_columns AS ic WITH (NOLOCK)
 			ON	ic.object_id = i.object_id
 			AND	ic.index_id = i.index_id
 	WHERE	i.object_id = t.object_id
 		AND	ic.column_id = c.column_id
+		AND	i.is_primary_key = 1
 ) AS idx
 WHERE	s.name = @SchName
 	AND	t.name = @TblName
@@ -261,7 +264,7 @@ WHERE	s.name = @SchName
 
 			SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 
-			INSERT INTO	@TargetSchemas (TargetId, RowNum, ColName, ColType, PK)
+			INSERT INTO	@TargetSchemas (TargetId, RowNum, ColName, ColType, PK, ID)
 			EXECUTE	@ExecuteSP @Query, @Param, @TargetId, @Schema, @Table;
 		END;
 
@@ -309,6 +312,8 @@ All targets'' schema are not matching with source target. Exiting...';
 
 			EXECUTE	DBNOTI.NotificationDB.dbo.Skype_SendMessage 'BILLY', @Msg;
 			RAISERROR(@Msg, 16, 1) WITH NOWAIT;
+
+			RETURN 16;
 		END;
 		ELSE IF	EXISTS (SELECT 1 FROM @Targets WHERE TargetStatus = 0 AND isSource = 0)
 		BEGIN;
@@ -416,6 +421,8 @@ SELECT	@Duration = DATEDIFF(MILLISECOND, @Start, GETDATE());'
 
 			SELECT	@ExecuteSP = N'';
 			SELECT	@ExecuteSP = N'\
+-- Task_CheckTableData --
+
 DECLARE	@Query			NVARCHAR(MAX)
 	,	@Param			NVARCHAR(MAX)
 
