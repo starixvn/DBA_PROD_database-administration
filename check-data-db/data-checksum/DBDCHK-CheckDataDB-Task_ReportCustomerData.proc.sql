@@ -32,8 +32,7 @@ BEGIN;
 		;
 
 	-- Debug Variables --
-	DECLARE	@Msg			NVARCHAR(MAX)
-		,	@Rowcount		INT
+	DECLARE	@Rowcount		INT
 		;
 
 	-- Table Variables --

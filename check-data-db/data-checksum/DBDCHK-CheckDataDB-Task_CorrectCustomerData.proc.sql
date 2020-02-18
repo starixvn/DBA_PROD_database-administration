@@ -13,22 +13,9 @@ AS
 
 	Revisions:
 		- 20200218@Billy:	Initial - [Redmine: #127620]
-		- 20200304@Billy:	Add more debugging info - [Redmine: #129726]
 
 	Developer's Notes:
-		- @IgnoreRunningChecksum:		[optional]		- Decide to ignore current running checksum or not
-							<DEFAULT>	0				- If there are any running checksum, terminate this task
-										1				- Ignore the running checksum, proceed with correct data based on the last finished checksum
-
-		- @IgnoreExistingAdhocTables:	[optional]		- If there are other correction task running, the adhoc tables used for storing data will exist.
-														  Correct data while other one running may cause confiction and may have unexpected result.
-														  But in the case the last correction task was terminated, the adhoc tables weren't removed.
-														  To be able to proceed, we need to bypass the existence of these adhoc tables.
-						<DEFAULT>		0				- Terminate if there are adhoc tables
-										1				- Bypass the existence of adhoc tables, will have 10 seconds to terminate the task manually.
-		- @Debug:						[optional]		- Debug mode
-						<DEFAULT>		0				- OFF - Execute the correction
-										1				- ON - Print the correction queries
+		- @Example:			NULL		- Explaination [DEFAULT]
 */
 BEGIN;
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
@@ -55,7 +42,6 @@ BEGIN;
 		,	@PartitionCol	NVARCHAR(128)
 		,	@IntervalFrom	BIGINT
 		,	@IntervalTo		BIGINT
-		,	@Repeat			BIT
 		;
 
 	-- Debug Variables --
@@ -119,7 +105,6 @@ BEGIN;
 	BEGIN;
 		DELETE	@Targets;
 		DELETE	@TargetSchemas;
-		SELECT	@Repeat = 0;
 
 		SELECT	TOP(1)
 				@Schema				= tbl.SchName
@@ -465,17 +450,12 @@ WHERE	' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
 			WHILE	0 = 0
 			BEGIN;
 				UPDATE	TOP(1)
-						t
+						@Targets
 				SET		@TargetId	= TargetId
 					,	@Server		= TargetServer
 					,	@Database	= TargetDatabase
 					,	TargetStatus = 1
-				FROM	(
-					SELECT	*, [rn] = ROW_NUMBER() OVER(ORDER BY isSource ASC)
-					FROM	@Targets
-					WHERE	TargetStatus = 0
-				) AS t
-				WHERE	t.rn = 1;
+				WHERE	TargetStatus = 0;
 
 				IF	@@ROWCOUNT = 0
 					BREAK;
@@ -504,10 +484,9 @@ EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
 SELECT	@ReturnQuery = N''\
 INSERT INTO	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' (' + _cols.str + N')
 VALUES	'' + vals.str + N''
-OPTION (RECOMPILE);''
+	;''
 FROM	(
-	SELECT	TOP(1000)
-			N''(' + _vals.str + N')
+	SELECT	N''(' + _vals.str + N')
 	,	''
 	FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
 	WHERE	NOT EXISTS (SELECT 1 FROM adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK) WHERE ' + _cps.str + N')
@@ -555,14 +534,14 @@ OPTION (RECOMPILE);
 			CROSS APPLY	(
 				SELECT	NCHAR(39) + N' + ISNULL('
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
-								ELSE 'CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
+									THEN ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE 'CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N')'
 						END
 					+	N', N''NULL'') + N' + NCHAR(39) + N', '
 				FROM		@TargetSchemas AS _ts
@@ -603,31 +582,8 @@ OPTION (RECOMPILE);
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
-				-- Error debugger --
-				IF	@@ERROR <> 0
-				BEGIN;
-					RAISERROR(N'\
-[ERROR]		Task_CorrectCustomerData:
-				%s.%s - %I64d » %I64d - %s.%s
-				Failed to generate query for INSERT command.
-
-', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
-
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @OuterQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@OuterQuery;
-					END CATCH;
-
-					RAISERROR(N'', 0, 0) WITH NOWAIT;
-				END;
-
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
-					-- Repeat flag --
-					SELECT	@Repeat = 1;
-
 					-- Identity Insert --
 					IF	EXISTS (SELECT 1 FROM @TargetSchemas WHERE ID = 1)
 					BEGIN;
@@ -643,27 +599,16 @@ SET IDENTITY_INSERT ' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' OFF;'
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
-
-						-- Error debugger --
-						IF	@@ERROR <> 0
-						BEGIN;
-							RAISERROR(N'\
-[ERROR]		Task_CorrectCustomerData:
-				%s.%s - %I64d » %I64d - %s.%s
-				Failed to execute INSERT command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
-						END;
 					END;
 					ELSE
-					BEGIN;
-						BEGIN TRY;
-							EXECUTE	dbo.sp_print @ReturnQuery;
-						END TRY
-						BEGIN CATCH;
-							PRINT	@ReturnQuery;
-						END CATCH;
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @ReturnQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@ReturnQuery;
+					END CATCH;
 
-						RAISERROR('', 0, 0) WITH NOWAIT;
-					END;
+					RAISERROR('', 0, 0) WITH NOWAIT;
 				END;
 			END;
 		END;
@@ -679,18 +624,17 @@ FROM	(
 	SELECT	N''\
 UPDATE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
 SET		' + NCHAR(39) + _vals.str + N' + ' + NCHAR(39) + N'@Dummy	= 0
-WHERE	' + _ws.str + N'
-OPTION (RECOMPILE);
+WHERE	' + _ws.str + N';
 
 ''
 	FROM		(
-		SELECT	*, [chksum] = BINARY_CHECKSUM(*)
-		FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
-	) AS src
-	INNER JOIN	(
-		SELECT	*, [chksum] = BINARY_CHECKSUM(*)
-		FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
-	) AS dst
+	SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+	FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
+) AS src
+FULL OUTER JOIN	(
+	SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
+) AS dst
 			ON	' + _cps.str + N'
 	WHERE	src.chksum <> dst.chksum
 	FOR XML PATH ('''')
@@ -727,14 +671,14 @@ OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NULL AND src.' + QUOTENAME(_ts.ColNam
 OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NOT NULL AND src.' + QUOTENAME(_ts.ColName) + N' IS NULL) \
 THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + ISNULL(NCHAR(39) + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39), N''NULL'')'
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + ISNULL(N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + ISNULL(NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1), N''NULL'')'
-								ELSE ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), N''NULL'')'
+									THEN ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N' + N' + NCHAR(39) + N'
 	,	' + NCHAR(39) + N' ELSE N' + NCHAR(39) + NCHAR(39) + N' END'
@@ -754,14 +698,14 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 			CROSS APPLY	(
 				SELECT	QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39) + N' + ISNULL('
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1)'
-								ELSE ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N')'
+									THEN ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N', N''NULL'') + N' + NCHAR(39) + N'
 	AND	'
@@ -804,29 +748,8 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
-				-- Error debugger --
-				IF	@@ERROR <> 0
-				BEGIN;
-					RAISERROR(N'\
-[ERROR]		Task_CorrectCustomerData:
-				%s.%s - %I64d » %I64d - %s.%s
-				Failed to generate query for UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
-
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @OuterQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@OuterQuery;
-					END CATCH;
-
-					RAISERROR(N'', 0, 0) WITH NOWAIT;
-				END;
-
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
-					-- Repeat flag --
-					SELECT	@Repeat = 1;
-
 					SELECT	@ReturnQuery = N'\
 DECLARE	@Dummy AS BIT;
 
@@ -836,27 +759,16 @@ DECLARE	@Dummy AS BIT;
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
-
-						-- Error debugger --
-						IF	@@ERROR <> 0
-						BEGIN;
-							RAISERROR(N'\
-[ERROR]		Task_CorrectCustomerData:
-				%s.%s - %I64d » %I64d - %s.%s
-				Failed to execute UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
-						END;
 					END;
 					ELSE
-					BEGIN;
-						BEGIN TRY;
-							EXECUTE	dbo.sp_print @ReturnQuery;
-						END TRY
-						BEGIN CATCH;
-							PRINT	@ReturnQuery;
-						END CATCH;
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @ReturnQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@ReturnQuery;
+					END CATCH;
 
-						RAISERROR('', 0, 0) WITH NOWAIT;
-					END;
+					RAISERROR('', 0, 0) WITH NOWAIT;
 				END;
 			END;
 		END;
@@ -866,13 +778,12 @@ DECLARE	@Dummy AS BIT;
 		BEGIN;
 			SELECT	@Query = N'';
 			SELECT	@Query += N'\
--- Delete queries --
+-- Update queries --
 SELECT	@ReturnQuery = vals.str
 FROM	(
 	SELECT	N''\
 DELETE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
-WHERE	' + _ws.str + N'
-OPTION (RECOMPILE);
+WHERE	' + _ws.str + N';
 
 ''
 	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
@@ -907,14 +818,14 @@ OPTION (RECOMPILE);
 			CROSS APPLY	(
 				SELECT	QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39) + N' + ISNULL('
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
-								ELSE ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
+									THEN ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N', N''NULL'') + N' + NCHAR(39) + N'
 	AND	'
@@ -957,54 +868,22 @@ OPTION (RECOMPILE);
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
-				-- Error debugger --
-				IF	@@ERROR <> 0
-				BEGIN;
-					RAISERROR(N'\
-[ERROR]		Task_CorrectCustomerData:
-				%s.%s - %I64d » %I64d - %s.%s
-				Failed to generate query for DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
-
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @OuterQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@OuterQuery;
-					END CATCH;
-
-					RAISERROR(N'', 0, 0) WITH NOWAIT;
-				END;
-
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
-					-- Repeat flag --
-					SELECT	@Repeat = 1;
-
 					IF	@Debug = 0
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
-
-						-- Error debugger --
-						IF	@@ERROR <> 0
-						BEGIN;
-							RAISERROR(N'\
-[ERROR]		Task_CorrectCustomerData:
-				%s.%s - %I64d » %I64d - %s.%s
-				Failed to execute DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
-						END;
 					END;
 					ELSE
-					BEGIN;
-						BEGIN TRY;
-							EXECUTE	dbo.sp_print @ReturnQuery;
-						END TRY
-						BEGIN CATCH;
-							PRINT	@ReturnQuery;
-						END CATCH;
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @ReturnQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@ReturnQuery;
+					END CATCH;
 
-						RAISERROR('', 0, 0) WITH NOWAIT;
-					END;
+					RAISERROR('', 0, 0) WITH NOWAIT;
 				END;
 			END;
 		END;
@@ -1040,14 +919,6 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 		END;
 
 
-		IF	@Repeat = 1
-		BEGIN;
-			RAISERROR('\
-[INFO]		Task_CorrectCustomerData:
-				%s.%s has been corrected. (%I64d » %I64d)', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo) WITH NOWAIT;
-		END;
-
-
 		-- Update status --
 		UPDATE	r WITH (ROWLOCK)
 		SET		isDone	= 1
@@ -1063,8 +934,7 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 			AND	tbl.TblName = @Table
 			AND	r.ChkDate = @CheckTime
 			AND	r.IntervalFrom = @IntervalFrom
-			AND	r.IntervalTo = @IntervalTo
-			AND	@Repeat = 0;
+			AND	r.IntervalTo = @IntervalTo;
 	END; -- WHILE --
 END; -- PROCEDURE --
 GO
