@@ -486,7 +486,8 @@ INSERT INTO	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' (' + _cols.st
 VALUES	'' + vals.str + N''
 	;''
 FROM	(
-	SELECT	N''(' + _vals.str + N')
+	SELECT	TOP(1000)
+			N''(' + _vals.str + N')
 	,	''
 	FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
 	WHERE	NOT EXISTS (SELECT 1 FROM adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK) WHERE ' + _cps.str + N')
