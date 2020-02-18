@@ -213,6 +213,11 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 	UPDATE	chksum.CheckHistory WITH (ROWLOCK)
 	SET		isFinished = 1
 	WHERE	ChkDate = @CheckTime;
+
+	-- Report result --
+	EXECUTE	chksum.Task_ReportCustomerData
+				@Debug = @Debug
+			;
 END;
 GO
 /*<info serverAlias="DBDCHK-CheckDataDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/
