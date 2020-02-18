@@ -602,14 +602,16 @@ SET IDENTITY_INSERT ' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' OFF;'
 						EXECUTE	@ExecuteSP @ReturnQuery;
 					END;
 					ELSE
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @ReturnQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@ReturnQuery;
-					END CATCH;
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
 
-					RAISERROR('', 0, 0) WITH NOWAIT;
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
 				END;
 			END;
 		END;
@@ -762,14 +764,16 @@ DECLARE	@Dummy AS BIT;
 						EXECUTE	@ExecuteSP @ReturnQuery;
 					END;
 					ELSE
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @ReturnQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@ReturnQuery;
-					END CATCH;
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
 
-					RAISERROR('', 0, 0) WITH NOWAIT;
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
 				END;
 			END;
 		END;
@@ -877,14 +881,16 @@ OPTION (RECOMPILE);
 						EXECUTE	@ExecuteSP @ReturnQuery;
 					END;
 					ELSE
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @ReturnQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@ReturnQuery;
-					END CATCH;
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
 
-					RAISERROR('', 0, 0) WITH NOWAIT;
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
 				END;
 			END;
 		END;
