@@ -13,6 +13,7 @@ AS
 
 	Revisions:
 		- 20200217@Billy:	Initial - [Redmine: #127620]
+		- 20200218@Billy:	Rearrange result table in email - [Redmine: #127620]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -76,7 +77,7 @@ BEGIN;
 				AND	i.IntervalFrom = _r.IntervalFrom
 		WHERE	_h.ChkDate <= @LastCheckTime
 			AND	_h.isFinished = 1
-		ORDER BY _r.ChkDate DESC
+		ORDER BY _h.ChkDate DESC
 		FOR XML PATH ('')
 		,	TYPE
 	) AS xr(xml)
@@ -103,6 +104,10 @@ BEGIN;
 	WHERE	h.ChkDate <= @LastCheckTime
 		AND	h.isFinished = 1
 		AND	tmp.Result LIKE REPLICATE('0', @Clear) + '%';
+
+	DELETE	h
+	FROM	chksum.CheckHistory AS h
+	WHERE	NOT EXISTS (SELECT 1 FROM chksum.CheckResults AS _r WITH (NOLOCK) WHERE _r.ChkDate = h.ChkDate);
 
 	DELETE	tmp
 	FROM	@Results AS tmp
@@ -186,15 +191,21 @@ BEGIN;
 												,	TYPE
 											)
 										,	NULL
-										,	(	SELECT	NULL, [td]		= i.SrcTarget
-													,	NULL, [td]		= i.DstTarget
+										,	(	SELECT	NULL, [td]		= _src.TargetServer + N'.' + _src.TargetDatabase
+													,	NULL, [td]		= _dst.TargetServer + N'.' + _dst.TargetDatabase
 													,	NULL, [td]		= i.ItemTbl
 													,	NULL, [td]		= _r.IntervalFrom
 													,	NULL, [td]		= _r.IntervalFrom + i.PartitionInterval - 1
 													,	NULL, [td]		= _r.Result
 												FROM	@Results AS _r
-												WHERE	_r.ItemId = i.ItemId
-												ORDER BY _r.IntervalFrom
+												INNER JOIN	chksum.Checklist AS _l WITH (NOLOCK)
+														ON	_r.ItemId = _l.ItemId
+												INNER JOIN	chksum.Targets AS _dst WITH (NOLOCK)
+														ON	_l.TargetId = _dst.TargetId
+												INNER JOIN	chksum.Targets AS _src WITH (NOLOCK)
+														ON	_dst.SrcTarget = _src.TargetId
+												WHERE	_l.TableId = i.TableId
+												ORDER BY _r.IntervalFrom ASC, _dst.TargetServer ASC, _dst.TargetDatabase ASC
 												FOR XML PATH ('tr')
 												,	TYPE
 											)
@@ -203,23 +214,17 @@ BEGIN;
 								)
 						FROM	(
 							SELECT	DISTINCT
-									[ItemId]			= _r.ItemId
+									[TableId]			= _l.TableId
 								,	[ItemTbl]			= _tbl.SchName + N'.' + _tbl.TblName
 								,	[PartitionCol]		= _tbl.PartitionCol
 								,	[PartitionInterval]	= _tbl.PartitionInterval
-								,	[SrcTarget]			= _src.TargetServer + N'.' + _src.TargetDatabase
-								,	[DstTarget]			= _dst.TargetServer + N'.' + _dst.TargetDatabase
 							FROM		@Results AS _r
 							INNER JOIN	chksum.Checklist AS _l WITH (NOLOCK)
 									ON	_r.ItemId = _l.ItemId
 							INNER JOIN	chksum.TableConfigs AS _tbl WITH (NOLOCK)
 									ON	_l.TableId = _tbl.TableId
-							INNER JOIN	chksum.Targets AS _dst WITH (NOLOCK)
-									ON	_l.TargetId = _dst.TargetId
-							INNER JOIN	chksum.Targets AS _src WITH (NOLOCK)
-									ON	_dst.SrcTarget = _src.TargetId
 						) AS i
-						ORDER BY i.ItemTbl, i.DstTarget
+						ORDER BY i.ItemTbl ASC
 						FOR XML PATH ('')
 						,	TYPE
 					)

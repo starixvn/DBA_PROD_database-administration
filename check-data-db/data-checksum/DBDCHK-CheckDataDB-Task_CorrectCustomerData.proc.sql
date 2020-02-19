@@ -450,12 +450,17 @@ WHERE	' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
 			WHILE	0 = 0
 			BEGIN;
 				UPDATE	TOP(1)
-						@Targets
+						t
 				SET		@TargetId	= TargetId
 					,	@Server		= TargetServer
 					,	@Database	= TargetDatabase
 					,	TargetStatus = 1
-				WHERE	TargetStatus = 0;
+				FROM	(
+					SELECT	*, [rn] = ROW_NUMBER() OVER(ORDER BY isSource ASC)
+					FROM	@Targets
+					WHERE	TargetStatus = 0
+				) AS t
+				WHERE	t.rn = 1;
 
 				IF	@@ROWCOUNT = 0
 					BREAK;
@@ -486,7 +491,8 @@ INSERT INTO	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' (' + _cols.st
 VALUES	'' + vals.str + N''
 	;''
 FROM	(
-	SELECT	N''(' + _vals.str + N')
+	SELECT	TOP(1000)
+			N''(' + _vals.str + N')
 	,	''
 	FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
 	WHERE	NOT EXISTS (SELECT 1 FROM adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK) WHERE ' + _cps.str + N')
@@ -582,6 +588,26 @@ OPTION (RECOMPILE);
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for INSERT command.
+
+', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
+				END;
+
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
 					-- Identity Insert --
@@ -599,16 +625,27 @@ SET IDENTITY_INSERT ' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' OFF;'
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute INSERT command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
 					END;
 					ELSE
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @ReturnQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@ReturnQuery;
-					END CATCH;
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
 
-					RAISERROR('', 0, 0) WITH NOWAIT;
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
 				END;
 			END;
 		END;
@@ -628,13 +665,13 @@ WHERE	' + _ws.str + N';
 
 ''
 	FROM		(
-	SELECT	*, [chksum] = BINARY_CHECKSUM(*)
-	FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
-) AS src
-FULL OUTER JOIN	(
-	SELECT	*, [chksum] = BINARY_CHECKSUM(*)
-	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
-) AS dst
+		SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+		FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
+	) AS src
+	INNER JOIN	(
+		SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+		FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
+	) AS dst
 			ON	' + _cps.str + N'
 	WHERE	src.chksum <> dst.chksum
 	FOR XML PATH ('''')
@@ -671,14 +708,14 @@ OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NULL AND src.' + QUOTENAME(_ts.ColNam
 OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NOT NULL AND src.' + QUOTENAME(_ts.ColName) + N' IS NULL) \
 THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+									THEN ' + ISNULL(NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + ISNULL(N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + ISNULL(NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1)'
-								ELSE ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N')'
+									THEN ' + ISNULL(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1), N''NULL'')'
+								ELSE ' + ISNULL(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), N''NULL'')'
 						END
 			+	N' + N' + NCHAR(39) + N'
 	,	' + NCHAR(39) + N' ELSE N' + NCHAR(39) + NCHAR(39) + N' END'
@@ -748,6 +785,24 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
+				END;
+
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
 					SELECT	@ReturnQuery = N'\
@@ -759,16 +814,27 @@ DECLARE	@Dummy AS BIT;
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
 					END;
 					ELSE
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @ReturnQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@ReturnQuery;
-					END CATCH;
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
 
-					RAISERROR('', 0, 0) WITH NOWAIT;
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
 				END;
 			END;
 		END;
@@ -778,7 +844,7 @@ DECLARE	@Dummy AS BIT;
 		BEGIN;
 			SELECT	@Query = N'';
 			SELECT	@Query += N'\
--- Update queries --
+-- Delete queries --
 SELECT	@ReturnQuery = vals.str
 FROM	(
 	SELECT	N''\
@@ -868,22 +934,51 @@ OPTION (RECOMPILE);
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
+				END;
+
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
 					IF	@Debug = 0
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
 					END;
 					ELSE
-					BEGIN TRY;
-						EXECUTE	dbo.sp_print @ReturnQuery;
-					END TRY
-					BEGIN CATCH;
-						PRINT	@ReturnQuery;
-					END CATCH;
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
 
-					RAISERROR('', 0, 0) WITH NOWAIT;
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
 				END;
 			END;
 		END;
