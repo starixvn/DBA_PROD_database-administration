@@ -594,7 +594,18 @@ OPTION (RECOMPILE);
 					RAISERROR(N'\
 [ERROR]		Task_CorrectCustomerData:
 				%s.%s - %I64d » %I64d - %s.%s
-				Failed to generate query for INSERT command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+				Failed to generate query for INSERT command.
+
+', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
 				END;
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
@@ -654,13 +665,13 @@ WHERE	' + _ws.str + N';
 
 ''
 	FROM		(
-	SELECT	*, [chksum] = BINARY_CHECKSUM(*)
-	FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
-) AS src
-FULL OUTER JOIN	(
-	SELECT	*, [chksum] = BINARY_CHECKSUM(*)
-	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
-) AS dst
+		SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+		FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
+	) AS src
+	INNER JOIN	(
+		SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+		FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
+	) AS dst
 			ON	' + _cps.str + N'
 	WHERE	src.chksum <> dst.chksum
 	FOR XML PATH ('''')
@@ -697,14 +708,14 @@ OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NULL AND src.' + QUOTENAME(_ts.ColNam
 OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NOT NULL AND src.' + QUOTENAME(_ts.ColName) + N' IS NULL) \
 THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+									THEN ' + ISNULL(NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + ISNULL(N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + ISNULL(NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1)'
-								ELSE ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N')'
+									THEN ' + ISNULL(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1), N''NULL'')'
+								ELSE ' + ISNULL(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), N''NULL'')'
 						END
 			+	N' + N' + NCHAR(39) + N'
 	,	' + NCHAR(39) + N' ELSE N' + NCHAR(39) + NCHAR(39) + N' END'
@@ -781,6 +792,15 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 [ERROR]		Task_CorrectCustomerData:
 				%s.%s - %I64d » %I64d - %s.%s
 				Failed to generate query for UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
 				END;
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
@@ -824,7 +844,7 @@ DECLARE	@Dummy AS BIT;
 		BEGIN;
 			SELECT	@Query = N'';
 			SELECT	@Query += N'\
--- Update queries --
+-- Delete queries --
 SELECT	@ReturnQuery = vals.str
 FROM	(
 	SELECT	N''\
@@ -921,6 +941,15 @@ OPTION (RECOMPILE);
 [ERROR]		Task_CorrectCustomerData:
 				%s.%s - %I64d » %I64d - %s.%s
 				Failed to generate query for DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
 				END;
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
