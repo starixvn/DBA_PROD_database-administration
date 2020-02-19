@@ -77,7 +77,7 @@ BEGIN;
 				AND	i.IntervalFrom = _r.IntervalFrom
 		WHERE	_h.ChkDate <= @LastCheckTime
 			AND	_h.isFinished = 1
-		ORDER BY _r.ChkDate DESC
+		ORDER BY _h.ChkDate DESC
 		FOR XML PATH ('')
 		,	TYPE
 	) AS xr(xml)
@@ -104,6 +104,10 @@ BEGIN;
 	WHERE	h.ChkDate <= @LastCheckTime
 		AND	h.isFinished = 1
 		AND	tmp.Result LIKE REPLICATE('0', @Clear) + '%';
+
+	DELETE	h
+	FROM	chksum.CheckHistory AS h
+	WHERE	NOT EXISTS (SELECT 1 FROM chksum.CheckResults AS _r WITH (NOLOCK) WHERE _r.ChkDate = h.ChkDate);
 
 	DELETE	tmp
 	FROM	@Results AS tmp
