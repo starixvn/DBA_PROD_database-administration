@@ -19,24 +19,37 @@ AS
 		- 20200120@Billy:	Initial - [Redmine: #126744]
 		- 20200121@Billy:	Add table log
 							Add re-checksum step - [Redmine: #126945]
+		- 20200219@Billy:	Add option "SYNC ALL" to reset permissions and resync them - [Redmine: #127876]
 
 	Developer's Notes:
-		- @Example:			NULL		- Explaination [DEFAULT]
+		- @source_server:			[REQUIRED]		- The linked server to get the schema from
+		- @source_database:			[REQUIRED]		- The database in @source_server to get the schema from
+		- @destination_server:		[REQUIRED]		- The linked server to deploy the schema to
+		- @destination_database:	[REQUIRED]		- The database in @destination_server to deploy the schema to
 
+		- @object:					[REQUIRED]		- The object's name to be synced
+		- @schema:					[optional]		- The schema's name of the @object
+					<DEFAULT>		NULL			- Select the first matching object regardless the schema
+
+		- @action:					[optional]		- The action that this SP will perform
+					<DEFAULT>		NULL			- Do nothing
+									'SYNC'			- Sync the content and permissions to destination
+									'SYNC ALL'		- Sync the content and permissions to destination after reset the permission at destination
 */
 BEGIN;
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 	SET NOCOUNT ON;
 
 	-- Variables --
-	DECLARE	@DatabaseId		INT
-		,	@ObjectType		CHAR(2)
-		,	@ObjectSchema	NVARCHAR(128)
-		,	@ObjectName		NVARCHAR(128)
-		,	@ObjectChecksum	INT
-		,	@Definition		NVARCHAR(MAX)
-		,	@Permission		NVARCHAR(MAX)
-		,	@Existing		BIT
+	DECLARE	@DatabaseId			INT
+		,	@ObjectType			CHAR(2)
+		,	@ObjectSchema		NVARCHAR(128)
+		,	@ObjectName			NVARCHAR(128)
+		,	@ObjectChecksum		INT
+		,	@Definition			NVARCHAR(MAX)
+		,	@ResetPermission	NVARCHAR(MAX)
+		,	@Permission			NVARCHAR(MAX)
+		,	@Existing			BIT
 		;
 
 	-- Dynamic Query variables --
@@ -221,7 +234,7 @@ WHERE	sch.name = @schema
 		FROM	@ObjectModule;
 
 		-- Object synchronization --
-		IF	@action = 'SYNC' AND NOT EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum <> DestinationChecksum)
+		IF	@action LIKE 'SYNC%' AND NOT EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum <> DestinationChecksum)
 		BEGIN;
 			RAISERROR(N'\
 [VERBOSE]		Object %s is synchronized, skipped synchronizing.
@@ -230,7 +243,7 @@ WHERE	sch.name = @schema
 			INSERT INTO	@Log (Category, Message)
 			VALUES	('VERBOSE', N'Object ' + @ObjectName + N' is synchronized, skipped synchronizing.');
 		END;
-		ELSE IF	@action = 'SYNC'
+		ELSE IF	@action LIKE 'SYNC%'
 		BEGIN;
 			SELECT	@ExecuteSP = QUOTENAME(@destination_server) + N'.' + QUOTENAME(@destination_database) + N'.sys.sp_executesql';
 
@@ -275,6 +288,23 @@ WHERE	sch.name = @schema
 
 			IF	LEN(LTRIM(RTRIM(@Permission))) > 10
 			BEGIN;
+				IF	@action = N'SYNC ALL'
+				BEGIN;
+					SELECT	@ResetPermission = N'';
+					SELECT	@ResetPermission += N'\
+ALTER AUTHORIZATION ON ' + QUOTENAME(@ObjectSchema) + N'.' + QUOTENAME(@ObjectName) + N' TO db_owner;
+ALTER AUTHORIZATION ON ' + QUOTENAME(@ObjectSchema) + N'.' + QUOTENAME(@ObjectName) + N' TO dbo;';
+
+					EXECUTE	@ExecuteSP @ResetPermission;
+
+					RAISERROR(N'\
+[SYNCING]		Object %s''s permissions on %s.%s were reset.
+', 0, 0, @ObjectName, @destination_server, @destination_database) WITH NOWAIT;
+
+					INSERT INTO	@Log (Category, Message)
+					VALUES	('SYNCING', N'Object ' + @ObjectName + N'''s permissions on ' + @destination_server + N'.' + @destination_database + N' were reset.');
+				END;
+
 				EXECUTE	@ExecuteSP @Permission;
 
 				RAISERROR(N'\
