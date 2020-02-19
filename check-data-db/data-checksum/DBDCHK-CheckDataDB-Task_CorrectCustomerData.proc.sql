@@ -450,12 +450,17 @@ WHERE	' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
 			WHILE	0 = 0
 			BEGIN;
 				UPDATE	TOP(1)
-						@Targets
+						t
 				SET		@TargetId	= TargetId
 					,	@Server		= TargetServer
 					,	@Database	= TargetDatabase
 					,	TargetStatus = 1
-				WHERE	TargetStatus = 0;
+				FROM	(
+					SELECT	*, [rn] = ROW_NUMBER() OVER(ORDER BY isSource ASC)
+					FROM	@Targets
+					WHERE	TargetStatus = 0
+				) AS t
+				WHERE	t.rn = 1;
 
 				IF	@@ROWCOUNT = 0
 					BREAK;
@@ -583,6 +588,15 @@ OPTION (RECOMPILE);
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for INSERT command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+				END;
+
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
 					-- Identity Insert --
@@ -600,6 +614,15 @@ SET IDENTITY_INSERT ' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' OFF;'
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute INSERT command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
 					END;
 					ELSE
 					BEGIN;
@@ -751,6 +774,15 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+				END;
+
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
 					SELECT	@ReturnQuery = N'\
@@ -762,6 +794,15 @@ DECLARE	@Dummy AS BIT;
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
 					END;
 					ELSE
 					BEGIN;
@@ -873,12 +914,30 @@ OPTION (RECOMPILE);
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+				END;
+
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
 					IF	@Debug = 0
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 						EXECUTE	@ExecuteSP @ReturnQuery;
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
 					END;
 					ELSE
 					BEGIN;
