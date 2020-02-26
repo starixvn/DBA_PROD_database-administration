@@ -42,6 +42,7 @@ BEGIN;
 		,	@PartitionCol	NVARCHAR(128)
 		,	@IntervalFrom	BIGINT
 		,	@IntervalTo		BIGINT
+		,	@Repeat			BIT
 		;
 
 	-- Debug Variables --
@@ -105,6 +106,7 @@ BEGIN;
 	BEGIN;
 		DELETE	@Targets;
 		DELETE	@TargetSchemas;
+		SELECT	@Repeat = 0;
 
 		SELECT	TOP(1)
 				@Schema				= tbl.SchName
@@ -489,7 +491,7 @@ EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
 SELECT	@ReturnQuery = N''\
 INSERT INTO	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' (' + _cols.str + N')
 VALUES	'' + vals.str + N''
-	;''
+OPTION (RECOMPILE);''
 FROM	(
 	SELECT	TOP(1000)
 			N''(' + _vals.str + N')
@@ -540,14 +542,14 @@ OPTION (RECOMPILE);
 			CROSS APPLY	(
 				SELECT	NCHAR(39) + N' + ISNULL('
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 1)'
-								ELSE 'CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N')'
+									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE 'CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
 						END
 					+	N', N''NULL'') + N' + NCHAR(39) + N', '
 				FROM		@TargetSchemas AS _ts
@@ -610,6 +612,9 @@ OPTION (RECOMPILE);
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
 					-- Identity Insert --
 					IF	EXISTS (SELECT 1 FROM @TargetSchemas WHERE ID = 1)
 					BEGIN;
@@ -661,7 +666,8 @@ FROM	(
 	SELECT	N''\
 UPDATE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
 SET		' + NCHAR(39) + _vals.str + N' + ' + NCHAR(39) + N'@Dummy	= 0
-WHERE	' + _ws.str + N';
+WHERE	' + _ws.str + N'
+OPTION (RECOMPILE);
 
 ''
 	FROM		(
@@ -708,14 +714,14 @@ OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NULL AND src.' + QUOTENAME(_ts.ColNam
 OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NOT NULL AND src.' + QUOTENAME(_ts.ColName) + N' IS NULL) \
 THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + ISNULL(NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39), N''NULL'')'
+									THEN ' + ISNULL(NCHAR(39) + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + ISNULL(N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
+									THEN ' + ISNULL(N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + ISNULL(NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
+									THEN ' + ISNULL(NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + ISNULL(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1), N''NULL'')'
-								ELSE ' + ISNULL(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), N''NULL'')'
+									THEN ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1), N''NULL'')'
+								ELSE ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), N''NULL'')'
 						END
 			+	N' + N' + NCHAR(39) + N'
 	,	' + NCHAR(39) + N' ELSE N' + NCHAR(39) + NCHAR(39) + N' END'
@@ -735,14 +741,14 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 			CROSS APPLY	(
 				SELECT	QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39) + N' + ISNULL('
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1)'
-								ELSE ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N')'
+									THEN ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N', N''NULL'') + N' + NCHAR(39) + N'
 	AND	'
@@ -805,6 +811,9 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
 					SELECT	@ReturnQuery = N'\
 DECLARE	@Dummy AS BIT;
 
@@ -849,7 +858,8 @@ SELECT	@ReturnQuery = vals.str
 FROM	(
 	SELECT	N''\
 DELETE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
-WHERE	' + _ws.str + N';
+WHERE	' + _ws.str + N'
+OPTION (RECOMPILE);
 
 ''
 	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
@@ -884,14 +894,14 @@ OPTION (RECOMPILE);
 			CROSS APPLY	(
 				SELECT	QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39) + N' + ISNULL('
 					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
-									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
 								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
-									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%CHAR%'
-									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
-									THEN ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 1)'
-								ELSE ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N')'
+									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N', N''NULL'') + N' + NCHAR(39) + N'
 	AND	'
@@ -954,6 +964,9 @@ OPTION (RECOMPILE);
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
 					IF	@Debug = 0
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
@@ -1014,6 +1027,14 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 		END;
 
 
+		IF	@Repeat = 1
+		BEGIN;
+			RAISERROR('\
+[INFO]		Task_CorrectCustomerData:
+				%s.%s has been corrected.', 0, 0, @Schema, @Table) WITH NOWAIT;
+		END;
+
+
 		-- Update status --
 		UPDATE	r WITH (ROWLOCK)
 		SET		isDone	= 1
@@ -1029,7 +1050,8 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 			AND	tbl.TblName = @Table
 			AND	r.ChkDate = @CheckTime
 			AND	r.IntervalFrom = @IntervalFrom
-			AND	r.IntervalTo = @IntervalTo;
+			AND	r.IntervalTo = @IntervalTo
+			AND	@Repeat = 0;
 	END; -- WHILE --
 END; -- PROCEDURE --
 GO

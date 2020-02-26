@@ -389,7 +389,7 @@ SELECT	@Duration = DATEDIFF(MILLISECOND, @Start, GETDATE());'
 	) AS cols(str);
 
 	SELECT	@Param = N'';
-	SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT, @Count INT OUTPUT, @Chksum INT OUTPUT, @Stdev INT OUTPUT, @Duration INT OUTPUT';
+	SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT, @Count BIGINT OUTPUT, @Chksum BIGINT OUTPUT, @Stdev BIGINT OUTPUT, @Duration BIGINT OUTPUT';
 
 	-- Run checksum by interval --
 	WHILE	0 = 0
@@ -432,10 +432,10 @@ DECLARE	@Query			NVARCHAR(MAX)
 
 	,	@IntervalFrom	BIGINT
 	,	@IntervalTo		BIGINT
-	,	@Count			INT
-	,	@Chksum			INT
-	,	@Stdev			INT
-	,	@Duration		INT
+	,	@Count			BIGINT
+	,	@Chksum			BIGINT
+	,	@Stdev			BIGINT
+	,	@Duration		BIGINT
 	;
 
 SELECT	@Query = N'''';
@@ -444,7 +444,7 @@ SELECT	@Query += N''' + REPLACE(@Query, NCHAR(39), NCHAR(39) + NCHAR(39)) + N'''
 SELECT	@Param = N'''';
 SELECT	@Param += N''' + REPLACE(@Param, NCHAR(39), NCHAR(39) + NCHAR(39)) + N''';
 
-SELECT	@CheckTime		= ''' + CONVERT(NVARCHAR, @CheckTime, 121) + N'''
+SELECT	@CheckTime		= ''' + CONVERT(NVARCHAR(MAX), @CheckTime, 121) + N'''
 	,	@TableId		= ' + CAST(@TableId AS NVARCHAR) + N'
 	,	@TargetId		= ' + CAST(@TargetId AS NVARCHAR) + N'
 	,	@IntervalFrom	= ' + CAST(@IntervalFrom AS NVARCHAR) + N'
@@ -484,7 +484,8 @@ INNER JOIN	chksum.Checklist AS c WITH (NOLOCK)
 WHERE	r.ChkDate = @CheckTime
 	AND	r.IntervalFrom = @IntervalFrom
 	AND	r.IntervalTo = @IntervalTo
-	AND	c.TableId = @TableId;
+	AND	c.TableId = @TableId
+OPTION (RECOMPILE);
 ';
 
 			EXECUTE	async.ASyncExecution @ExecuteSP;

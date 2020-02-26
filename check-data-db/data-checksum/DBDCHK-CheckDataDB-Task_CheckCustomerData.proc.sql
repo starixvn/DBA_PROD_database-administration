@@ -127,9 +127,9 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 	IF	@Debug = 1
 	BEGIN;
 		SELECT	@Msg = N'\
-[@CheckTime]		= ' + CONVERT(NVARCHAR, @CheckTime, 121) + N'
-[@MaxCreatedDate]	= ' + CONVERT(NVARCHAR, @MaxCreatedDate, 121) + N'
-[@MaxCustId]		= ' + CONVERT(NVARCHAR, @MaxCustId) + REPLICATE(N'
+[@CheckTime]		= ' + CONVERT(NVARCHAR(MAX), @CheckTime, 121) + N'
+[@MaxCreatedDate]	= ' + CONVERT(NVARCHAR(MAX), @MaxCreatedDate, 121) + N'
+[@MaxCustId]		= ' + CONVERT(NVARCHAR(MAX), @MaxCustId) + REPLICATE(N'
 ', 2);
 		RAISERROR(@Msg, 0, 0) WITH NOWAIT;
 	END;
