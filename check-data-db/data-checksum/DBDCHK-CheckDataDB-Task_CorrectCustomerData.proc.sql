@@ -42,6 +42,7 @@ BEGIN;
 		,	@PartitionCol	NVARCHAR(128)
 		,	@IntervalFrom	BIGINT
 		,	@IntervalTo		BIGINT
+		,	@Repeat			BIT
 		;
 
 	-- Debug Variables --
@@ -105,6 +106,7 @@ BEGIN;
 	BEGIN;
 		DELETE	@Targets;
 		DELETE	@TargetSchemas;
+		SELECT	@Repeat = 0;
 
 		SELECT	TOP(1)
 				@Schema				= tbl.SchName
@@ -610,6 +612,9 @@ OPTION (RECOMPILE);
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
 					-- Identity Insert --
 					IF	EXISTS (SELECT 1 FROM @TargetSchemas WHERE ID = 1)
 					BEGIN;
@@ -806,6 +811,9 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
 					SELECT	@ReturnQuery = N'\
 DECLARE	@Dummy AS BIT;
 
@@ -956,6 +964,9 @@ OPTION (RECOMPILE);
 
 				IF	ISNULL(@ReturnQuery, N'') <> N''
 				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
 					IF	@Debug = 0
 					BEGIN;
 						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
@@ -1016,6 +1027,14 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 		END;
 
 
+		IF	@Repeat = 1
+		BEGIN;
+			RAISERROR('\
+[INFO]		Task_CorrectCustomerData:
+				%s.%s has been corrected.', 0, 0, @Schema, @Table) WITH NOWAIT;
+		END;
+
+
 		-- Update status --
 		UPDATE	r WITH (ROWLOCK)
 		SET		isDone	= 1
@@ -1031,7 +1050,8 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 			AND	tbl.TblName = @Table
 			AND	r.ChkDate = @CheckTime
 			AND	r.IntervalFrom = @IntervalFrom
-			AND	r.IntervalTo = @IntervalTo;
+			AND	r.IntervalTo = @IntervalTo
+			AND	@Repeat = 0;
 	END; -- WHILE --
 END; -- PROCEDURE --
 GO
