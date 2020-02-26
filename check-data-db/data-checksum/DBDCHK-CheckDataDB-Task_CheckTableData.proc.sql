@@ -389,7 +389,7 @@ SELECT	@Duration = DATEDIFF(MILLISECOND, @Start, GETDATE());'
 	) AS cols(str);
 
 	SELECT	@Param = N'';
-	SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT, @Count INT OUTPUT, @Chksum INT OUTPUT, @Stdev INT OUTPUT, @Duration INT OUTPUT';
+	SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT, @Count BIGINT OUTPUT, @Chksum BIGINT OUTPUT, @Stdev BIGINT OUTPUT, @Duration BIGINT OUTPUT';
 
 	-- Run checksum by interval --
 	WHILE	0 = 0
@@ -432,10 +432,10 @@ DECLARE	@Query			NVARCHAR(MAX)
 
 	,	@IntervalFrom	BIGINT
 	,	@IntervalTo		BIGINT
-	,	@Count			INT
-	,	@Chksum			INT
-	,	@Stdev			INT
-	,	@Duration		INT
+	,	@Count			BIGINT
+	,	@Chksum			BIGINT
+	,	@Stdev			BIGINT
+	,	@Duration		BIGINT
 	;
 
 SELECT	@Query = N'''';
