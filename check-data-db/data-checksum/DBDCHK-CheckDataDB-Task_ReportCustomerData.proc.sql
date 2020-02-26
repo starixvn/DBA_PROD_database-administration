@@ -139,7 +139,7 @@ BEGIN;
 						,	TYPE
 					)
 				,	(	SELECT	[@style]		= N'margin-left:3%'
-							,	[node()]		= N'Last check time: ' + CONVERT(NVARCHAR, @LastCheckTime, 120)
+							,	[node()]		= N'Last check time: ' + CONVERT(NVARCHAR(MAX), @LastCheckTime, 120)
 						FOR XML PATH ('p')
 						,	TYPE
 					)
