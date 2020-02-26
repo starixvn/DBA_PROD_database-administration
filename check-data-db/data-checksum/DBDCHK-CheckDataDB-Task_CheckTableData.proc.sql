@@ -484,7 +484,8 @@ INNER JOIN	chksum.Checklist AS c WITH (NOLOCK)
 WHERE	r.ChkDate = @CheckTime
 	AND	r.IntervalFrom = @IntervalFrom
 	AND	r.IntervalTo = @IntervalTo
-	AND	c.TableId = @TableId;
+	AND	c.TableId = @TableId
+OPTION (RECOMPILE);
 ';
 
 			EXECUTE	async.ASyncExecution @ExecuteSP;
