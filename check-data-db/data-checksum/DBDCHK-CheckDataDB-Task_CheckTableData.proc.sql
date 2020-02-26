@@ -444,7 +444,7 @@ SELECT	@Query += N''' + REPLACE(@Query, NCHAR(39), NCHAR(39) + NCHAR(39)) + N'''
 SELECT	@Param = N'''';
 SELECT	@Param += N''' + REPLACE(@Param, NCHAR(39), NCHAR(39) + NCHAR(39)) + N''';
 
-SELECT	@CheckTime		= ''' + CONVERT(NVARCHAR, @CheckTime, 121) + N'''
+SELECT	@CheckTime		= ''' + CONVERT(NVARCHAR(MAX), @CheckTime, 121) + N'''
 	,	@TableId		= ' + CAST(@TableId AS NVARCHAR) + N'
 	,	@TargetId		= ' + CAST(@TargetId AS NVARCHAR) + N'
 	,	@IntervalFrom	= ' + CAST(@IntervalFrom AS NVARCHAR) + N'
