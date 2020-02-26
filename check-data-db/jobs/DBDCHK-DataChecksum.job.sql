@@ -184,7 +184,7 @@ BEGIN;
 						,	@name						= N'Data Checksum - Daily'
 						,	@enabled					= 1
 						,	@freq_type					= 4
-						,	@freq_interval				= 4
+						,	@freq_interval				= 1
 						,	@freq_subday_type			= 1
 						,	@freq_subday_interval		= DEFAULT
 						,	@freq_relative_interval		= DEFAULT

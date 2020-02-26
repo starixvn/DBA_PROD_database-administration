@@ -489,7 +489,7 @@ EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
 SELECT	@ReturnQuery = N''\
 INSERT INTO	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' (' + _cols.str + N')
 VALUES	'' + vals.str + N''
-	;''
+OPTION (RECOMPILE);''
 FROM	(
 	SELECT	TOP(1000)
 			N''(' + _vals.str + N')
@@ -661,7 +661,8 @@ FROM	(
 	SELECT	N''\
 UPDATE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
 SET		' + NCHAR(39) + _vals.str + N' + ' + NCHAR(39) + N'@Dummy	= 0
-WHERE	' + _ws.str + N';
+WHERE	' + _ws.str + N'
+OPTION (RECOMPILE);
 
 ''
 	FROM		(
@@ -849,7 +850,8 @@ SELECT	@ReturnQuery = vals.str
 FROM	(
 	SELECT	N''\
 DELETE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
-WHERE	' + _ws.str + N';
+WHERE	' + _ws.str + N'
+OPTION (RECOMPILE);
 
 ''
 	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
