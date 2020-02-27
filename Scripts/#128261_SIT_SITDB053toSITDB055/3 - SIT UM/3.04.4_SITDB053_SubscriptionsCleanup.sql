@@ -109,7 +109,7 @@ GO
 ----------------------------------------------------------------------------------------------------
 RETURN; -- Prevent accidental execution
 
-USE	bodb02;
+USE	CustDB;
 
 EXECUTE	sys.sp_subscription_cleanup
 			@publisher = N'SITDBCUST'

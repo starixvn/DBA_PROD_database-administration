@@ -19,7 +19,7 @@ BEGIN;
 				@publication = N'CustDB_Customer_Info'
 			,	@article = N'all'
 			,	@subscriber = N'SITDB055'
-			,	@destination_db = N'bodb02'
+			,	@destination_db = N'CustDB'
 			,	@sync_type = N'replication support only'
 			,	@subscription_type = N'Push'
 			,	@update_mode = N'read only'
@@ -29,7 +29,7 @@ BEGIN;
 	EXECUTE	sys.sp_addpushsubscription_agent
 				@publication = N'CustDB_Customer_Info'
 			,	@subscriber = N'SITDB055'
-			,	@subscriber_db = N'bodb02'
+			,	@subscriber_db = N'CustDB'
 			,	@subscriber_security_mode = 1
 			,	@job_login = NULL
 			,	@job_password = NULL
@@ -54,7 +54,7 @@ BEGIN;
 				@publication = N'CustDB_ExchangeDaily'
 			,	@article = N'all'
 			,	@subscriber = N'SITDB055'
-			,	@destination_db = N'bodb02'
+			,	@destination_db = N'CustDB'
 			,	@sync_type = N'replication support only'
 			,	@subscription_type = N'Push'
 			,	@update_mode = N'read only'
@@ -64,7 +64,7 @@ BEGIN;
 	EXECUTE	sys.sp_addpushsubscription_agent
 				@publication = N'CustDB_ExchangeDaily'
 			,	@subscriber = N'SITDB055'
-			,	@subscriber_db = N'bodb02'
+			,	@subscriber_db = N'CustDB'
 			,	@subscriber_security_mode = 1
 			,	@job_login = NULL
 			,	@job_password = NULL
@@ -89,7 +89,7 @@ BEGIN;
 				@publication = N'CustDB_ExecRepAcc_Cust'
 			,	@article = N'all'
 			,	@subscriber = N'SITDB055'
-			,	@destination_db = N'bodb02'
+			,	@destination_db = N'CustDB'
 			,	@sync_type = N'replication support only'
 			,	@subscription_type = N'Push'
 			,	@update_mode = N'read only'
@@ -99,7 +99,7 @@ BEGIN;
 	EXECUTE	sys.sp_addpushsubscription_agent
 				@publication = N'CustDB_ExecRepAcc_Cust'
 			,	@subscriber = N'SITDB055'
-			,	@subscriber_db = N'bodb02'
+			,	@subscriber_db = N'CustDB'
 			,	@subscriber_security_mode = 1
 			,	@job_login = NULL
 			,	@job_password = NULL
@@ -124,7 +124,7 @@ BEGIN;
 				@publication = N'CustDB_Login_Exchange'
 			,	@article = N'all'
 			,	@subscriber = N'SITDB055'
-			,	@destination_db = N'bodb02'
+			,	@destination_db = N'CustDB'
 			,	@sync_type = N'replication support only'
 			,	@subscription_type = N'Push'
 			,	@update_mode = N'read only'
@@ -134,7 +134,7 @@ BEGIN;
 	EXECUTE	sys.sp_addpushsubscription_agent
 				@publication = N'CustDB_Login_Exchange'
 			,	@subscriber = N'SITDB055'
-			,	@subscriber_db = N'bodb02'
+			,	@subscriber_db = N'CustDB'
 			,	@subscriber_security_mode = 1
 			,	@job_login = NULL
 			,	@job_password = NULL

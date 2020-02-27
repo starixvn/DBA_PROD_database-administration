@@ -222,43 +222,5 @@ BEGIN;
 			,	@dts_package_location = N'Distributor'
 			;
 END;
-
-USE	MonDB;
-
--- Joy_byDeleteTicket --
-BEGIN;
-	EXECUTE	sys.sp_addsubscription
-				@publication = N'Joy_byDeleteTicket'
-			,	@article = N'all'
-			,	@subscriber = N'SITDB055'
-			,	@destination_db = N'MonDB'
-			,	@sync_type = N'replication support only'
-			,	@subscription_type = N'Push'
-			,	@update_mode = N'read only'
-			,	@subscriber_type = 0
-			;
-
-	EXECUTE	sys.sp_addpushsubscription_agent
-				@publication = N'Joy_byDeleteTicket'
-			,	@subscriber = N'SITDB055'
-			,	@subscriber_db = N'MonDB'
-			,	@subscriber_security_mode = 1
-			,	@job_login = NULL
-			,	@job_password = NULL
-			,	@frequency_type = 64
-			,	@frequency_interval = 0
-			,	@frequency_relative_interval = 0
-			,	@frequency_recurrence_factor = 0
-			,	@frequency_subday = 0
-			,	@frequency_subday_interval = 0
-			,	@active_start_time_of_day = 0
-			,	@active_end_time_of_day = 235959
-			,	@active_start_date = 20191211
-			,	@active_end_date = 99991231
-			,	@enabled_for_syncmgr = N'False'
-			,	@dts_package_location = N'Distributor'
-			;
-END;
-
 GO
 /*<info serverAlias="SITDBTRANS" executers="" viewers="" isFunction="0" isNested="0"></info>*/
