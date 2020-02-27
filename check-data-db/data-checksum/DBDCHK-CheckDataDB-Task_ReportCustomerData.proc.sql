@@ -111,7 +111,7 @@ BEGIN;
 
 	DELETE	tmp
 	FROM	@Results AS tmp
-	WHERE	tmp.Result LIKE REPLICATE('0', @Clear) + '%';
+	WHERE	tmp.Result LIKE '0%';
 
 	SELECT	@Rowcount = @@ROWCOUNT;
 	IF	@Debug = 1 AND @Rowcount > 0
