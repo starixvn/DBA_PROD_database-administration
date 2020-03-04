@@ -13,9 +13,22 @@ AS
 
 	Revisions:
 		- 20200218@Billy:	Initial - [Redmine: #127620]
+		- 20200304@Billy:	Add more debugging info - [Redmine: #129726]
 
 	Developer's Notes:
-		- @Example:			NULL		- Explaination [DEFAULT]
+		- @IgnoreRunningChecksum:		[optional]		- Decide to ignore current running checksum or not
+							<DEFAULT>	0				- If there are any running checksum, terminate this task
+										1				- Ignore the running checksum, proceed with correct data based on the last finished checksum
+
+		- @IgnoreExistingAdhocTables:	[optional]		- If there are other correction task running, the adhoc tables used for storing data will exist.
+														  Correct data while other one running may cause confiction and may have unexpected result.
+														  But in the case the last correction task was terminated, the adhoc tables weren't removed.
+														  To be able to proceed, we need to bypass the existence of these adhoc tables.
+						<DEFAULT>		0				- Terminate if there are adhoc tables
+										1				- Bypass the existence of adhoc tables, will have 10 seconds to terminate the task manually.
+		- @Debug:						[optional]		- Debug mode
+						<DEFAULT>		0				- OFF - Execute the correction
+										1				- ON - Print the correction queries
 */
 BEGIN;
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
@@ -1031,7 +1044,7 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 		BEGIN;
 			RAISERROR('\
 [INFO]		Task_CorrectCustomerData:
-				%s.%s has been corrected.', 0, 0, @Schema, @Table) WITH NOWAIT;
+				%s.%s has been corrected. (%I64d » %I64d)', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo) WITH NOWAIT;
 		END;
 
 
