@@ -20,6 +20,7 @@ AS
 		- 20200121@Billy:	Add table log
 							Add re-checksum step - [Redmine: #126945]
 		- 20200219@Billy:	Add option "SYNC ALL" to reset permissions and resync them - [Redmine: #127876]
+		- 20200304@Billy:	Fix bug not sync when destination object doesn't exist - [Redmine: #129734]
 
 	Developer's Notes:
 		- @source_server:			[REQUIRED]		- The linked server to get the schema from
@@ -234,7 +235,7 @@ WHERE	sch.name = @schema
 		FROM	@ObjectModule;
 
 		-- Object synchronization --
-		IF	@action LIKE 'SYNC%' AND NOT EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum <> DestinationChecksum)
+		IF	@action LIKE 'SYNC%' AND NOT EXISTS (SELECT 1 FROM @ObjectModule WHERE ObjectChecksum <> DestinationChecksum OR DestinationChecksum IS NULL)
 		BEGIN;
 			RAISERROR(N'\
 [VERBOSE]		Object %s is synchronized, skipped synchronizing.
