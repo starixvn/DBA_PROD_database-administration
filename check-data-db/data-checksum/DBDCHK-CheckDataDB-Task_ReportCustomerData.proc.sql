@@ -14,6 +14,7 @@ AS
 	Revisions:
 		- 20200217@Billy:	Initial - [Redmine: #127620]
 		- 20200218@Billy:	Rearrange result table in email - [Redmine: #127620]
+		- 20200304@Billy:	Add environment postfix to email subject - [Redmine: #129726]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -129,6 +130,13 @@ BEGIN;
 									ELSE 'pontus@starixsoft.com;' + @To
 							  END
 			;
+
+		-- Add postfix on subject based on environment detection --
+		SELECT	@Subject +=	CASE	WHEN @@SERVERNAME LIKE N'DB23[0-9]%' THEN N' - Local'
+									WHEN @@SERVERNAME LIKE N'SIT%' THEN N' - SIT'
+									WHEN DB_ID(N'_This_MNL_DR_site') IS NOT NULL THEN N' - MNL'
+									ELSE N'' -- PROD
+							END;
 
 		SELECT	@Body = (
 			SELECT	TOP(1)
