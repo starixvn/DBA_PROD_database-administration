@@ -1,6 +1,6 @@
 /*
 	Creator:	20190611@Billy
-	Task:		#110-004 - Check service broker status - [Redmine: #114307]
+	Task:		#110-004 - [Redmine: #114307]
 	Server:		DB052 - DB053 - DB06
 
 	Revision:

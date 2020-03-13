@@ -4,7 +4,7 @@ GO
 CREATE PROCEDURE	dbo.GetSPsExecutionCounts
 						@From				DATETIME
 					,	@To					DATETIME
-					,	@Server				NVARCHAR(128)	= NULL
+					,	@Server				NVARCHAR(128)
 					,	@Database			VARCHAR(128)	= NULL
 AS
 /*
@@ -38,10 +38,6 @@ BEGIN;
 		AND	sp.DBName = ISNULL(@Database, sp.DBName)
 		AND	ec.EventTime >= @From
 		AND	ec.EventTime < @To
-		AND	sp.SPName NOT LIKE '%[_]xtest'
-		AND	sp.SPName NOT LIKE '%[_]xpre'
-		AND	sp.SPName NOT LIKE '%[_]UAT[1234]'
-		AND	sp.SPName NOT LIKE '%[_]test'
 	GROUP BY svr.ServerName, sp.DBName, sp.SPName
 	ORDER BY svr.ServerName, sp.DBName, sp.SPName;
 END;

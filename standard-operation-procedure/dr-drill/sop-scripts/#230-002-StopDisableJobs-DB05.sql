@@ -1,6 +1,6 @@
 /*
 	Creator:	20190617@Billy
-	Task:		#230-002 - Disable jobs before drill - DB05 - [Redmine: #114307]
+	Task:		Disable jobs before drill - DB05 - [Redmine: #114307]
 	Server:		DB05@MNL
 
 	Revision:

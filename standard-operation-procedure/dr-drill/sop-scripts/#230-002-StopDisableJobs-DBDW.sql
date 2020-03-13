@@ -1,6 +1,6 @@
 /*
 	Creator:	20190617@Billy
-	Task:		#230-002 - Disable jobs before drill - DBDW - [Redmine: #114307]
+	Task:		Disable jobs before drill - DBDW - [Redmine: #114307]
 	Server:		DBDW@MNL
 
 	Revision:
@@ -17,6 +17,7 @@ END;
 --		Disable jobs
 ----------------------------------------------------------------------------------------------------
 
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Check data and mail status';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Data Quality Monitor';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - DW ETL Daily';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Generate Account Transfer';
@@ -28,7 +29,4 @@ EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update Exchange';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update IP table';
 EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update League';
-EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - Backup Full Weekly';
-EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - System Database Backup';
-EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - Update statistic';
 GO
