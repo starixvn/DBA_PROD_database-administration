@@ -1,0 +1,45 @@
+/*
+	Creator:	20190617@Billy
+<<<<<<< HEAD
+	Task:		#230-002 - Disable jobs before drill - DBDW - [Redmine: #114307]
+=======
+	Task:		Disable jobs before drill - DBDW - [Redmine: #114307]
+>>>>>>> #114307 - DR Drill - Stop data generation jobs
+	Server:		DBDW@MNL
+
+	Revision:
+		- 20190617@Billy:	Initialization - [Redmine: #114307]
+*/
+
+IF	@@SERVERNAME <> N'DBDW' OR DB_ID(N'_This_MNL_DR_site') IS NULL
+BEGIN;
+	RAISERROR('This script cannot be run on this server!', 16, 1) WITH NOWAIT;
+	RETURN;
+END;
+
+--	BEGIN STEP 1:
+--		Disable jobs
+----------------------------------------------------------------------------------------------------
+
+<<<<<<< HEAD
+=======
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Check data and mail status';
+>>>>>>> #114307 - DR Drill - Stop data generation jobs
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Data Quality Monitor';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - DW ETL Daily';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Generate Account Transfer';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Generate Monthly DW';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Import data for Virtual rate monitor';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Purge old data';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update Dimensions';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update Direct cust group';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update Exchange';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update IP table';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'bodb_Account - Update League';
+<<<<<<< HEAD
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - Backup Full Weekly';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - System Database Backup';
+EXECUTE	msdb.dbo.sp_update_job @enabled = 0, @job_name = N'DBA - Update statistic';
+=======
+>>>>>>> #114307 - DR Drill - Stop data generation jobs
+GO

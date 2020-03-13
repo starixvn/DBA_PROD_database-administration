@@ -1,0 +1,1224 @@
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+CREATE PROCEDURE	chksum.Task_CorrectCustomerData
+						@IgnoreRunningChecksum		BIT					= 0
+					,	@IgnoreExistingAdhocTables	BIT					= 0
+					,	@Debug						BIT					= 0
+AS
+/*
+	Creator:	20200218@Billy
+	Task:		Correcting failed checksum data of customers - [Redmine: #127620]
+	Database:	DBDCHK.CheckDataDB
+
+	Revisions:
+		- 20200218@Billy:	Initial - [Redmine: #127620]
+<<<<<<< HEAD
+		- 20200304@Billy:	Add more debugging info - [Redmine: #129726]
+
+	Developer's Notes:
+		- @IgnoreRunningChecksum:		[optional]		- Decide to ignore current running checksum or not
+							<DEFAULT>	0				- If there are any running checksum, terminate this task
+										1				- Ignore the running checksum, proceed with correct data based on the last finished checksum
+
+		- @IgnoreExistingAdhocTables:	[optional]		- If there are other correction task running, the adhoc tables used for storing data will exist.
+														  Correct data while other one running may cause confiction and may have unexpected result.
+														  But in the case the last correction task was terminated, the adhoc tables weren't removed.
+														  To be able to proceed, we need to bypass the existence of these adhoc tables.
+						<DEFAULT>		0				- Terminate if there are adhoc tables
+										1				- Bypass the existence of adhoc tables, will have 10 seconds to terminate the task manually.
+		- @Debug:						[optional]		- Debug mode
+						<DEFAULT>		0				- OFF - Execute the correction
+										1				- ON - Print the correction queries
+=======
+
+	Developer's Notes:
+		- @Example:			NULL		- Explaination [DEFAULT]
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+*/
+BEGIN;
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+	SET NOCOUNT ON;
+
+	-- Dynamic Query Variables --
+	DECLARE	@Query			NVARCHAR(MAX)
+		,	@Param			NVARCHAR(MAX)
+		,	@ExecuteSP		NVARCHAR(MAX)
+
+		,	@OuterQuery		NVARCHAR(MAX)
+		,	@OuterParam		NVARCHAR(MAX)
+
+		,	@ReturnQuery	NVARCHAR(MAX)
+		;
+
+	-- Variables --
+	DECLARE	@CheckTime		DATETIME
+		,	@TargetId		INT
+		,	@Server			NVARCHAR(128)
+		,	@Database		NVARCHAR(128)
+		,	@Schema			NVARCHAR(128)
+		,	@Table			NVARCHAR(128)
+		,	@PartitionCol	NVARCHAR(128)
+		,	@IntervalFrom	BIGINT
+		,	@IntervalTo		BIGINT
+<<<<<<< HEAD
+		,	@Repeat			BIT
+=======
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+		;
+
+	-- Debug Variables --
+	DECLARE	@Msg			NVARCHAR(MAX)
+		,	@Rowcount		INT
+		;
+
+	-- Temporary Tables --
+	DECLARE	@Targets AS TABLE (
+				TargetId		INT
+			,	TargetServer	NVARCHAR(128)
+			,	TargetDatabase	NVARCHAR(128)
+			,	isSource		BIT
+			,	TargetStatus	TINYINT
+					DEFAULT (0)
+			,	PRIMARY KEY CLUSTERED (TargetServer, TargetDatabase)
+			);
+
+	DECLARE	@TargetSchemas AS TABLE (
+				TargetId		INT
+			,	RowNum			INT
+			,	ColName			NVARCHAR(128)
+			,	ColType			NVARCHAR(256)
+			,	PK				INT
+			,	ID				BIT
+			,	PRIMARY KEY CLUSTERED (TargetId, RowNum)
+			);
+
+
+	-- Check Checksum Task Status --
+	IF	(SELECT TOP(1) isFinished FROM chksum.CheckHistory WITH (NOLOCK) ORDER BY ChkDate DESC) = 0
+	BEGIN;
+		IF	@IgnoreRunningChecksum = 0
+		BEGIN;
+			RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				Checksum is running.
+				Aborting...', 0, 0) WITH NOWAIT;
+
+			RETURN;
+		END;
+		ELSE
+		BEGIN;
+			RAISERROR(N'\
+[VERBOSE]	Task_CorrectCustomerData:
+				Checksum is running.
+				@IgnoreRunningChecksum = TRUE
+				Continuing...', 0, 0) WITH NOWAIT;
+		END;
+	END;
+
+	-- Correcting based on last checking result --
+	SELECT	TOP(1)
+			@CheckTime = h.ChkDate
+	FROM	chksum.CheckHistory AS h WITH (NOLOCK)
+	WHERE	h.isFinished = 1
+	ORDER BY ChkDate DESC;
+
+	-- Loop for each result record --
+	WHILE	0 = 0
+	BEGIN;
+		DELETE	@Targets;
+		DELETE	@TargetSchemas;
+<<<<<<< HEAD
+		SELECT	@Repeat = 0;
+=======
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+
+		SELECT	TOP(1)
+				@Schema				= tbl.SchName
+			,	@Table				= tbl.TblName
+			,	@PartitionCol		= tbl.PartitionCol
+			,	@IntervalFrom		= r.IntervalFrom
+			,	@IntervalTo			= r.IntervalTo
+		FROM	chksum.CheckResults AS r WITH (NOLOCK)
+		INNER JOIN	chksum.Checklist AS l WITH (NOLOCK)
+				ON	r.ItemId = l.ItemId
+		INNER JOIN	chksum.TableConfigs AS tbl WITH (NOLOCK)
+				ON	l.TableId = tbl.TableId
+		WHERE	r.ChkDate = @CheckTime
+			AND	r.isDone = 0;
+
+		IF	@@ROWCOUNT = 0
+			BREAK;
+
+
+		-- Collect targets to work on --
+		BEGIN;
+			INSERT INTO	@Targets (TargetId, TargetServer, TargetDatabase, isSource, TargetStatus)
+			SELECT	src.TargetId, src.TargetServer, src.TargetDatabase, 1, 0
+			FROM		chksum.CheckResults AS r WITH (NOLOCK)
+			INNER JOIN	chksum.Checklist AS l WITH (NOLOCK)
+					ON	r.ItemId = l.ItemId
+			INNER JOIN	chksum.TableConfigs AS tbl WITH (NOLOCK)
+					ON	l.TableId = tbl.TableId
+			INNER JOIN	chksum.Targets AS src WITH (NOLOCK)
+					ON	l.SrcTarget = src.TargetId
+			WHERE	tbl.SchName = @Schema
+				AND	tbl.TblName = @Table
+				AND	r.ChkDate = @CheckTime
+				AND	r.IntervalFrom = @IntervalFrom
+				AND	r.IntervalTo = @IntervalTo
+			UNION
+			SELECT	dst.TargetId, dst.TargetServer, dst.TargetDatabase, 0, 0
+			FROM		chksum.CheckResults AS r WITH (NOLOCK)
+			INNER JOIN	chksum.Checklist AS l WITH (NOLOCK)
+					ON	r.ItemId = l.ItemId
+			INNER JOIN	chksum.TableConfigs AS tbl WITH (NOLOCK)
+					ON	l.TableId = tbl.TableId
+			INNER JOIN	chksum.Targets AS dst WITH (NOLOCK)
+					ON	l.TargetId = dst.TargetId
+			WHERE	tbl.SchName = @Schema
+				AND	tbl.TblName = @Table
+				AND	r.ChkDate = @CheckTime
+				AND	r.IntervalFrom = @IntervalFrom
+				AND	r.IntervalTo = @IntervalTo;
+
+			SELECT	@Rowcount = @@ROWCOUNT;
+			IF	@Debug = 1
+			BEGIN;
+				RAISERROR(N'\
+[VERBOSE]	Task_CorrectCustomerData:
+				Working on %s.%s - %I64d » %I64d
+				%d targets selected.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Rowcount) WITH NOWAIT;
+			END;
+		END;
+
+
+		-- Schema verification --
+		BEGIN;
+			SELECT	@Query = N'';
+			SELECT	@Query += N'\
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SET NOCOUNT ON;
+
+SELECT	[TargetId]		= @TargetId
+	,	[RowNum]		= ROW_NUMBER() OVER(ORDER BY c.column_id)
+	,	[ColName]		= c.name
+	,	[ColType]		= ft.name
+	,	[PK]			= ISNULL(idx.pk, 0)
+	,	[ID]			= c.is_identity
+FROM		sys.schemas AS s WITH (NOLOCK)
+INNER JOIN	sys.tables AS t WITH (NOLOCK)
+		ON	s.schema_id = t.schema_id
+INNER JOIN	sys.columns AS c WITH (NOLOCK)
+		ON	t.object_id = c.object_id
+INNER JOIN	sys.types AS tp WITH (NOLOCK)
+		ON	c.user_type_id = tp.user_type_id
+CROSS APPLY	(
+	SELECT	[name]	= UPPER	(	tp.name
+							+	CASE tp.name	WHEN N''BINARY''			THEN N''('' + CAST(c.max_length AS NVARCHAR) + N'')''
+												WHEN N''CHAR''				THEN N''('' + CAST(c.max_length AS NVARCHAR) + N'')''
+												WHEN N''DATETIME2''			THEN N''('' + CAST(c.scale AS NVARCHAR) + N'')''
+												WHEN N''DATETIMEOFFSET''	THEN N''('' + CAST(c.scale AS NVARCHAR) + N'')''
+												WHEN N''DECIMAL''			THEN N''('' + CAST(c.precision AS NVARCHAR) + N'','' + CAST(c.scale AS NVARCHAR) + N'')''
+												WHEN N''NCHAR''				THEN N''('' + CAST(c.max_length / 2 AS NVARCHAR) + N'')''
+												WHEN N''NUMERIC''			THEN N''('' + CAST(c.precision AS NVARCHAR) + N'','' + CAST(c.scale AS NVARCHAR) + N'')''
+												WHEN N''NVARCHAR''			THEN N''('' + CASE c.max_length WHEN -1 THEN N''MAX'' ELSE CAST(c.max_length / 2 AS NVARCHAR) END + N'')''
+												WHEN N''TIME''				THEN N''('' + CAST(c.scale AS NVARCHAR) + N'')''
+												WHEN N''VARBINARY''			THEN N''('' + CASE c.max_length WHEN -1 THEN N''MAX'' ELSE CAST(c.max_length AS NVARCHAR) END + N'')''
+												WHEN N''VARCHAR''			THEN N''('' + CASE c.max_length WHEN -1 THEN N''MAX'' ELSE CAST(c.max_length AS NVARCHAR) END + N'')''
+												ELSE N''''
+								END
+							)
+) AS ft
+OUTER APPLY	(
+	SELECT	[pk]	= ic.key_ordinal
+	FROM		sys.indexes AS i WITH (NOLOCK)
+	INNER JOIN	sys.index_columns AS ic WITH (NOLOCK)
+			ON	ic.object_id = i.object_id
+			AND	ic.index_id = i.index_id
+	WHERE	i.object_id = t.object_id
+		AND	ic.column_id = c.column_id
+		AND	i.is_primary_key = 1
+) AS idx
+WHERE	s.name = @SchName
+	AND	t.name = @TblName
+	AND	tp.name NOT IN (N''timestamp'');';
+
+			SELECT	@Param = N'';
+			SELECT	@Param += N'@TargetId INT, @SchName NVARCHAR(128), @TblName NVARCHAR(128)';
+
+			-- Get schema for all targets --
+			UPDATE	@Targets
+			SET		TargetStatus = 0;
+
+			WHILE 0 = 0
+			BEGIN;
+				UPDATE	TOP(1) t
+				SET		@TargetId	= t.TargetId
+					,	@Server		= t.TargetServer
+					,	@Database	= t.TargetDatabase
+					,	TargetStatus = 1
+				FROM	@Targets AS t
+				WHERE	t.TargetStatus = 0;
+
+				IF	@@ROWCOUNT = 0
+					BREAK;
+
+				SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
+
+				INSERT INTO	@TargetSchemas (TargetId, RowNum, ColName, ColType, PK, ID)
+				EXECUTE	@ExecuteSP @Query, @Param, @TargetId, @Schema, @Table;
+			END;
+
+			DELETE	ts
+			FROM		@TargetSchemas AS ts
+			INNER JOIN	chksum.CheckExcluded AS ex
+					ON	ex.TblName = @Table
+					AND	ts.ColName = ex.ColName;
+
+			UPDATE	t
+			SET		TargetStatus	= CASE	WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND chk.Stdev = src.Stdev AND chk.ChkSumOrder = src.ChkSumOrder AND chk.StdevOrder = src.StdevOrder
+												THEN 2
+											WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND chk.Stdev = src.Stdev AND NOT(chk.ChkSumOrder = src.ChkSumOrder AND chk.StdevOrder = src.StdevOrder)
+												THEN 1
+											ELSE 0
+									  END
+			FROM		@Targets AS t
+			CROSS APPLY	(
+				SELECT	[Cnt]			= COUNT(1)
+					,	[ChkSum]		= CHECKSUM_AGG(BINARY_CHECKSUM(_ts.ColName, _ts.ColType))
+					,	[Stdev]			= STDEV(BINARY_CHECKSUM(_ts.ColName, _ts.ColType))
+					,	[ChkSumOrder]	= CHECKSUM_AGG(BINARY_CHECKSUM(_ts.RowNum, _ts.ColName, _ts.ColType))
+					,	[StdevOrder]	= STDEV(BINARY_CHECKSUM(_ts.RowNum, _ts.ColName, _ts.ColType))
+				FROM	@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = t.TargetId
+			) AS chk
+			CROSS APPLY	(
+				SELECT	[Cnt]			= COUNT(1)
+					,	[ChkSum]		= CHECKSUM_AGG(BINARY_CHECKSUM(_ts.ColName, _ts.ColType))
+					,	[Stdev]			= STDEV(BINARY_CHECKSUM(_ts.ColName, _ts.ColType))
+					,	[ChkSumOrder]	= CHECKSUM_AGG(BINARY_CHECKSUM(_ts.RowNum, _ts.ColName, _ts.ColType))
+					,	[StdevOrder]	= STDEV(BINARY_CHECKSUM(_ts.RowNum, _ts.ColName, _ts.ColType))
+				FROM		@Targets AS _t
+				INNER JOIN	@TargetSchemas AS _ts
+						ON	_t.TargetId = _ts.TargetId
+				WHERE	_t.isSource = 1
+			) AS src
+
+			IF	NOT EXISTS (SELECT 1 FROM @Targets WHERE TargetStatus > 0 AND isSource = 0)
+			BEGIN;
+				SELECT	@Msg = N'';
+				SELECT	@Msg += N'\
+[Correct Table Data] - ' + @Schema + N'.' + @Table + N'
+All targets'' schema are not matching with source target. Exiting...';
+
+				EXECUTE	DBNOTI.NotificationDB.dbo.Skype_SendMessage 'BILLY', @Msg;
+				RAISERROR(@Msg, 16, 1) WITH NOWAIT;
+
+				RETURN --16;
+			END;
+			ELSE IF	EXISTS (SELECT 1 FROM @Targets WHERE TargetStatus = 0 AND isSource = 0)
+			BEGIN;
+				SELECT	@Msg = N'\
+[Correct Table Data] - ' + @Schema + N'.' + @Table + ts.str
+				FROM	(
+					SELECT	N'
+Target ' + QUOTENAME(_t.TargetServer) + N'.' + QUOTENAME(_t.TargetDatabase) + N': Schema check failed. Ignoring...'
+					FROM	@Targets AS _t
+					WHERE	_t.isSource = 0
+						AND	_t.TargetStatus = 0
+					FOR XML PATH ('')
+					,	TYPE
+				) AS xt(xml)
+				CROSS APPLY	(
+					SELECT	xt.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS ts(str);
+
+				EXECUTE	DBNOTI.NotificationDB.dbo.Skype_SendMessage 'BILLY', @Msg;
+				RAISERROR(@Msg, 0, 0) WITH NOWAIT;
+			END;
+
+			DELETE	@Targets
+			WHERE	TargetStatus = 0;
+		END;
+
+
+		-- Adhoc tables verification --
+		BEGIN;
+			IF	EXISTS(SELECT 1 FROM @Targets AS t WHERE OBJECT_ID(N'adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR))) IS NOT NULL)
+			BEGIN;
+				IF	@IgnoreExistingAdhocTables = 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				One of the required adhoc tables exists. Maybe another process is running or has been terminated abnormally.
+				Aborting...', 0, 0) WITH NOWAIT;
+
+				RETURN;
+				END;
+				ELSE
+				BEGIN;
+					RAISERROR(N'\
+[WARNING]	Task_CorrectCustomerData:
+				One of the required adhoc tables exists. Maybe another process is running or has been terminated abnormally.
+				@IgnoreExistingAdhocTables = TRUE
+				Continue may cause abnormal data if another process is running.
+				Continue in 10 seconds...', 0, 0) WITH NOWAIT;
+
+					WAITFOR DELAY '00:00:10.000';
+
+					RAISERROR(N'\
+[VERBOSE]	Task_CorrectCustomerData:
+				Continuing...', 0, 0) WITH NOWAIT;
+				END;
+			END;
+		END;
+
+
+		-- Create adhoc tables for checking raw data --
+		BEGIN;
+			SELECT	@Query = N'';
+			SELECT	@Query += tbls.str
+			FROM	(
+				SELECT	N'\
+IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N''') IS NOT NULL
+	DROP TABLE	adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N';
+CREATE TABLE	adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' (
+					' + _cols.str + ISNULL(N',	PRIMARY KEY CLUSTERED (' + _pks.str + ') ON ADHOC', N'')+ N'
+				) ON ADHOC;
+
+'
+				FROM		@Targets AS t
+				CROSS APPLY	(
+					SELECT	QUOTENAME(_ts.ColName) + N' ' + _ts.ColType + N'
+							,	'
+					FROM		@TargetSchemas AS _ts
+					WHERE	_ts.TargetId = t.TargetId
+					ORDER BY _ts.RowNum
+					FOR XML PATH ('')
+					,	TYPE
+				) AS _xcol(xml)
+				CROSS APPLY (
+					SELECT	LEFT(xq.str, LEN(xq.str) - 2)
+					FROM	(
+						SELECT	_xcol.xml.value('.[1]', 'NVARCHAR(MAX)')
+					) AS xq(str)
+				) AS _cols(str)
+				CROSS APPLY	(
+					SELECT	QUOTENAME(_ts.ColName) + N', '
+					FROM		@TargetSchemas AS _ts
+					WHERE	_ts.TargetId = t.TargetId
+						AND	_ts.PK > 0
+					ORDER BY _ts.PK
+					FOR XML PATH ('')
+					,	TYPE
+				) AS _xpk(xml)
+				CROSS APPLY (
+					SELECT	LEFT(xq.str, LEN(xq.str) - 1)
+					FROM	(
+						SELECT	_xpk.xml.value('.[1]', 'NVARCHAR(MAX)')
+					) AS xq(str)
+				) AS _pks(str)
+				ORDER BY t.isSource DESC, t.TargetServer ASC, t.TargetDatabase ASC
+				FOR XML PATH ('')
+				,	TYPE
+			) AS xtbl(xml)
+			CROSS APPLY (
+				SELECT	xtbl.xml.value('.[1]', 'NVARCHAR(MAX)')
+			) AS tbls(str);
+
+			EXECUTE	sys.sp_executesql @Query;
+
+			IF	@Debug = 1
+			BEGIN;
+				RAISERROR('\
+[VERBOSE]	Task_CorrectCustomerData:
+				Adhoc tables are created.', 0, 0) WITH NOWAIT;
+			END;
+		END;
+
+
+		-- Collect raw data --
+		BEGIN;
+			SELECT	@Query = N'';
+			SELECT	@Query += N'\
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SET NOCOUNT ON;
+
+SELECT	' + cols.str + N'
+FROM	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (NOLOCK)
+WHERE	' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
+	AND	' + QUOTENAME(@PartitionCol) + N' <= @IntervalTo;'
+			FROM	(
+				SELECT	QUOTENAME(ts.ColName) + N', '
+				FROM		@TargetSchemas AS ts
+				INNER JOIN	@Targets AS t
+						ON	ts.TargetId = t.TargetId
+				WHERE	t.isSource = 1
+				ORDER BY ts.RowNum
+				FOR XML PATH ('')
+				,	TYPE
+			) AS xcol(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 1)
+				FROM	(
+					SELECT	xcol.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS cols(str);
+
+			SELECT	@Param = N'';
+			SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT';
+
+
+			-- Run through each target --
+			UPDATE	@Targets
+			SET		TargetStatus = 0;
+
+			WHILE	0 = 0
+			BEGIN;
+				UPDATE	TOP(1)
+<<<<<<< HEAD
+						t
+=======
+						@Targets
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+				SET		@TargetId	= TargetId
+					,	@Server		= TargetServer
+					,	@Database	= TargetDatabase
+					,	TargetStatus = 1
+<<<<<<< HEAD
+				FROM	(
+					SELECT	*, [rn] = ROW_NUMBER() OVER(ORDER BY isSource ASC)
+					FROM	@Targets
+					WHERE	TargetStatus = 0
+				) AS t
+				WHERE	t.rn = 1;
+=======
+				WHERE	TargetStatus = 0;
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+
+				IF	@@ROWCOUNT = 0
+					BREAK;
+
+				SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
+
+				SELECT	@OuterQuery = N'';
+				SELECT	@OuterQuery += N'\
+INSERT INTO	adhoc.' + QUOTENAME(@Table + N'_' + @Server + N'_' + @Database + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N'
+EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
+';
+
+				SELECT	@OuterParam = N'';
+				SELECT	@OuterParam += N'@Query NVARCHAR(MAX), @Param NVARCHAR(MAX), @ExecuteSP NVARCHAR(MAX), ' + @Param;
+
+				EXECUTE	sys.sp_executesql @OuterQuery, @OuterParam, @Query, @Param, @ExecuteSP, @IntervalFrom, @IntervalTo;
+			END;
+		END;
+
+
+		-- INSERT » DST -- Case: Record at SRC only --
+		BEGIN;
+			SELECT	@Query = N'';
+			SELECT	@Query += N'\
+-- Insert queries --
+SELECT	@ReturnQuery = N''\
+INSERT INTO	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' (' + _cols.str + N')
+VALUES	'' + vals.str + N''
+<<<<<<< HEAD
+OPTION (RECOMPILE);''
+FROM	(
+	SELECT	TOP(1000)
+			N''(' + _vals.str + N')
+=======
+	;''
+FROM	(
+	SELECT	N''(' + _vals.str + N')
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+	,	''
+	FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
+	WHERE	NOT EXISTS (SELECT 1 FROM adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK) WHERE ' + _cps.str + N')
+	FOR XML PATH ('''')
+	,	TYPE
+) AS xval(xml)
+CROSS APPLY	(
+	SELECT	LEFT(xq.str, LEN(xq.str) - 4)
+		FROM	(
+			SELECT	xval.xml.value(''.[1]'', ''NVARCHAR(MAX)'')
+		) AS xq(str)
+) AS vals(str)
+OPTION (RECOMPILE);
+'
+			FROM	@Targets AS src
+			CROSS APPLY	(
+				SELECT	QUOTENAME(_ts.ColName) + N', '
+				FROM		@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = src.TargetId
+				ORDER BY _ts.RowNum
+				FOR XML PATH ('')
+				,	TYPE
+			) AS _xcol(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 1)
+				FROM	(
+					SELECT	_xcol.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS _cols(str)
+			CROSS APPLY	(
+				SELECT	N'src.' + QUOTENAME(_ts.ColName) + N' = dst.' + QUOTENAME(_ts.ColName) + N' AND '
+				FROM		@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = src.TargetId
+					AND	_ts.PK > 0
+				ORDER BY _ts.PK
+				FOR XML PATH ('')
+				,	TYPE
+			) AS _xcp(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 4)
+				FROM	(
+					SELECT	_xcp.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS _cps(str)
+			CROSS APPLY	(
+				SELECT	NCHAR(39) + N' + ISNULL('
+					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
+<<<<<<< HEAD
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%CHAR%'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%BINARY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE 'CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
+=======
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%CHAR%'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%BINARY%'
+									THEN ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE 'CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N')'
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+						END
+					+	N', N''NULL'') + N' + NCHAR(39) + N', '
+				FROM		@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = src.TargetId
+				ORDER BY _ts.RowNum
+				FOR XML PATH ('')
+				,	TYPE
+			) AS _xval(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 1)
+				FROM	(
+					SELECT	_xval.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS _vals(str)
+			WHERE	src.isSource = 1;
+
+			SELECT	@Param = N'';
+			SELECT	@Param += N'@ReturnQuery NVARCHAR(MAX) OUTPUT';
+
+			-- Run through each target --
+			UPDATE	@Targets
+			SET		TargetStatus = 0;
+
+			WHILE	0 = 0
+			BEGIN;
+				UPDATE	TOP(1)
+						@Targets
+				SET		@TargetId	= TargetId
+					,	@Server		= TargetServer
+					,	@Database	= TargetDatabase
+					,	TargetStatus = 1
+				WHERE	TargetStatus = 0
+					AND	isSource = 0;
+
+				IF	@@ROWCOUNT = 0
+					BREAK;
+
+				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
+				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
+
+<<<<<<< HEAD
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for INSERT command.
+
+', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
+				END;
+
+				IF	ISNULL(@ReturnQuery, N'') <> N''
+				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
+=======
+				IF	ISNULL(@ReturnQuery, N'') <> N''
+				BEGIN;
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+					-- Identity Insert --
+					IF	EXISTS (SELECT 1 FROM @TargetSchemas WHERE ID = 1)
+					BEGIN;
+						SELECT	@ReturnQuery = N'\
+SET IDENTITY_INSERT ' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' ON;
+
+' + @ReturnQuery + N'
+
+SET IDENTITY_INSERT ' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' OFF;'
+					END;
+
+					IF	@Debug = 0
+					BEGIN;
+						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
+						EXECUTE	@ExecuteSP @ReturnQuery;
+<<<<<<< HEAD
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute INSERT command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
+					END;
+					ELSE
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
+
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
+=======
+					END;
+					ELSE
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @ReturnQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@ReturnQuery;
+					END CATCH;
+
+					RAISERROR('', 0, 0) WITH NOWAIT;
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+				END;
+			END;
+		END;
+
+
+		-- UPDATE » DST -- Case: Record mismatch between SRC and DST --
+		BEGIN;
+			SELECT	@Query = N'';
+			SELECT	@Query += N'\
+-- Update queries --
+SELECT	@ReturnQuery = vals.str
+FROM	(
+	SELECT	N''\
+UPDATE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
+SET		' + NCHAR(39) + _vals.str + N' + ' + NCHAR(39) + N'@Dummy	= 0
+<<<<<<< HEAD
+WHERE	' + _ws.str + N'
+OPTION (RECOMPILE);
+
+''
+	FROM		(
+		SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+		FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
+	) AS src
+	INNER JOIN	(
+		SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+		FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
+	) AS dst
+=======
+WHERE	' + _ws.str + N';
+
+''
+	FROM		(
+	SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+	FROM	adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK)
+) AS src
+FULL OUTER JOIN	(
+	SELECT	*, [chksum] = BINARY_CHECKSUM(*)
+	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
+) AS dst
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+			ON	' + _cps.str + N'
+	WHERE	src.chksum <> dst.chksum
+	FOR XML PATH ('''')
+	,	TYPE
+) AS xval(xml)
+CROSS APPLY	(
+	SELECT	LEFT(xq.str, LEN(xq.str) - 4)
+		FROM	(
+			SELECT	xval.xml.value(''.[1]'', ''NVARCHAR(MAX)'')
+		) AS xq(str)
+) AS vals(str)
+OPTION (RECOMPILE);
+'
+			FROM	@Targets AS src
+			CROSS APPLY	(
+				SELECT	N'src.' + QUOTENAME(_ts.ColName) + N' = dst.' + QUOTENAME(_ts.ColName) + N' AND '
+				FROM		@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = src.TargetId
+					AND	_ts.PK > 0
+				ORDER BY _ts.PK
+				FOR XML PATH ('')
+				,	TYPE
+			) AS _xcp(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 4)
+				FROM	(
+					SELECT	_xcp.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS _cps(str)
+			CROSS APPLY	(
+				SELECT	CAST(N'' AS NVARCHAR(MAX)) + N' + \
+CASE WHEN src.' + QUOTENAME(_ts.ColName) + N' <> dst.' + QUOTENAME(_ts.ColName) + N' \
+OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NULL AND src.' + QUOTENAME(_ts.ColName) + N' IS NOT NULL) \
+OR (dst.' + QUOTENAME(_ts.ColName) + N' IS NOT NULL AND src.' + QUOTENAME(_ts.ColName) + N' IS NULL) \
+THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
+					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
+<<<<<<< HEAD
+									THEN ' + ISNULL(NCHAR(39) + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39), N''NULL'')'
+								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
+									THEN ' + ISNULL(N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
+								WHEN _ts.ColType LIKE '%CHAR%'
+									THEN ' + ISNULL(NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
+								WHEN _ts.ColType LIKE '%BINARY%'
+									THEN ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1), N''NULL'')'
+								ELSE ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), N''NULL'')'
+=======
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%CHAR%'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%BINARY%'
+									THEN ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N')'
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+						END
+			+	N' + N' + NCHAR(39) + N'
+	,	' + NCHAR(39) + N' ELSE N' + NCHAR(39) + NCHAR(39) + N' END'
+				FROM		@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = src.TargetId
+					AND	_ts.PK = 0
+				ORDER BY _ts.RowNum
+				FOR XML PATH ('')
+				,	TYPE
+			) AS _xval(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 0)
+				FROM	(
+					SELECT	_xval.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS _vals(str)
+			CROSS APPLY	(
+				SELECT	QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39) + N' + ISNULL('
+					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
+<<<<<<< HEAD
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%CHAR%'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%BINARY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N')'
+=======
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%CHAR%'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%BINARY%'
+									THEN ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR, src.' + QUOTENAME(_ts.ColName) + N')'
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+						END
+			+	N', N''NULL'') + N' + NCHAR(39) + N'
+	AND	'
+				FROM		@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = src.TargetId
+					AND	_ts.PK > 0
+				ORDER BY _ts.PK
+				FOR XML PATH ('')
+				,	TYPE
+			) AS _xw(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 6)
+				FROM	(
+					SELECT	_xw.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS _ws(str)
+			WHERE	src.isSource = 1;
+
+			SELECT	@Param = N'';
+			SELECT	@Param += N'@ReturnQuery NVARCHAR(MAX) OUTPUT';
+
+			-- Run through each target --
+			UPDATE	@Targets
+			SET		TargetStatus = 0;
+
+			WHILE	0 = 0
+			BEGIN;
+				UPDATE	TOP(1)
+						@Targets
+				SET		@TargetId	= TargetId
+					,	@Server		= TargetServer
+					,	@Database	= TargetDatabase
+					,	TargetStatus = 1
+				WHERE	TargetStatus = 0
+					AND	isSource = 0;
+
+				IF	@@ROWCOUNT = 0
+					BREAK;
+
+				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
+				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
+
+<<<<<<< HEAD
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
+				END;
+
+				IF	ISNULL(@ReturnQuery, N'') <> N''
+				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
+=======
+				IF	ISNULL(@ReturnQuery, N'') <> N''
+				BEGIN;
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+					SELECT	@ReturnQuery = N'\
+DECLARE	@Dummy AS BIT;
+
+' + @ReturnQuery;
+
+					IF	@Debug = 0
+					BEGIN;
+						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
+						EXECUTE	@ExecuteSP @ReturnQuery;
+<<<<<<< HEAD
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute UPDATE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
+					END;
+					ELSE
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
+
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
+=======
+					END;
+					ELSE
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @ReturnQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@ReturnQuery;
+					END CATCH;
+
+					RAISERROR('', 0, 0) WITH NOWAIT;
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+				END;
+			END;
+		END;
+
+
+		-- DELETE » DST -- Case: Record at DST only --
+		BEGIN;
+			SELECT	@Query = N'';
+			SELECT	@Query += N'\
+<<<<<<< HEAD
+-- Delete queries --
+=======
+-- Update queries --
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+SELECT	@ReturnQuery = vals.str
+FROM	(
+	SELECT	N''\
+DELETE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
+<<<<<<< HEAD
+WHERE	' + _ws.str + N'
+OPTION (RECOMPILE);
+=======
+WHERE	' + _ws.str + N';
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+
+''
+	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
+	WHERE	NOT EXISTS (SELECT 1 FROM adhoc.' + QUOTENAME(@Table + N'_' + src.TargetServer + N'_' + src.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS src WITH (NOLOCK) WHERE ' + _cps.str + N')
+	FOR XML PATH ('''')
+	,	TYPE
+) AS xval(xml)
+CROSS APPLY	(
+	SELECT	LEFT(xq.str, LEN(xq.str) - 4)
+		FROM	(
+			SELECT	xval.xml.value(''.[1]'', ''NVARCHAR(MAX)'')
+		) AS xq(str)
+) AS vals(str)
+OPTION (RECOMPILE);
+'
+			FROM	@Targets AS src
+			CROSS APPLY	(
+				SELECT	N'src.' + QUOTENAME(_ts.ColName) + N' = dst.' + QUOTENAME(_ts.ColName) + N' AND '
+				FROM		@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = src.TargetId
+					AND	_ts.PK > 0
+				ORDER BY _ts.PK
+				FOR XML PATH ('')
+				,	TYPE
+			) AS _xcp(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 4)
+				FROM	(
+					SELECT	_xcp.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS _cps(str)
+			CROSS APPLY	(
+				SELECT	QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39) + N' + ISNULL('
+					+	CASE	WHEN _ts.ColType LIKE '%DATE%' OR _ts.ColType LIKE '%TIME%' OR _ts.ColType = 'UNIQUEIDENTIFIER'
+<<<<<<< HEAD
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%CHAR%'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%BINARY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
+=======
+									THEN ' + NCHAR(39) + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 121) + NCHAR(39)'
+								WHEN _ts.ColType LIKE 'N%CHAR%' OR _ts.ColType = 'XML'
+									THEN ' + N''N'' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%CHAR%'
+									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
+								WHEN _ts.ColType LIKE '%BINARY%'
+									THEN ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N', 1)'
+								ELSE ' + CONVERT(NVARCHAR, ' + QUOTENAME(_ts.ColName) + N')'
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+						END
+			+	N', N''NULL'') + N' + NCHAR(39) + N'
+	AND	'
+				FROM		@TargetSchemas AS _ts
+				WHERE	_ts.TargetId = src.TargetId
+					AND	_ts.PK > 0
+				ORDER BY _ts.PK
+				FOR XML PATH ('')
+				,	TYPE
+			) AS _xw(xml)
+			CROSS APPLY (
+				SELECT	LEFT(xq.str, LEN(xq.str) - 6)
+				FROM	(
+					SELECT	_xw.xml.value('.[1]', 'NVARCHAR(MAX)')
+				) AS xq(str)
+			) AS _ws(str)
+			WHERE	src.isSource = 1;
+
+			SELECT	@Param = N'';
+			SELECT	@Param += N'@ReturnQuery NVARCHAR(MAX) OUTPUT';
+
+			-- Run through each target --
+			UPDATE	@Targets
+			SET		TargetStatus = 0;
+
+			WHILE	0 = 0
+			BEGIN;
+				UPDATE	TOP(1)
+						@Targets
+				SET		@TargetId	= TargetId
+					,	@Server		= TargetServer
+					,	@Database	= TargetDatabase
+					,	TargetStatus = 1
+				WHERE	TargetStatus = 0
+					AND	isSource = 0;
+
+				IF	@@ROWCOUNT = 0
+					BREAK;
+
+				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
+				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
+
+<<<<<<< HEAD
+				-- Error debugger --
+				IF	@@ERROR <> 0
+				BEGIN;
+					RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to generate query for DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @OuterQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@OuterQuery;
+					END CATCH;
+
+					RAISERROR(N'', 0, 0) WITH NOWAIT;
+				END;
+
+				IF	ISNULL(@ReturnQuery, N'') <> N''
+				BEGIN;
+					-- Repeat flag --
+					SELECT	@Repeat = 1;
+
+=======
+				IF	ISNULL(@ReturnQuery, N'') <> N''
+				BEGIN;
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+					IF	@Debug = 0
+					BEGIN;
+						SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
+						EXECUTE	@ExecuteSP @ReturnQuery;
+<<<<<<< HEAD
+
+						-- Error debugger --
+						IF	@@ERROR <> 0
+						BEGIN;
+							RAISERROR(N'\
+[ERROR]		Task_CorrectCustomerData:
+				%s.%s - %I64d » %I64d - %s.%s
+				Failed to execute DELETE command.', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo, @Server, @Database) WITH NOWAIT;
+						END;
+					END;
+					ELSE
+					BEGIN;
+						BEGIN TRY;
+							EXECUTE	dbo.sp_print @ReturnQuery;
+						END TRY
+						BEGIN CATCH;
+							PRINT	@ReturnQuery;
+						END CATCH;
+
+						RAISERROR('', 0, 0) WITH NOWAIT;
+					END;
+=======
+					END;
+					ELSE
+					BEGIN TRY;
+						EXECUTE	dbo.sp_print @ReturnQuery;
+					END TRY
+					BEGIN CATCH;
+						PRINT	@ReturnQuery;
+					END CATCH;
+
+					RAISERROR('', 0, 0) WITH NOWAIT;
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+				END;
+			END;
+		END;
+
+
+		-- Drop adhoc tables --
+		BEGIN;
+			SELECT	@Query = N'';
+			SELECT	@Query += tbls.str
+			FROM	(
+				SELECT	N'\
+IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N''') IS NOT NULL
+	DROP TABLE	adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.TargetDatabase + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N';
+
+		'
+				FROM		@Targets AS t
+				ORDER BY t.isSource DESC, t.TargetServer ASC, t.TargetDatabase ASC
+				FOR XML PATH ('')
+				,	TYPE
+			) AS xtbl(xml)
+			CROSS APPLY (
+				SELECT	xtbl.xml.value('.[1]', 'NVARCHAR(MAX)')
+			) AS tbls(str);
+
+			EXECUTE	sys.sp_executesql @Query;
+
+			IF	@Debug = 1
+			BEGIN;
+				RAISERROR('\
+[VERBOSE]	Task_CorrectCustomerData:
+				Adhoc tables are dropped.', 0, 0) WITH NOWAIT;
+			END;
+		END;
+
+
+<<<<<<< HEAD
+		IF	@Repeat = 1
+		BEGIN;
+			RAISERROR('\
+[INFO]		Task_CorrectCustomerData:
+				%s.%s has been corrected. (%I64d » %I64d)', 0, 0, @Schema, @Table, @IntervalFrom, @IntervalTo) WITH NOWAIT;
+		END;
+
+
+=======
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+		-- Update status --
+		UPDATE	r WITH (ROWLOCK)
+		SET		isDone	= 1
+		FROM		chksum.CheckResults AS r
+		INNER JOIN	chksum.Checklist AS l WITH (NOLOCK)
+				ON	r.ItemId = l.ItemId
+		INNER JOIN	@Targets AS dst
+				ON	l.TargetId = dst.TargetId
+				AND	dst.isSource = 0
+		INNER JOIN	chksum.TableConfigs AS tbl WITH (NOLOCK)
+				ON	l.TableId = tbl.TableId
+		WHERE	tbl.SchName = @Schema
+			AND	tbl.TblName = @Table
+			AND	r.ChkDate = @CheckTime
+			AND	r.IntervalFrom = @IntervalFrom
+<<<<<<< HEAD
+			AND	r.IntervalTo = @IntervalTo
+			AND	@Repeat = 0;
+=======
+			AND	r.IntervalTo = @IntervalTo;
+>>>>>>> #127620 - DBDCHK - CheckDataDB - Correcting Phase
+	END; -- WHILE --
+END; -- PROCEDURE --
+GO
+/*<info serverAlias="DBDCHK-CheckDataDB" executers="" viewers="" isFunction="0" isNested="0"></info>*/
