@@ -1,0 +1,156 @@
+/*
+	Creator:	20200227@Billy
+	Task:		Cleanup Subscriptions - [Redmine: #128261]
+	Server:		SITDB053
+*/
+
+SET NOCOUNT ON;
+
+--	BEGIN STEP 1:
+--		Cleanup subcriptions of SITDBTRANS
+----------------------------------------------------------------------------------------------------
+RETURN; -- Prevent accidental execution
+
+USE	bodb02;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBTRANS'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DBTrans_Bet'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBTRANS'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DBTrans_Bet14'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBTRANS'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DBTrans_ExecRep'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBTRANS'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DBTrans_ExecRep_UAT'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBTRANS'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DBTrans_ExecRepAcc'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBTRANS'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DBTrans_Vendor'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBTRANS'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DBTrans_Vendor14'
+		;
+
+USE	MonDB;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBTRANS'
+		,	@publisher_db = N'MonDB'
+		,	@publication = N'Joy_byDeleteTicket'
+		;
+GO
+
+
+--	BEGIN STEP 2:
+--		Cleanup subcriptions of SITDB02
+----------------------------------------------------------------------------------------------------
+RETURN; -- Prevent accidental execution
+
+USE	bodb02;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDB02'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DB02_Dot'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDB02'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DB02_event14'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDB02'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DB02_Odds_3rd'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDB02'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DB02_Odds_Info'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDB02'
+		,	@publisher_db = N'bodb02'
+		,	@publication = N'DB02_Odds_Odds'
+		;
+GO
+
+
+--	BEGIN STEP 3:
+--		Cleanup subcriptions of SITDBCUST
+----------------------------------------------------------------------------------------------------
+RETURN; -- Prevent accidental execution
+
+<<<<<<< HEAD
+USE	bodb02;
+=======
+USE	CustDB;
+>>>>>>> #128261 - SIT - SITDB053 to SITDB055 migration steps
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBCUST'
+		,	@publisher_db = N'CustDB'
+		,	@publication = N'CustDB_Customer_Info'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBCUST'
+		,	@publisher_db = N'CustDB'
+		,	@publication = N'CustDB_ExchangeDaily'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBCUST'
+		,	@publisher_db = N'CustDB'
+		,	@publication = N'CustDB_ExecRepAcc_Cust'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBCUST'
+		,	@publisher_db = N'CustDB'
+		,	@publication = N'CustDB_Login_Exchange'
+		;
+
+USE	bodb_Licensee;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBCUST'
+		,	@publisher_db = N'bodb_Licensee'
+		,	@publication = N'bodb_Licensee'
+		;
+
+EXECUTE	sys.sp_subscription_cleanup
+			@publisher = N'SITDBCUST'
+		,	@publisher_db = N'bodb_Licensee'
+		,	@publication = N'bodb_Licensee_BA'
+		;
+GO
+/*<info serverAlias="SITDB053-master" executers="" viewers="" isFunction="0" isNested="0"></info>*/
