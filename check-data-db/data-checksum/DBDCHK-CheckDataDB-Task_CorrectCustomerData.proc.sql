@@ -14,6 +14,8 @@ AS
 	Revisions:
 		- 20200218@Billy:	Initial - [Redmine: #127620]
 		- 20200304@Billy:	Add more debugging info - [Redmine: #129726]
+		- 20200520@Billy:	Fix bug when converting MONEY datatype - [Redmine: #000000]
+							When debugging, do NOT update status - [Redmine: #000000]
 
 	Developer's Notes:
 		- @IgnoreRunningChecksum:		[optional]		- Decide to ignore current running checksum or not
@@ -562,6 +564,8 @@ OPTION (RECOMPILE);
 									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
 									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
+								WHEN _ts.ColType LIKE '%MONEY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 2)'
 								ELSE 'CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
 						END
 					+	N', N''NULL'') + N' + NCHAR(39) + N', '
@@ -734,6 +738,8 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 									THEN ' + ISNULL(NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE '%BINARY%'
 									THEN ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1), N''NULL'')'
+								WHEN _ts.ColType LIKE '%MONEY%'
+									THEN ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 2), N''NULL'')'
 								ELSE ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), N''NULL'')'
 						END
 			+	N' + N' + NCHAR(39) + N'
@@ -761,6 +767,8 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
 									THEN ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1)'
+								WHEN _ts.ColType LIKE '%MONEY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 2)'
 								ELSE ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N', N''NULL'') + N' + NCHAR(39) + N'
@@ -914,6 +922,8 @@ OPTION (RECOMPILE);
 									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
 									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
+								WHEN _ts.ColType LIKE '%MONEY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 2)'
 								ELSE ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N', N''NULL'') + N' + NCHAR(39) + N'
@@ -1037,6 +1047,13 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 [VERBOSE]	Task_CorrectCustomerData:
 				Adhoc tables are dropped.', 0, 0) WITH NOWAIT;
 			END;
+		END;
+
+
+		-- Only print generated query -- DO NOT UPDATE STATUS --
+		IF	@Debug = 1
+		BEGIN;
+			RETURN;
 		END;
 
 
