@@ -14,6 +14,8 @@ AS
 	Revisions:
 		- 20200218@Billy:	Initial - [Redmine: #127620]
 		- 20200304@Billy:	Add more debugging info - [Redmine: #129726]
+		- 20200520@Billy:	Fix bug when converting MONEY datatype - [Redmine: #000000]
+							When debugging, do NOT update status - [Redmine: #000000]
 
 	Developer's Notes:
 		- @IgnoreRunningChecksum:		[optional]		- Decide to ignore current running checksum or not
@@ -1045,6 +1047,13 @@ IF	OBJECT_ID(''adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Tar
 [VERBOSE]	Task_CorrectCustomerData:
 				Adhoc tables are dropped.', 0, 0) WITH NOWAIT;
 			END;
+		END;
+
+
+		-- Only print generated query -- DO NOT UPDATE STATUS --
+		IF	@Debug = 1
+		BEGIN;
+			RETURN;
 		END;
 
 
