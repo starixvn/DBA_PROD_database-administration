@@ -562,6 +562,8 @@ OPTION (RECOMPILE);
 									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
 									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
+								WHEN _ts.ColType LIKE '%MONEY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 2)'
 								ELSE 'CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
 						END
 					+	N', N''NULL'') + N' + NCHAR(39) + N', '
@@ -734,6 +736,8 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 									THEN ' + ISNULL(NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39), N''NULL'')'
 								WHEN _ts.ColType LIKE '%BINARY%'
 									THEN ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1), N''NULL'')'
+								WHEN _ts.ColType LIKE '%MONEY%'
+									THEN ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 2), N''NULL'')'
 								ELSE ' + ISNULL(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), N''NULL'')'
 						END
 			+	N' + N' + NCHAR(39) + N'
@@ -761,6 +765,8 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
 									THEN ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 1)'
+								WHEN _ts.ColType LIKE '%MONEY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N', 2)'
 								ELSE ' + CONVERT(NVARCHAR(MAX), src.' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N', N''NULL'') + N' + NCHAR(39) + N'
@@ -914,6 +920,8 @@ OPTION (RECOMPILE);
 									THEN ' + NCHAR(39) + REPLACE(CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N'), NCHAR(39), NCHAR(39) + NCHAR(39)) + NCHAR(39)'
 								WHEN _ts.ColType LIKE '%BINARY%'
 									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 1)'
+								WHEN _ts.ColType LIKE '%MONEY%'
+									THEN ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N', 2)'
 								ELSE ' + CONVERT(NVARCHAR(MAX), ' + QUOTENAME(_ts.ColName) + N')'
 						END
 			+	N', N''NULL'') + N' + NCHAR(39) + N'
