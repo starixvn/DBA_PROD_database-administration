@@ -1,5 +1,5 @@
 /*<info serverAlias="DBCUST-CustDB" executers="" selecters="" viewers="" isFunction="0" isNested="1"></info>*/
-ALTER PROCEDURE [DBA_ArchiveAccount2_DisableAgentLine]
+ALTER PROCEDURE [dbo].[DBA_ArchiveAccount2_DisableAgentLine]
 	@AccName varchar(50),
 	@UserID int = 360418,
 	@ErrMsg nvarchar(200) = '' OUTPUT,
@@ -19,6 +19,7 @@ AS
 		20180822: Remove table custVirtuaRate
 		20190917@Daniel: Remove inactive products - unused custinfo columns (#117439 - P2)
 		20190929@Daniel: Involve more setting tables
+		20200526@Daniel: Remove table CustCommRate
 
 
 */
@@ -348,13 +349,6 @@ insert into DBARCCUST.bodb_Customer.dbo.CustBetSetting3rd_Member_old(
 SELECT	CustID, SportType, BetType, MinBet, MaxBet, MaxPerMatch
 FROM	CustBetSetting3rd_Member WITH (NOLOCK)
 WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)			
-
-insert into DBARCCUST.bodb_Customer.dbo.CustCommRate_old(
-	CustID, SportType, BetType, sdiscount, adiscount, discount, playerdiscount
-) 
-SELECT	CustID, SportType, BetType, sdiscount, adiscount, discount, playerdiscount
-FROM	CustCommRate WITH (NOLOCK)
-WHERE	custid IN (SELECT custid FROM custInfo WITH (NOLOCK) WHERE roleid = 1 and recommend = @AgentID)
 
 insert into DBARCCUST.bodb_Customer.dbo.CustDiscount3rd_Member_old(
 	CustID, SportType, BetType, PlayerDiscount, AgentDiscount, MasterDiscount, SuperDiscount
