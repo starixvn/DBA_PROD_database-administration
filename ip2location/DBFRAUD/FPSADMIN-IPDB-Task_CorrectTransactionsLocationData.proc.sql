@@ -12,6 +12,7 @@ AS
 	Revisions:
 		- 20190712@Billy:	Initial - [Redmine: #116536]
 		- 20191001@Billy:	Add safety check to avoid correct data of last month - [Redmine: #000000]
+		- 20200603@Patrick: Fix overflowed an int column when converion IP value [Redmine: #135318]
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -108,10 +109,11 @@ SELECT	[IPint]			= CONVERT(BIGINT, CONVERT(BINARY(1), CONVERT(INT, PARSENAME(IP,
 	,	[City]			= City
 	,	[ISP]			= ISP
 	,	[Cnt]			= COUNT(1)
-FROM	dbo.Transactions WITH (NOLOCK)
+FROM	dbo.Transactions trn WITH (NOLOCK)
 WHERE	TransDate >= CAST(@Month AS DATETIME)
 	AND	TransDate < CAST(DATEADD(MONTH, 1, @Month) AS DATETIME)
 	AND	IP NOT LIKE ''%[^.0-9]%''
+	AND LEN(PARSENAME(trn.IP, 4)) <= 3 AND LEN(PARSENAME(trn.IP, 3)) <= 3 AND LEN(PARSENAME(trn.IP, 2)) <= 3 AND LEN(PARSENAME(trn.IP, 1)) <= 3
 GROUP BY IP, Country, CountryCode, Region, City, ISP;
 
 SELECT	@IPs = ips.xml.value(''.[1]'', ''VARCHAR(MAX)'')
@@ -140,6 +142,7 @@ INNER JOIN	#IPDB AS ipv4 WITH (NOLOCK)
 WHERE	trn.TransDate >= CAST(@Month AS DATETIME)
 	AND	trn.TransDate < CAST(DATEADD(MONTH, 1, @Month) AS DATETIME)
 	AND	trn.IP NOT LIKE ''%[^.0-9]%''
+	AND LEN(PARSENAME(trn.IP, 4)) <= 3 AND LEN(PARSENAME(trn.IP, 3)) <= 3 AND LEN(PARSENAME(trn.IP, 2)) <= 3 AND LEN(PARSENAME(trn.IP, 1)) <= 3
 	AND	(	trn.Country <> ipv4.Country
 		OR	trn.CountryCode <> ipv4.CountryCode
 		OR	trn.Region <> ipv4.Region
