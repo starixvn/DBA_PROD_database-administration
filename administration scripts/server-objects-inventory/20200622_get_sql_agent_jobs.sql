@@ -1,11 +1,4 @@
- 
- /*
-	20200622@Lukas: list out all sql agent jobs
-	Revisions:
-		-
- */
- 
- select 
+  select 
        S.name AS JobName, s.enabled, s.date_created, s.date_modified,
        SS.name AS ScheduleName,                    
        CASE(SS.freq_type)
@@ -17,7 +10,7 @@
             WHEN 64 THEN 'SQL Startup'
             WHEN 128 THEN 'SQL Idle'
             ELSE '??'
-        END AS Frequency,  
+        END   + ' - ' +
        CASE
             WHEN (freq_type = 1)                       then 'One time only'
             WHEN (freq_type = 4 and freq_interval = 1) then 'Every Day'
@@ -66,7 +59,7 @@
                                                 ) as WS 
                                         where WS.schedule_id = SS.schedule_id
                                         ) 
-        END AS Interval,
+        END AS [Frequency-Interval],
         CASE (freq_subday_type)
             WHEN 1 then   left(stuff((stuff((replicate('0', 6 - len(active_start_time)))+ convert(varchar(6),active_start_time),3,0,':')),6,0,':'),8)
             WHEN 2 then 'Every ' + convert(varchar(10),freq_subday_interval) + ' seconds'
@@ -83,6 +76,8 @@
 from msdb.dbo.sysjobs S
 left join msdb.dbo.sysjobschedules SJ on S.job_id = SJ.job_id  
 left join msdb.dbo.sysschedules SS on SS.schedule_id = SJ.schedule_id
+where  ss.enabled = 1
 order by S.name
 
 
+go 
