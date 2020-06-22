@@ -1,4 +1,4 @@
-  select 
+select 
        S.name AS JobName, s.enabled, s.date_created, s.date_modified,
        SS.name AS ScheduleName,                    
        CASE(SS.freq_type)
@@ -77,7 +77,6 @@ from msdb.dbo.sysjobs S
 left join msdb.dbo.sysjobschedules SJ on S.job_id = SJ.job_id  
 left join msdb.dbo.sysschedules SS on SS.schedule_id = SJ.schedule_id
 where  ss.enabled = 1
-order by S.name
-
+order by S.name, sj.schedule_id
 
 go 
