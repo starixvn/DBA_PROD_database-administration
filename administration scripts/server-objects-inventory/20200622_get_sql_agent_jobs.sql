@@ -70,9 +70,10 @@ select
         CASE SJ.next_run_date
             WHEN 0 THEN cast('n/a' as char(10))
             ELSE convert(char(10), convert(datetime, convert(char(8),SJ.next_run_date)),120)  + ' ' + left(stuff((stuff((replicate('0', 6 - len(next_run_time)))+ convert(varchar(6),next_run_time),3,0,':')),6,0,':'),8)
-        END AS NextRunTime,
-		'what does the job do?' AS [desc],
-		'' AS [on failure do what?]
+        END AS NextRunTime
+        --,related team
+		--'what does the job do?' AS [desc],
+		--'' AS [What should I do when the job is failed?]
 from msdb.dbo.sysjobs S
 left join msdb.dbo.sysjobschedules SJ on S.job_id = SJ.job_id  
 left join msdb.dbo.sysschedules SS on SS.schedule_id = SJ.schedule_id
