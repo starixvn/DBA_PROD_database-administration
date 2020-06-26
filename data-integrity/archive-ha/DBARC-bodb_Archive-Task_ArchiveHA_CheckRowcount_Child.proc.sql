@@ -183,7 +183,7 @@ GROUP BY CAST(tbl.winlostdate AS DATE);
 INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
-	,	[WinLostDate]	= CAST(tbl.eventdate AS DATE)
+	,	[WinLostDate]	= CAST(tbl.eventtime AS DATE)
 	,	[RowCount]		= COUNT(1)
 	,	[TimeType]		= CAST(''DAY'' AS VARCHAR(10))
 FROM	dbo.[~~Table~~] AS tbl WITH (NOLOCK)
