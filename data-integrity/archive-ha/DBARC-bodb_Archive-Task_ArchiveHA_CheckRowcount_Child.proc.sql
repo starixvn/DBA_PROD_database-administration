@@ -20,6 +20,7 @@ AS
 							Add table type 7: ArchiveDate
 							[Redmine: #88591]
 		- 20190416@Billy:	DB061 Migration - [Redmine: #111418]
+		- 20200626@Patrick: Add more table VSRaceInfo [Redmine: #135963]
 */
 BEGIN
 	SET NOCOUNT ON;
@@ -176,7 +177,25 @@ GROUP BY CAST(tbl.winlostdate AS DATE);
 			IF	@TableType = 2
 			BEGIN;
 				SELECT	@DataQuery = N'';
-				SELECT	@DataQuery = @DataQuery + N'
+				IF @Table = 'VSRaceInfo_bk'
+				BEGIN
+					SELECT	@DataQuery = @DataQuery + N'
+INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+SELECT	[DatabaseName]	= @Database
+	,	[TableName]		= @Table
+	,	[WinLostDate]	= CAST(tbl.eventdate AS DATE)
+	,	[RowCount]		= COUNT(1)
+	,	[TimeType]		= CAST(''DAY'' AS VARCHAR(10))
+FROM	dbo.[~~Table~~] AS tbl WITH (NOLOCK)
+WHERE	tbl.eventtime >= @FromDate
+	AND	tbl.eventtime < DATEADD(DAY, 1, @ToDate)
+GROUP BY CAST(tbl.eventtime AS DATE);
+';
+				END
+				ELSE
+				BEGIN
+				
+					SELECT	@DataQuery = @DataQuery + N'
 INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 SELECT	[DatabaseName]	= @Database
 	,	[TableName]		= @Table
@@ -188,6 +207,7 @@ WHERE	tbl.eventdate >= @FromDate
 	AND	tbl.eventdate <= @ToDate
 GROUP BY CAST(tbl.eventdate AS DATE);
 ';
+					END
 			END;
 
 			-- Table with matchid column --
