@@ -1,10 +1,10 @@
 NovaCash - MySQL Server
 ========================
 
-Purpose: to pull data from Licensee MySQL databases to KBT.
-Role: Slave - Replicated Server
-Version: 8.0.20
-Tools: Docker
+    - Purpose: to pull data from Licensee MySQL databases to KBT.
+    - Role: Slave - Replicated Server
+    - Version: 8.0.20
+    - Tools: Docker
 
 Steps to install MySQL with Docker on ubuntu server
 ---------------------------------------------------
