@@ -16,7 +16,6 @@ Steps to install MySQL with Docker on ubuntu server
         + mysql.env
         + docker-compose.yml
         + makefile
-        + init.d (folder if any)
 
     - volume map to /volumes/novacash
         + data
