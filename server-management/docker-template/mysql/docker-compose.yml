@@ -15,7 +15,7 @@ services:
       - app_volume:/var/lib/mysql:rw
       - ${MYSQL_LOG}:/var/log/mysql:rw
       - ${MYSQL_CONF}/custom-mysql.cnf:/etc/mysql/conf.d/custom-mysql.cnf
-      #- ${MYSQL_INIT}:/docker-entrypoint-initdb.d
+      - ${MYSQL_INIT}:/docker-entrypoint-initdb.d
 
     env_file:
       - ./mysql.env

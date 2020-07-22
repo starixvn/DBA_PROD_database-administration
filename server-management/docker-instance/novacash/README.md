@@ -1,5 +1,5 @@
 NovaCash - MySQL Server
-=======================
+===============
 
 Purpose: to pull data from Licensee MySQL databases to KBT
 Role: Slave - Replicated Server
@@ -10,23 +10,24 @@ Steps to install MySQL with Docker on ubuntu server
 ---------------------------------------------------
 
   * Install [Docker Engine] vs [docker-compose] component
-  * Structure folder <novacash>
-    - container
+  * Structure folder - novacash
+    - mysql-container map to /var/docker/novacash
         + .env
         + mysql.env
         + docker-compose.yml
         + makefile
         + init.d (folder if any)
 
-    - volume - <path_to_store?>
+    - volume map to /volumes/novacash
         + data
         + logs
         + conf.d
 
   * Prepare Configuration
-    - ./container/.env -- container definition
-    - ./container/mysql.env -- mysql environments at starting up
-    - ./volume/conf.d/custom-mysql.cnf -- mysqld configuration
+    - docker volume create --driver local --opt type=none --opt device=/volumes/novacash/data --opt o=bind novacash_data
+    - mysql-container/.env -- container definition
+    - mysql-container/mysql.env -- mysql environments at starting up
+    - volume/conf.d/custom-mysql.cnf -- mysqld configuration
 
   * Check configuration
     - make config
