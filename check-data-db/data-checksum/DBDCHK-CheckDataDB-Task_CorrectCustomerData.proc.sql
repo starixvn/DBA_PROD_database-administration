@@ -1,10 +1,10 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-CREATE PROCEDURE	chksum.Task_CorrectCustomerData
+ALTER PROCEDURE	[chksum].[Task_CorrectCustomerData]
 						@IgnoreRunningChecksum		BIT					= 0
 					,	@IgnoreExistingAdhocTables	BIT					= 0
-					,	@Debug						BIT					= 0
+					,	@Debug						BIT					= 0									
 AS
 /*
 	Creator:	20200218@Billy
@@ -16,6 +16,8 @@ AS
 		- 20200304@Billy:	Add more debugging info - [Redmine: #129726]
 		- 20200520@Billy:	Fix bug when converting MONEY datatype - [Redmine: #000000]
 							When debugging, do NOT update status - [Redmine: #000000]
+		- 20200723@Daniel:  Remove OPTION(RECOMPILE) to reduce CPU usage when recompiling queries
+							Workaround for linked-server WAN network issue to DBMNL - Use XML data transform
 
 	Developer's Notes:
 		- @IgnoreRunningChecksum:		[optional]		- Decide to ignore current running checksum or not
@@ -416,7 +418,6 @@ CREATE TABLE	adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Targe
 			CROSS APPLY (
 				SELECT	xtbl.xml.value('.[1]', 'NVARCHAR(MAX)')
 			) AS tbls(str);
-
 			EXECUTE	sys.sp_executesql @Query;
 
 			IF	@Debug = 1
@@ -426,7 +427,6 @@ CREATE TABLE	adhoc.' + QUOTENAME(@Table + N'_' + t.TargetServer + N'_' + t.Targe
 				Adhoc tables are created.', 0, 0) WITH NOWAIT;
 			END;
 		END;
-
 
 		-- Collect raw data --
 		BEGIN;
@@ -455,7 +455,7 @@ WHERE	' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
 					SELECT	xcol.xml.value('.[1]', 'NVARCHAR(MAX)')
 				) AS xq(str)
 			) AS cols(str);
-
+	
 			SELECT	@Param = N'';
 			SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT';
 
@@ -464,8 +464,10 @@ WHERE	' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
 			UPDATE	@Targets
 			SET		TargetStatus = 0;
 
+			declare @Query_bk nvarchar(max) = @Query
 			WHILE	0 = 0
 			BEGIN;
+				set @Query = @Query_bk
 				UPDATE	TOP(1)
 						t
 				SET		@TargetId	= TargetId
@@ -485,15 +487,67 @@ WHERE	' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
 				SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 
 				SELECT	@OuterQuery = N'';
-				SELECT	@OuterQuery += N'\
+
+				IF(@Server = 'MNL_DBMNL') -- Daniel solve using XML data to avoid network issue to MNL
+				BEGIN
+					SELECT	@OuterQuery += N'\
+truncate table tmpXMLData
+insert tmpXMLData
+EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
+'
+
+					SELECT @Query = REPLACE(@Query, 'SET NOCOUNT ON;', '
+SET NOCOUNT ON;
+DECLARE @xmlData NVARCHAR(MAX) = ''''
+SET @xmlData = (')
+					SELECT @Query = REPLACE(@Query, '	AND	[custid] <= @IntervalTo', '	AND	[custid] <= @IntervalTo
+FOR XML PATH (''r''))
+select @xmlData')
+				END
+				ELSE
+				BEGIN
+					SELECT	@OuterQuery += N'\
 INSERT INTO	adhoc.' + QUOTENAME(@Table + N'_' + @Server + N'_' + @Database + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N'
 EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
-';
-
+'
+				END
 				SELECT	@OuterParam = N'';
 				SELECT	@OuterParam += N'@Query NVARCHAR(MAX), @Param NVARCHAR(MAX), @ExecuteSP NVARCHAR(MAX), ' + @Param;
+				--print '@OuterQuery:'
+				--print @OuterQuery
+				--print '@Query:'
+				--print @Query
+				--print '@Param:'
+				--print @Param
+				--print '@ExecuteSP:'
+				--print @ExecuteSP
+				--print '@OuterParam:'
+				--print @OuterParam
+				--return
 
 				EXECUTE	sys.sp_executesql @OuterQuery, @OuterParam, @Query, @Param, @ExecuteSP, @IntervalFrom, @IntervalTo;
+						
+				IF(@Server = 'MNL_DBMNL') -- Daniel solve using XML data to avoid network issue to MNL
+				BEGIN
+					declare @xQuery nvarchar(max) = N''
+					select @xQuery = N'\
+					DECLARE @xml XML
+					select @xml = xmlData from tmpXMLData
+					INSERT INTO	adhoc.' + QUOTENAME(@Table + N'_' + @Server + N'_' + @Database + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N'
+					SELECT ' + ISNULL(STUFF((SELECT N'	, x.v.value(''(' + COLUMN_NAME + N'/text())[1]'',''' + DATA_TYPE 
+						+ case when CHARACTER_MAXIMUM_LENGTH is null then N'' else N'(' + convert(varchar(10), CHARACTER_MAXIMUM_LENGTH) + N')' end
+						+ ''') AS ' + COLUMN_NAME + N'
+					'
+					FROM KBTDBTP.bodb02.INFORMATION_SCHEMA.COLUMNS
+					WHERE TABLE_NAME = @Table
+					FOR XML PATH(''),TYPE ).value('.[1]','varchar(max)'), 1, 2, ''), '')
+					+ N'FROM @xml.nodes(''/r'') AS x(v)'
+
+					--print @xQuery
+
+					EXECUTE	sys.sp_executesql @xQuery
+				END
+
 			END;
 		END;
 
@@ -506,7 +560,7 @@ EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
 SELECT	@ReturnQuery = N''\
 INSERT INTO	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' (' + _cols.str + N')
 VALUES	'' + vals.str + N''
-OPTION (RECOMPILE);''
+;''
 FROM	(
 	SELECT	TOP(1000)
 			N''(' + _vals.str + N')
@@ -522,7 +576,7 @@ CROSS APPLY	(
 			SELECT	xval.xml.value(''.[1]'', ''NVARCHAR(MAX)'')
 		) AS xq(str)
 ) AS vals(str)
-OPTION (RECOMPILE);
+;
 '
 			FROM	@Targets AS src
 			CROSS APPLY	(
@@ -605,6 +659,7 @@ OPTION (RECOMPILE);
 					BREAK;
 
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
+				--d print @OuterQuery
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
 				-- Error debugger --
@@ -684,7 +739,7 @@ FROM	(
 UPDATE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
 SET		' + NCHAR(39) + _vals.str + N' + ' + NCHAR(39) + N'@Dummy	= 0
 WHERE	' + _ws.str + N'
-OPTION (RECOMPILE);
+;
 
 ''
 	FROM		(
@@ -706,7 +761,7 @@ CROSS APPLY	(
 			SELECT	xval.xml.value(''.[1]'', ''NVARCHAR(MAX)'')
 		) AS xq(str)
 ) AS vals(str)
-OPTION (RECOMPILE);
+;
 '
 			FROM	@Targets AS src
 			CROSS APPLY	(
@@ -810,6 +865,7 @@ THEN ' + NCHAR(39) + QUOTENAME(_ts.ColName) + N' = ' + NCHAR(39)
 					BREAK;
 
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
+				--daniel print @OuterQuery
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
 				-- Error debugger --
@@ -880,7 +936,7 @@ FROM	(
 	SELECT	N''\
 DELETE	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (ROWLOCK)
 WHERE	' + _ws.str + N'
-OPTION (RECOMPILE);
+;
 
 ''
 	FROM	adhoc.' + QUOTENAME(@Table + N'_~~Server~~_~~Database~~_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N' AS dst WITH (NOLOCK)
@@ -894,7 +950,7 @@ CROSS APPLY	(
 			SELECT	xval.xml.value(''.[1]'', ''NVARCHAR(MAX)'')
 		) AS xq(str)
 ) AS vals(str)
-OPTION (RECOMPILE);
+;
 '
 			FROM	@Targets AS src
 			CROSS APPLY	(
