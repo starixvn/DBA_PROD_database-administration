@@ -1,7 +1,7 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-ALTER PROCEDURE	[chksum].[Task_CorrectCustomerData]
+CREATE PROCEDURE	chksum.Task_CorrectCustomerData
 						@IgnoreRunningChecksum		BIT					= 0
 					,	@IgnoreExistingAdhocTables	BIT					= 0
 					,	@Debug						BIT					= 0									
