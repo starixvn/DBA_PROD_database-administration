@@ -539,8 +539,10 @@ EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
 						+ case when DATA_TYPE NOT IN('decimal') then N'' else N'(' + convert(varchar(10), NUMERIC_PRECISION) + N',' + convert(varchar(10), NUMERIC_SCALE) + N')' end
 						+ ''') AS ' + COLUMN_NAME + N'
 					'
-					FROM KBTDBTP.bodb02.INFORMATION_SCHEMA.COLUMNS
+					FROM KBTDBTP.bodb02.INFORMATION_SCHEMA.COLUMNS c
 					WHERE TABLE_NAME = @Table
+						AND NOT EXISTS(select 1 from chksum.CheckExcluded ex where ex.TblName = @Table and c.COLUMN_NAME = ex.ColName)
+					order by ORDINAL_POSITION
 					FOR XML PATH(''),TYPE ).value('.[1]','varchar(max)'), 1, 2, ''), '')
 					+ N'FROM @xml.nodes(''/r'') AS x(v)'
 
