@@ -536,6 +536,7 @@ EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
 					INSERT INTO	adhoc.' + QUOTENAME(@Table + N'_' + @Server + N'_' + @Database + N'_' + CAST(CAST(@CheckTime AS INT) AS NVARCHAR)) + N'
 					SELECT ' + ISNULL(STUFF((SELECT N'	, x.v.value(''(' + COLUMN_NAME + N'/text())[1]'',''' + DATA_TYPE 
 						+ case when CHARACTER_MAXIMUM_LENGTH is null then N'' else N'(' + convert(varchar(10), CHARACTER_MAXIMUM_LENGTH) + N')' end
+						+ case when DATA_TYPE NOT IN('decimal') then N'' else N'(' + convert(varchar(10), NUMERIC_PRECISION) + N',' + convert(varchar(10), NUMERIC_SCALE) + N')' end
 						+ ''') AS ' + COLUMN_NAME + N'
 					'
 					FROM KBTDBTP.bodb02.INFORMATION_SCHEMA.COLUMNS
