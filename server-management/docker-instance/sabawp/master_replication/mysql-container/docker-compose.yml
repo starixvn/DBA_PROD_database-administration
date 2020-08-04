@@ -1,0 +1,35 @@
+version: '3.7'
+networks:
+  app_network:
+    external: ${EXTERNAL_NETWORK}
+    name: ${MYSQL_NETWORK}
+    driver: ${DRIVER_NETWORK}
+
+services:
+  mysql:
+    image: mysql:${MYSQL_TAG}
+    container_name: ${MYSQL_HOST}
+    hostname: ${MYSQL_HOST}
+
+    volumes:
+      - app_volume:/var/lib/mysql:rw
+      - ${MYSQL_LOG}:/var/log/mysql:rw
+      - ${MYSQL_CONF}/custom-mysql.cnf:/etc/mysql/conf.d/custom-mysql.cnf
+
+    env_file:
+      - ./mysql.env
+
+    ports:
+      - '${MYSQL_PORT}:3306'
+
+    networks:
+      app_network:
+        aliases: 
+          - ${MYSQL_HOST}
+
+    restart: always
+
+volumes:
+  app_volume:
+    external: ${EXTERNAL_VOLUME}
+    name: ${DATA_VOLUME}
