@@ -1,0 +1,42 @@
+version: '3.7'
+networks:
+  app_network:
+    external: true
+    name: chatbox_local
+    driver: overlay
+
+services:
+  chatbox_master:
+    image: mysql:8.0.20
+    cap_add:
+      - SYS_NICE
+    hostname: chatbox_master
+    volumes:
+      - /volumes/chatbox-master-local/data:/var/lib/mysql:rw
+      - /var/docker/chatbox-master-local/log:/var/log/mysql:rw
+      - /var/docker/chatbox-master-local/conf.d/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+      - /var/docker/chatbox-master-local/init.d:/docker-entrypoint-initdb.d
+    #env_file:
+    #  - /var/docker/chatbox-master-local/mysql.env
+    ports:
+      - '3320:3306'
+
+    networks:
+      app_network:
+        aliases:
+          - chatbox_master
+    deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 60s
+            restart_policy:
+                condition: none
+                max_attempts: 5
+            placement:
+                constraints: [node.role == manager]
+#volumes:
+#  app_volume:
+#    external: ${EXTERNAL_VOLUME}
+#    name: ${DATA_VOLUME}

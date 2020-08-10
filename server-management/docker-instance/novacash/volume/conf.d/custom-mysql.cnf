@@ -42,7 +42,7 @@ log_error_verbosity = 1
 #slow logs
 slow_query_log = 1
 slow_query_log_file = /var/log/mysql/slow_query.log
-long_query_time = 10000 #10s
+long_query_time = 10 #10s
 
 
 # --------------------------
