@@ -1,0 +1,41 @@
+version: '3.7'
+networks:
+  app_network:
+    external: true
+    name: chatbox_local
+    driver: overlay
+
+services:
+  chatbox_slave:
+    image: mysql:8.0.20
+    hostname: chatbox_slave
+    restart: always
+    volumes:
+      - /volumes/chatbox-slave-local/data:/var/lib/mysql:rw
+      - /var/docker/chatbox-slave-local/log:/var/log/mysql:rw
+      - /var/docker/chatbox-slave-local/conf.d/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+      - /var/docker/chatbox-slave-local/init.d:/docker-entrypoint-initdb.d
+      #env_file:
+      #- /var/docker/chatbox-slave-local/mysql.env
+    ports:
+      - '3321:3306'
+
+    networks:
+      app_network:
+        aliases:
+          - chatbox_slave
+    deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 60s
+            restart_policy:
+                condition: none
+                max_attempts: 5
+            placement:
+                constraints: [node.role == worker]
+#volumes:
+#  app_volume:
+#    external: ${EXTERNAL_VOLUME}
+#    name: ${DATA_VOLUME}
