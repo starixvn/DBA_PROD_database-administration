@@ -12,7 +12,7 @@ AS
 	Revision:
 		- 20190201@Helen:  Job Move Bets Monitor for delete bettransm on DBTRANS, DB052, DB053, DB06 - [Redmine: 108581]
 		- 20190524@Billy:	Change Letstalk linked server - [Redmine: #113125]
-		- 20200921@Patrick:	Change Letstalk linked server - [Redmine: #142056]
+		- 20200921@Patrick:	Update the rule check long running for bettransm - [Redmine: #142056]
 */
 BEGIN
 	
@@ -33,7 +33,7 @@ BEGIN
 	SET @startDate = CONVERT(VARCHAR(10),GETDATE(),126) + ' 17:30:00.000'
 	
 	-- only checking with 30 minutes since starting movebet job
-	IF DATEDIFF(MINUTE,@startDate,@currentDate)> 30 
+	IF DATEDIFF(MINUTE,@startDate,@currentDate)> 120 
 		RETURN
 		
 	WHILE 1 = 1 
