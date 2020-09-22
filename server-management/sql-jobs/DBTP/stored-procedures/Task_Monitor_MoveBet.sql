@@ -57,19 +57,21 @@ BEGIN
 				WHERE winlostdate = @RunningDay
 			)
 			BEGIN
-				INSERT INTO dbo.DBA_BU_Long_Running_Check(tableName, winlostdate)
-				VALUES('bettransm', @RunningDay)
+				INSERT INTO dbo.DBA_BU_Long_Running_Check(tableName, winlostdate, Status)
+				VALUES('bettransm', @RunningDay, 'start')
 			END
 		END
 
 		DECLARE @__fistTime DATETIME
 		SELECT @__fistTime = createdDateTime 
-		FROM dbo.DBA_BU_Long_Running_Check WITH(NOLOCK) WHERE tableName = 'bettransm' AND winlostdate = @RunningDay
+		FROM dbo.DBA_BU_Long_Running_Check WITH(NOLOCK) 
+		WHERE tableName = 'bettransm' AND winlostdate = @RunningDay
+			AND Status = 'start'
 
 		IF @__fistTime IS NOT NULL
 			SET @startDate = @__fistTime
 		ELSE
-			BREAK
+			CONTINUE
 		
 		IF DATEDIFF(MINUTE, @startDate, @currentDate)>= 20
 		BEGIN
@@ -129,9 +131,16 @@ BEGIN
 					 , @JobName = N'Custom Message'
 					 , @Message = @message
 					 , @isSimple = 1
-			END
-			--IF @CheckDBs <> '' 
+
 				BREAK
+			END
+			ELSE
+			BEGIN
+				UPDATE dbo.DBA_BU_Long_Running_Check WITH(UPDLOCK) 
+				SET Status = 'done' 
+				WHERE tableName = 'bettransm' AND winlostdate = @RunningDay
+
+			END
 			
 		END
 	END
