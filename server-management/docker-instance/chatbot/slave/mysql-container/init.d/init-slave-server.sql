@@ -1,0 +1,11 @@
+/****
+STOP SLAVE;
+RESET SLAVE;
+CHANGE MASTER TO MASTER_HOST='<hostname?>',  MASTER_PORT=3306, MASTER_USER='<repl_user?>', MASTER_PASSWORD='<password?>', MASTER_AUTO_POSITION=1 FOR CHANNEL '<channel-name?>';
+START SLAVE FOR channel '<channel-name?>';
+****
+STOP SLAVE;
+RESET SLAVE;
+CHANGE MASTER TO MASTER_HOST='chatbot_master',  MASTER_PORT=3306, MASTER_USER='repl_sql', MASTER_PASSWORD='123open', MASTER_AUTO_POSITION=1 FOR CHANNEL 'pro_chatbot';
+START SLAVE FOR channel 'pro_chatbot';
+***/

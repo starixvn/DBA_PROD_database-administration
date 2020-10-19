@@ -1,0 +1,34 @@
+[client]
+default-character-set   = utf8mb4
+
+[mysql]
+default-character-set   = utf8mb4
+
+[mysqld]
+character-set-server    = utf8mb4
+collation-server        = utf8mb4_unicode_ci
+
+group_concat_max_len    = 1048576
+
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+datadir         = /var/lib/mysql
+log-error       = /var/log/mysql/error.log
+log-bin         = /var/log/mysql/mysql-bin.log
+tmpdir          = /tmp
+binlog_format   = ROW
+max_binlog_size = 1024M
+sync_binlog     = 1
+#expire-logs-days = 7
+binlog_expire_logs_seconds      = 691200
+slow_query_log  = 1
+long_query_time = 10000 #10 seconds
+#binlog_do_db   = chatbot_replication
+#binlog_do_db   = ChatBot
+
+#replication
+default-authentication-plugin=mysql_native_password
+server-id = 3
+#gtid-mode=ON
+#enforce-gtid-consistency=ON
+

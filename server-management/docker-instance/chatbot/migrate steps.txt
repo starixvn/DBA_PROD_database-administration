@@ -1,0 +1,42 @@
+step 1: check new connection
+
+in UM:
+step 2: wait for everything was synced and stable
+	show slave status \G;
+		seconds_behind_master=0
+
+step 3: disable slave from chatbot_master_docker to chatbot_master_docker
+	connect to chatbot_master_docker
+		stop slave;
+		show slave status \G;		#for checking
+
+step 4: enable gtid-mode for MASTER_AUTO_POSITION
+	cd /var/docker/chatbot_master
+	vi /var/docker/chatbot_master/conf.d/custom-mysql.cnf
+		Unrem 2 configs:
+			#gtid-mode=ON
+			#enforce-gtid-consistency=ON
+	docker restart chatbot_master
+step 5: get master status of chatbot_master_docker		
+		connect to chatbot_master_docker
+			show master status;
+				store master_log_file and master_log_pos for replication
+		
+step 6 + 7: change slave chatbot_slave_docker from chatbot_master_docker to chatbot_master_docker + enable gtid-mode for MASTER_AUTO_POSITION
+	connect to chatbot_slave_docker
+		stop slave;
+		show slave status \G;		#for checking
+		
+		cd /var/docker/chatbot_slave
+		vi /var/docker/chatbot_slave/conf.d/custom-mysql.cnf
+		unrem 2 configs:
+			#gtid-mode=ON
+			#enforce-gtid-consistency=ON
+		docker restart chatbot_slave
+		
+		reset slave;
+		CHANGE MASTER TO MASTER_HOST='10.40.40.184',  MASTER_PORT=3306, MASTER_USER='rpl_user', MASTER_PASSWORD='', MASTER_LOG_FILE='<master_log_file>', MASTER_LOG_POS=<master_log_pos> FOR CHANNEL 'pro_chatbot';
+		start slave for channel 'pro_chatbot';
+		show slave status \G;		#for checking
+		
+step 6: Announcement and testing new connection
