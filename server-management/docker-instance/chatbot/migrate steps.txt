@@ -39,4 +39,4 @@ step 6 + 7: change slave chatbot_slave_docker from chatbot_master_docker to chat
 		start slave for channel 'pro_chatbot';
 		show slave status \G;		#for checking
 		
-step 6: Announcement and testing new connection
+step 8: Announcement and testing new instance before done UM
