@@ -1,0 +1,34 @@
+version: '3.7'
+networks:
+  app_network:
+    external: ${EXTERNAL_NETWORK}
+    name: ${PROMETHEUS_NETWORK}
+    driver: ${DRIVER_NETWORK}
+
+services:
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_TAG}
+    container_name: ${PROMETHEUS_HOST}
+    hostname: ${PROMETHEUS_HOST}
+
+    volumes:
+      - app_volume:/prometheus:rw
+      - ${PROMETHEUS_CONF}/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+    ports:
+      - '${PROMETHEUS_PORT}:9090'
+
+    networks:
+      app_network:
+        aliases: 
+          - ${PROMETHEUS_HOST}
+
+    restart: always
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'            
+      - '--storage.tsdb.retention.time=12w'
+volumes:
+  app_volume:
+    external: ${EXTERNAL_VOLUME}
+    name: ${DATA_VOLUME}
+

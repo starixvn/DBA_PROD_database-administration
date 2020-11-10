@@ -1,0 +1,50 @@
+version: '3.7'
+networks:
+  app_network:
+    external: ${EXTERNAL_NETWORK}
+    name: ${NODE_NETWORK}
+    driver: ${DRIVER_NETWORK}
+
+services:
+  cadvisor:
+    image: gcr.io/google-containers/cadvisor:${CADVISOR_TAG}
+    container_name: ${CADVISOR_HOST}
+    hostname: ${CADVISOR_HOST}
+    ports:
+    - '${CADVISOR_PORT}:8080'
+    networks:  
+      app_network:
+        aliases:
+          - ${CADVISOR_HOST}
+    volumes:
+    - ${CADVISOR_CONF}:/rootfs:ro
+    - ${CADVISOR_CONF}/var/run:/var/run:rw
+    - ${CADVISOR_CONF}/sys:/sys:ro
+    - ${CADVISOR_CONF}/var/lib/docker/:/var/lib/docker:ro
+    depends_on:
+    - redis
+    command:
+    - '--housekeeping_interval=30s'
+    - '--docker_only'
+      #- '--disable_metrics=disk,network,tcp,udp,percpu,sched,process'
+  redis:
+    image: redis:${REDIS_TAG}
+    container_name: ${REDIS_HOST}
+    ports:
+    - '${REDIS_PORT}:6379'
+    networks:
+      app_network:
+        aliases:
+          - ${REDIS_HOST}
+  nodeExporter:
+    image: prom/node-exporter:${NODE_TAG}
+    container_name: ${NODE_HOST}
+    hostname: ${NODE_HOST}
+    restart: always
+    ports:
+      - '${NODE_PORT}:9100'
+
+    networks:
+      app_network:
+        aliases:
+          - ${NODE_HOST}
