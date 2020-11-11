@@ -1,0 +1,36 @@
+version: '3.7'
+networks:
+  app_network:
+    external: ${EXTERNAL_NETWORK}
+    name: ${EXPORTER_NETWORK}
+    driver: ${DRIVER_NETWORK}
+  monitoring_network:
+    external: ${EXTERNAL_NETWORK}
+    name: ${MONITOR_NETWORK}
+    driver: ${DRIVER_NETWORK}
+services:
+  mysqld_exporter_chatbot_slave2:
+    image: prom/mysqld-exporter:${EXPORTER_TAG}
+    container_name: ${EXPORTER_HOST}
+    environment:
+            # - DATA_SOURCE_NAME=${USER}:${PASS}@(${HOST}:${PORT})/
+      - DATA_SOURCE_NAME=vngrafana:${PASS}@(${HOST}:${PORT})/
+      - log.level="error" 
+        #- web.listen-address=:9104
+        #- collect.global_status=true
+        #- collect.global_variables=false
+        #- collect.slave_status=false
+        #- collect.info_schema.tables=false
+        #- collect.binlog_size=false
+        #- collect.info_schema.processlist=false
+        #- collect.info_schema.userstats=false
+        #- collect.info_schema.tablestats=true  
+    ports:
+      - '${EXPORTER_PORT}:9104'
+    networks:
+      app_network:
+        aliases:
+          - ${EXPORTER_HOST}
+      monitoring_network:
+        aliases:
+          - ${EXPORTER_HOST}
