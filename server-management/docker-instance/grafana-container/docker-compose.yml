@@ -1,0 +1,32 @@
+version: '3.7'
+networks:
+  app_network:
+    external: ${EXTERNAL_NETWORK}
+    name: ${GRAFANA_NETWORK}
+    driver: ${DRIVER_NETWORK}
+
+services:
+  grafana:
+    image: grafana/grafana:${GRAFANA_TAG}
+    container_name: ${GRAFANA_HOST}
+    hostname: ${GRAFANA_HOST}
+
+    volumes:
+      - app_volume:/var/lib/grafana:rw
+      - ${GRAFANA_CONF}/grafana.ini:/etc/grafana/grafana.ini
+
+    ports:
+      - '${GRAFANA_PORT}:3000'
+
+    networks:
+      app_network:
+        aliases: 
+          - ${GRAFANA_HOST}
+
+    restart: always
+
+volumes:
+  app_volume:
+    external: ${EXTERNAL_VOLUME}
+    name: ${DATA_VOLUME}
+
