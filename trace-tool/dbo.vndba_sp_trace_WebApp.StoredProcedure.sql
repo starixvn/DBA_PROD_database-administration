@@ -1,4 +1,4 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DB042-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [vndba_sp_trace_WebApp]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
@@ -23,6 +23,7 @@ AS
 			20180917@Daniel: Support Core .NET service app
 			20191125@Daniel: Support site 'Ploutos'
 			20191211@Daniel: on_user DB: Support DB05BK1 & Remove DBTP
+			20201118@Daniel: Update info/code support latest server HA structure
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -98,7 +99,7 @@ BEGIN
 	IF (@@SERVERNAME IN('DB05', 'DB03', 'DB05BK1') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
 		SET @DatabaseNameLike2 = 'ON_USER'
 
-	IF (@@SERVERNAME IN('DB052', 'DB054') AND @Site = 'NAP')
+	IF (@@SERVERNAME IN('DB052', 'DB053') AND @Site = 'NAP')
 		SET @DatabaseNameLike2 = 'bk'
 
 	EXEC vndba_sp_Trace
