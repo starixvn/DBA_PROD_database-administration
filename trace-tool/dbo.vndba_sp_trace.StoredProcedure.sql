@@ -1,15 +1,19 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DB042-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [vndba_sp_trace]
 	@TraceTimer INT = 30,
 	@AppNameLike NVARCHAR(30) = '',
 	@LoginNameLike NVARCHAR(30),
 	@DatabaseNameLike NVARCHAR(30),
-	@DatabaseNameLike2 NVARCHAR(30) = '',		
+	@DatabaseNameLike2 NVARCHAR(30) = '',
+	@DatabaseNameLike3 NVARCHAR(30) = '',
+	@DatabaseNameLike4 NVARCHAR(30) = '',
+	@DatabaseNameLike5 NVARCHAR(30) = '',
 	@MinCPU INT = 0,
 	@TextDataLike NVARCHAR(256),
 	@TextDataLike2 NVARCHAR(256) = '',
 	@TextDataLike3 NVARCHAR(256) = '',
 	@TextDataLike4 NVARCHAR(256) = '',
+	@TextDataLike5 NVARCHAR(256) = '',
 	@TraceStartEvents BIT = 0,
 	@Mode TINYINT = 0,
 	@HasError BIT = 0 OUTPUT,
@@ -24,6 +28,8 @@ AS
 		Revisions:
 			20170712@Daniel: Add write column data
 			20190731@Daniel: Resolve some servers don't have G:\
+			20201119@Daniel: Support more OR filters for DatabaseNameLike, TextDataLike
+
 		
 		Parameter's Explanation:
 		  . @TraceTimer: Set trace duration string in seconds, not allow set more than 30min/1800s
@@ -111,7 +117,36 @@ BEGIN
 		RETURN
 	END
 END
-
+IF CHARINDEX('%', ISNULL(@DatabaseNameLike3,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@DatabaseNameLike3, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @DatabaseNameLike3 is too short. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@DatabaseNameLike4,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@DatabaseNameLike4, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @DatabaseNameLike4 is too short. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@DatabaseNameLike5,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@DatabaseNameLike5, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @DatabaseNameLike5 is too short. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
 
 IF CHARINDEX('%', ISNULL(@TextDataLike,'')) > 0 --not exact search
 BEGIN
@@ -158,6 +193,16 @@ BEGIN
 	IF (LEN(ISNULL(REPLACE(@TextDataLike4, '%', ''),'')) < 4)
 	BEGIN
 		SET @ErrorMsg = 'Error:  Filter @TextDataLike4 is too short. Please set at least 4 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@TextDataLike5,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@TextDataLike5, '%', ''),'')) < 4)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @TextDataLike5 is too short. Please set at least 4 characters, not including wildcard %'
 		SET @HasError = 1
 		PRINT @ErrorMsg
 		RETURN
@@ -218,7 +263,8 @@ SET @TextDataLike = REPLACE(@TextDataLike, '_', '[_]')
 SET @TextDataLike2 = REPLACE(@TextDataLike2, '_', '[_]')
 SET @TextDataLike3 = REPLACE(@TextDataLike3, '_', '[_]')
 SET @TextDataLike4 = REPLACE(@TextDataLike4, '_', '[_]')
- 
+SET @TextDataLike5 = REPLACE(@TextDataLike5, '_', '[_]')
+
 EXEC sys.sp_trace_create 
 	@traceid = @id OUTPUT,
 	@options = 2,
@@ -391,7 +437,16 @@ BEGIN
 		@comparison_operator = 6, --LIKE
 		@value = @TextDataLike4
 END	
-	
+IF (@TextDataLike5 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 1,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @TextDataLike5
+END	
+
 --Set trace filter on @DatabaseNameLike (35)
 EXEC sys.sp_trace_setfilter 
 	@trace_id = @id, 
@@ -407,7 +462,34 @@ BEGIN
 		@logical_operator = 1, --OR
 		@comparison_operator = 6, --LIKE
 		@value = @DatabaseNameLike2
-END	
+END
+IF (@DatabaseNameLike3 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 35,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @DatabaseNameLike3
+END
+IF (@DatabaseNameLike4 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 35,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @DatabaseNameLike4
+END
+IF (@DatabaseNameLike5 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 35,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @DatabaseNameLike5
+END
 
 --Set trace filter on @MinCPU (18)
 IF (@MinCPU > 0)
