@@ -10,6 +10,7 @@ AS
 	
 	Revisions:
 		- 20190416@Billy:	Initial - [Redmine: #111418]
+		- 20201215@Patrick: Add OrderNo field [Redmine: #111093]
 		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -32,10 +33,10 @@ FROM	bodb_Archive.dbo.Task_ArchiveHA_StandbyServers WITH (NOLOCK)
 	BEGIN TRANSACTION;
 	TRUNCATE TABLE	dbo.Task_ArchiveHA_ArchiveTables;
 	INSERT INTO	dbo.Task_ArchiveHA_ArchiveTables
-		(	DatabaseName, TableName, TableType, KeyList, isActive)
-	SELECT	DatabaseName, TableName, TableType, KeyList, isActive
+		(	DatabaseName, TableName, TableType, KeyList, isActive, OrderNo)
+	SELECT	DatabaseName, TableName, TableType, KeyList, isActive, OrderNo
 	FROM	OPENQUERY(DB061, N'
-SELECT	DatabaseName, TableName, TableType, KeyList, isActive
+SELECT	DatabaseName, TableName, TableType, KeyList, isActive, OrderNo
 FROM	bodb_Archive.dbo.Task_ArchiveHA_ArchiveTables WITH (NOLOCK)
 ');
 	COMMIT;

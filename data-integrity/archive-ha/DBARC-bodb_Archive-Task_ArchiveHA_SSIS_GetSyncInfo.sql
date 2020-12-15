@@ -11,6 +11,7 @@ AS
 	
 	Revisions:
 		- 20190417@Billy:	Initial - [Redmine: #111418]
+		- 20201215@Patrick: Add OrderNo field [Redmine: #111093]
 		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -36,7 +37,8 @@ BEGIN;
 			ON	rr.DatabaseName = tbl.DatabaseName
 			AND	rr.TableName = tbl.TableName
 	WHERE	rr.TimeType = 'DAY'
-		AND	tbl.TableType = @TableType;
+		AND	tbl.TableType = @TableType
+		ORDER BY OrderNo, DatabaseName, TableName;
 
 	IF @@ROWCOUNT = 0
 	BEGIN;
