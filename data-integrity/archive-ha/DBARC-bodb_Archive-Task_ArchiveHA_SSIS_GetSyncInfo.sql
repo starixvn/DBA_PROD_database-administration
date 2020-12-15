@@ -38,7 +38,7 @@ BEGIN;
 			AND	rr.TableName = tbl.TableName
 	WHERE	rr.TimeType = 'DAY'
 		AND	tbl.TableType = @TableType
-		ORDER BY OrderNo DESC, DatabaseName, TableName;
+		ORDER BY OrderNo, DatabaseName, TableName;
 
 	IF @@ROWCOUNT = 0
 	BEGIN;
