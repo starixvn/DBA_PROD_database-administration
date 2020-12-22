@@ -1,7 +1,7 @@
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 GO
-CREATE PROCEDURE	dbo.Task_ArchiveHA_CheckRowcount_Child
+ALTER PROCEDURE	dbo.Task_ArchiveHA_CheckRowcount_Child
 						@Step			INT
 					,	@Database		NVARCHAR(128)	= NULL
 					,	@Table			NVARCHAR(128)	= NULL
@@ -214,20 +214,156 @@ GROUP BY CAST(tbl.eventdate AS DATE);
 			IF	@TableType = 3
 			BEGIN;
 				SELECT	@DataQuery = N'';
-				SELECT	@DataQuery = @DataQuery + N'
-INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
-SELECT	[DatabaseName]	= @Database
-	,	[TableName]		= @Table
-	,	[WinLostDate]	= CAST(m.eventdate AS DATE)
-	,	[RowCount]		= COUNT(1)
-	,	[TimeType]		= CAST(''DAY'' AS VARCHAR(10))
-FROM		dbo.[~~Table~~] AS tbl WITH (NOLOCK)
-INNER JOIN	bodb_Archive.dbo.match_bk AS m WITH (NOLOCK)
-		ON	tbl.matchid = m.matchid
-WHERE	m.eventdate >= @FromDate
-	AND	m.eventdate <= @ToDate
-GROUP BY CAST(m.eventdate AS DATE);
-';
+				IF @Table = 'TicketVoiding_Request_bk'
+				BEGIN
+					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+					SELECT	[DatabaseName]	= @Database
+						,	[TableName]		= @Table
+						,	[WinLostDate]	= CAST(m.eventdate AS DATE)
+						,	[RowCount]		= COUNT(1)
+						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
+					FROM dbo.TicketVoiding_Request_bk AS tbl WITH (NOLOCK)
+						INNER JOIN dbo.TicketVoiding_RequestDetail_bk d WITH(NOLOCK) ON tbl.RequestId = d.RequestId
+						INNER JOIN dbo.match_bk m WITH(NOLOCK) ON d.matchid = m.matchid
+					WHERE	m.eventdate >= @FromDate
+						AND	m.eventdate <= @ToDate
+					GROUP BY CAST(m.eventdate AS DATE);
+				END
+				ELSE IF @Table = 'TicketVoiding_OperatorInfo_bk'
+				BEGIN
+					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+					SELECT	[DatabaseName]	= @Database
+						,	[TableName]		= @Table
+						,	[WinLostDate]	= CAST(m.eventdate AS DATE)
+						,	[RowCount]		= COUNT(1)
+						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
+					FROM dbo.TicketVoiding_OperatorInfo_bk AS tbl WITH (NOLOCK)
+						INNER JOIN dbo.TicketVoiding_RequestDetail_bk d WITH(NOLOCK) ON tbl.RequestId = d.RequestId
+						INNER JOIN dbo.match_bk m WITH(NOLOCK) ON d.matchid = m.matchid
+					WHERE	m.eventdate >= @FromDate
+						AND	m.eventdate <= @ToDate
+					GROUP BY CAST(m.eventdate AS DATE);
+				END
+				ELSE IF @Table = 'TicketVoiding_Queue_bk'
+				BEGIN
+					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+					SELECT	[DatabaseName]	= @Database
+						,	[TableName]		= @Table
+						,	[WinLostDate]	= CAST(m.eventdate AS DATE)
+						,	[RowCount]		= COUNT(1)
+						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
+					FROM dbo.TicketVoiding_Queue_bk AS tbl WITH (NOLOCK)
+						INNER JOIN dbo.TicketVoiding_RequestDetail_bk d WITH(NOLOCK) ON tbl.RequestId = d.RequestId
+						INNER JOIN dbo.match_bk m WITH(NOLOCK) ON d.matchid = m.matchid
+					WHERE	m.eventdate >= @FromDate
+						AND	m.eventdate <= @ToDate
+					GROUP BY CAST(m.eventdate AS DATE);
+				END
+				ELSE IF @Table = 'TicketVoiding_VoidingHistory_bk'
+				BEGIN
+					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+					SELECT	[DatabaseName]	= @Database
+						,	[TableName]		= @Table
+						,	[WinLostDate]	= CAST(m.eventdate AS DATE)
+						,	[RowCount]		= COUNT(1)
+						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
+					FROM dbo.TicketVoiding_VoidingHistory_bk AS tbl WITH (NOLOCK)
+						INNER JOIN dbo.TicketVoiding_RequestDetail_bk d WITH(NOLOCK) ON tbl.RequestId = d.RequestId
+						INNER JOIN dbo.match_bk m WITH(NOLOCK) ON d.matchid = m.matchid
+					WHERE	m.eventdate >= @FromDate
+						AND	m.eventdate <= @ToDate
+					GROUP BY CAST(m.eventdate AS DATE);
+				END
+				ELSE IF @Table = 'TicketVoiding_Reason_bk'
+				BEGIN
+					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+					SELECT	[DatabaseName]	= @Database
+						,	[TableName]		= @Table
+						,	[WinLostDate]	= CAST(m.eventdate AS DATE)
+						,	[RowCount]		= COUNT(1)
+						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
+					FROM dbo.TicketVoiding_Reason_bk AS tbl WITH (NOLOCK)
+						INNER JOIN dbo.TicketVoiding_VoidingHistory_bk h WITH(NOLOCK) ON tbl.ReasonId = h.ReasonId
+						INNER JOIN dbo.TicketVoiding_RequestDetail_bk d WITH(NOLOCK) ON h.RequestId = d.RequestId
+						INNER JOIN dbo.match_bk m WITH(NOLOCK) ON d.matchid = m.matchid
+					WHERE	m.eventdate >= @FromDate
+						AND	m.eventdate <= @ToDate
+					GROUP BY CAST(m.eventdate AS DATE);
+				END
+				ELSE IF @Table = 'TicketVoiding_VoidedTransaction_bk'
+				BEGIN
+					CREATE TABLE #__winlostdateList(winlostdate SMALLDATETIME PRIMARY KEY)
+
+					INSERT INTO #__winlostdateList(winlostdate)
+					SELECT winlostdate FROM dbo.f_gen_winlostdate(@FromDate, @ToDate)
+
+					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+					SELECT	[DatabaseName]	= @Database
+						,	[TableName]		= @Table
+						,	[WinLostDate]	= tt.winlostdate
+						,	[RowCount]		= SUM(cnt)
+						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
+					
+					FROM #__winlostdateList t
+					CROSS APPLY (
+						SELECT b.winlostdate, COUNT(1) cnt
+						FROM dbo.TicketVoiding_VoidedTransaction_bk AS tbl WITH (NOLOCK)
+							INNER JOIN dbo.bettrans_bk b WITH(NOLOCK) ON tbl.transid = b.transid
+						WHERE b.winlostdate = t.winlostdate AND b.statusID = 102
+						GROUP BY b.winlostdate
+						
+					)tt
+					GROUP BY tt.winlostdate
+
+					DROP TABLE #__winlostdateList
+				END
+				ELSE IF @Table = 'TicketVoiding_RequestDetailTicket_Single_bk'
+				BEGIN
+					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+					SELECT	[DatabaseName]	= @Database
+						,	[TableName]		= @Table
+						,	[WinLostDate]	= CAST(m.eventdate AS DATE)
+						,	[RowCount]		= COUNT(1)
+						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
+					FROM dbo.TicketVoiding_RequestDetailTicket_Single_bk AS tbl WITH (NOLOCK)
+						INNER JOIN dbo.TicketVoiding_RequestDetail_bk d WITH(NOLOCK) ON tbl.RequestId = d.RequestId 
+						INNER JOIN dbo.match_bk m WITH(NOLOCK) ON d.MatchId = m.MatchId
+					WHERE	m.eventdate >= @FromDate
+						AND	m.eventdate <= @ToDate
+					GROUP BY CAST(m.eventdate AS DATE);
+				END
+				ELSE IF @Table = 'TicketVoiding_RequestDetailTicket_SubParlay_bk'
+				BEGIN
+					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+					SELECT	[DatabaseName]	= @Database
+						,	[TableName]		= @Table
+						,	[WinLostDate]	= CAST(m.eventdate AS DATE)
+						,	[RowCount]		= COUNT(1)
+						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
+					FROM dbo.TicketVoiding_RequestDetailTicket_SubParlay_bk AS tbl WITH (NOLOCK)
+						INNER JOIN dbo.TicketVoiding_RequestDetail_bk d WITH(NOLOCK) ON tbl.RequestId = d.RequestId 
+						INNER JOIN dbo.match_bk m WITH(NOLOCK) ON d.MatchId = m.MatchId
+					WHERE	m.eventdate >= @FromDate
+						AND	m.eventdate <= @ToDate
+					GROUP BY CAST(m.eventdate AS DATE);
+				END
+				ELSE
+				BEGIN
+					SELECT	@DataQuery = @DataQuery + N'
+	INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
+	SELECT	[DatabaseName]	= @Database
+		,	[TableName]		= @Table
+		,	[WinLostDate]	= CAST(m.eventdate AS DATE)
+		,	[RowCount]		= COUNT(1)
+		,	[TimeType]		= CAST(''DAY'' AS VARCHAR(10))
+	FROM		dbo.[~~Table~~] AS tbl WITH (NOLOCK)
+	INNER JOIN	bodb_Archive.dbo.match_bk AS m WITH (NOLOCK)
+			ON	tbl.matchid = m.matchid
+	WHERE	m.eventdate >= @FromDate
+		AND	m.eventdate <= @ToDate
+	GROUP BY CAST(m.eventdate AS DATE);
+	';
+				END
 			END;
 
 			-- Table with transtime column --

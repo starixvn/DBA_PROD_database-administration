@@ -18,27 +18,38 @@ AS
 */
 BEGIN;
 	SET NOCOUNT ON;
+	DECLARE @__sqlCmd NVARCHAR(MAX)
+	
 
 	BEGIN TRANSACTION;
+	SET @__sqlCmd = ''
+	SET @__sqlCmd = '
+		SELECT	ServerName, LinkedServer, DataMonthLimit, isActive
+		FROM	OPENQUERY(DB061, N''
+		SELECT	ServerName, LinkedServer, DataMonthLimit, isActive
+		FROM	bodb_Archive.dbo.Task_ArchiveHA_StandbyServers WITH (NOLOCK)
+		'');'
+
 	TRUNCATE TABLE	dbo.Task_ArchiveHA_StandbyServers;
 	INSERT INTO	dbo.Task_ArchiveHA_StandbyServers
 		(	ServerName, LinkedServer, DataMonthLimit, isActive)
-	SELECT	ServerName, LinkedServer, DataMonthLimit, isActive
-	FROM	OPENQUERY(DB061, N'
-SELECT	ServerName, LinkedServer, DataMonthLimit, isActive
-FROM	bodb_Archive.dbo.Task_ArchiveHA_StandbyServers WITH (NOLOCK)
-');
+	EXEC(@__sqlCmd)
 	COMMIT;
 
 	BEGIN TRANSACTION;
+	SET @__sqlCmd = ''
+	SET @__sqlCmd = '
+		SELECT	DatabaseName, TableName, TableType, KeyList, isActive, OrderNo
+		FROM	OPENQUERY(DB061, N''
+		SELECT	DatabaseName, TableName, TableType, KeyList, isActive, OrderNo
+		FROM	bodb_Archive.dbo.Task_ArchiveHA_ArchiveTables WITH (NOLOCK)
+		'');'
+
 	TRUNCATE TABLE	dbo.Task_ArchiveHA_ArchiveTables;
 	INSERT INTO	dbo.Task_ArchiveHA_ArchiveTables
 		(	DatabaseName, TableName, TableType, KeyList, isActive, OrderNo)
-	SELECT	DatabaseName, TableName, TableType, KeyList, isActive, OrderNo
-	FROM	OPENQUERY(DB061, N'
-SELECT	DatabaseName, TableName, TableType, KeyList, isActive, OrderNo
-FROM	bodb_Archive.dbo.Task_ArchiveHA_ArchiveTables WITH (NOLOCK)
-');
+	EXEC(@__sqlCmd)
+
 	COMMIT;
 END;
 GO
