@@ -21,6 +21,7 @@ AS
 							[Redmine: #88591]
 		- 20190416@Billy:	DB061 Migration - [Redmine: #111418]
 		- 20200626@Patrick: Add more table VSRaceInfo [Redmine: #135963]
+		- 20201223@Patrick: External result [Redmine: #145651]
 */
 BEGIN
 	SET NOCOUNT ON;
@@ -300,7 +301,7 @@ GROUP BY CAST(tbl.eventdate AS DATE);
 					INSERT INTO	#Result (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
 					SELECT	[DatabaseName]	= @Database
 						,	[TableName]		= @Table
-						,	[WinLostDate]	= tt.winlostdate
+						,	[WinLostDate]	= CAST(tt.winlostdate AS DATE)
 						,	[RowCount]		= SUM(cnt)
 						,	[TimeType]		= CAST('DAY' AS VARCHAR(10))
 					
