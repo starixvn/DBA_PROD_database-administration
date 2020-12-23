@@ -15,6 +15,7 @@ AS
 							Add table type 7: ArchiveDate
 							[Redmine: #88591]
 		- 20190416@Billy:	DB061 Migration - [Redmine: #111418]
+		- 20201223@Patrick: External result [Redmine: #145651]
 */
 BEGIN;
 	SET NOCOUNT ON;
@@ -177,7 +178,7 @@ EXECUTE	[~~Server~~].bodb_Archive.dbo.Task_ArchiveHA_CheckRowcount_Child @Step =
 
 		-- Import data from local --
 		INSERT INTO	#ActiveRowcount (DatabaseName, TableName, WinLostDate, RowCnt, TimeType)
-		EXECUTE	dbo.Task_ArchiveHA_CheckRowcount_Child @step = 2, @Database = @Database, @Table = @Table, @WinLostDate = @WinLostDate, @MonthLimit = NULL;
+		EXECUTE	dbo.Task_ArchiveHA_CheckRowcount_Child @step = 2, @Database = @Database, @Table = @Table, @WinLostDate = @WinLostDate, @MonthLimit = @MonthLimit;
 
 		WHILE	0 = 0
 		BEGIN;
