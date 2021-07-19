@@ -1,4 +1,13 @@
+/*<info serverAlias="DBTXN-msdb" step="2"></info>*/
 USE [msdb]
+GO
+
+EXEC msdb.dbo.sp_stop_job @job_name = N'DBA_Reorg_ProcessOne'
+go
+EXEC msdb.dbo.sp_update_job @job_name = N'DBA_Reorg_ProcessOne' , @enabled = 0
+go
+/****** Object:  Job [DBA_Reorg_Index]    Script Date: 7/19/2021 5:26:41 AM ******/
+EXEC msdb.dbo.sp_delete_job @job_name=N'DBA_Reorg_ProcessOne', @delete_unused_schedule=1
 GO
 
 /****** Object:  Job [DBA_Reorg_ProcessOne]    Script Date: 7/16/2021 3:28:39 AM ******/

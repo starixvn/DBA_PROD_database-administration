@@ -1,11 +1,20 @@
+/*<info serverAlias="DBTXN-msdb" step="1"></info>*/
 USE [msdb]
 GO
 
-/****** Object:  Job [DBA_Reorg_Index]    Script Date: 7/16/2021 3:24:20 AM ******/
+EXEC msdb.dbo.sp_stop_job @job_name = N'DBA_Reorg_Index'
+go
+EXEC msdb.dbo.sp_update_job @job_name = N'DBA_Reorg_Index' , @enabled = 0
+go
+/****** Object:  Job [DBA_Reorg_Index]    Script Date: 7/19/2021 5:26:41 AM ******/
+EXEC msdb.dbo.sp_delete_job @job_name=N'DBA_Reorg_Index', @delete_unused_schedule=1
+GO
+
+/****** Object:  Job [DBA_Reorg_Index]    Script Date: 7/19/2021 6:05:05 AM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [[Uncategorized (Local)]]    Script Date: 7/16/2021 3:24:20 AM ******/
+/****** Object:  JobCategory [[Uncategorized (Local)]]    Script Date: 7/19/2021 6:05:06 AM ******/
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'[Uncategorized (Local)]' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'[Uncategorized (Local)]'
@@ -26,7 +35,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'DBA_Reorg_Index',
 		@owner_login_name=N'sa', 
 		@notify_email_operator_name=N'DBAAdmin', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [DBA_ReIndex_custdb]    Script Date: 7/16/2021 3:24:21 AM ******/
+/****** Object:  Step [DBA_ReIndex_custdb]    Script Date: 7/19/2021 6:05:06 AM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'DBA_ReIndex_custdb', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -37,15 +46,11 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'DBA_ReIn
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'ALTER DATABASE CustDB SET AUTO_UPDATE_STATISTICS OFF
-
-EXEC DBA_ReIndex
-
-ALTER DATABASE CustDB SET AUTO_UPDATE_STATISTICS ON', 
+		@command=N'EXEC DBA_ReIndex', 
 		@database_name=N'CustDB', 
 		@flags=0
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [DBA_ReIndex GetList]    Script Date: 7/16/2021 3:24:21 AM ******/
+/****** Object:  Step [DBA_ReIndex GetList]    Script Date: 7/19/2021 6:05:06 AM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'DBA_ReIndex GetList', 
 		@step_id=2, 
 		@cmdexec_success_code=0, 
@@ -56,14 +61,11 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'DBA_ReIn
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'EXEC DBA_ReIndex_GetList
-  @FragmentThreshold = 30,
-  @TargetThreshold     = 15
-', 
+		@command=N'EXEC DBA_ReIndex_GetList', 
 		@database_name=N'bodb02', 
 		@flags=0
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [DBReIndex]    Script Date: 7/16/2021 3:24:21 AM ******/
+/****** Object:  Step [DBReIndex]    Script Date: 7/19/2021 6:05:06 AM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'DBReIndex', 
 		@step_id=3, 
 		@cmdexec_success_code=0, 
@@ -74,18 +76,10 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'DBReInde
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'ALTER DATABASE bodb02 SET AUTO_UPDATE_STATISTICS OFF
-GO
+		@command=N'-- run for 60 seconds, and will check for repl. delay
+exec dbo.DBA_ReIndex_Terminator 90
 
-EXEC dbo.DBA_ReIndex_Terminator
-  @TimeAllow     = 600,
-  @MinRunTime = 90,
-  @MaxHour       = 5,
-  @Debug           = 1
-
-GO
-
-ALTER DATABASE bodb02 SET AUTO_UPDATE_STATISTICS ON', 
+-- EXEC DBA_ReIndex', 
 		@database_name=N'bodb02', 
 		@flags=0
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -127,5 +121,3 @@ QuitWithRollback:
     IF (@@TRANCOUNT > 0) ROLLBACK TRANSACTION
 EndSave:
 GO
-
-
