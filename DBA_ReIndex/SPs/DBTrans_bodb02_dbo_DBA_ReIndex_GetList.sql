@@ -9,6 +9,7 @@ AS
 	Task:		20180629 - Generate list of SP to ReIndex
 	DB:			DBTXN.bodb02
 	
+	Revisions:
 	- 20180629@Joe : create new Index Reorganized concept
 					Generate list of SP to ReIndex
 					ReIndex will perform by DBA_ReIndex_ProcessOne
@@ -107,7 +108,7 @@ BEGIN
 
 	IF @CNT >= 100
 		INSERT INTO MonDB.dbo.DBA_ReIndex_Record (time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment)
-		SELECT top(1) time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment
+		SELECT top(10) time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment
 		FROM @tmp
 		WHERE
 			Fragment > @FragmentThreshold AND page_count > 3
@@ -121,7 +122,7 @@ BEGIN
 		-- which help it got less work to do in next round
 		-- because some 'incoming work' was bring to handle already.
 		INSERT INTO MonDB.dbo.DBA_ReIndex_Record (time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment)
-		SELECT TOP(1) time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment
+		SELECT TOP(10) time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment
 		FROM @tmp
 		WHERE
 			(Fragment - @TargetThreshold) > 3 AND page_count > 3

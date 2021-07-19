@@ -1,7 +1,16 @@
 /*<info serverAlias="DBTXN-bodb02" executers="" isFunction="1" isNested="1"></info>*/
 CREATE FUNCTION [dbo].[f_CheckJobRunning] (@JobName NVARCHAR(125))
 RETURNS BIT
-AS 
+AS
+/*
+	Created:	20210708@Joe
+	Task:		20210708 - check a job is working or NOT
+	DB:			DBTXN.bodb02
+
+	Revisions:
+		- 20210708@Joe: check a job is working or NOT
+*/
+
 BEGIN
 	IF EXISTS (SELECT 1
 			FROM msdb.dbo.sysjobs j WITH(NOLOCK) 
