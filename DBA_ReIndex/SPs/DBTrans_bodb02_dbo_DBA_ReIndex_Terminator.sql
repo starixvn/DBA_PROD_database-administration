@@ -61,15 +61,15 @@ BEGIN
 	BEGIN
 		SELECT @time_offset = 0
 
-		EXEC DBDIST.distribution.dbo.[TraceStatus] @tracer_id = 0, @isDelay = 0, @committime = @tracer_commit_time OUTPUT, @ServerName = 'GETTIME'
+		EXEC DBDIST.distribution.dbo.[DBA_ReIndex_TraceStatus] @tracer_id = 0, @isDelay = 0, @committime = @tracer_commit_time OUTPUT, @ServerName = 'GETTIME'
 		SET @time_offset = @time_offset + DATEDIFF(ms, @tracer_commit_time, GETDATE())
 		WAITFOR DELAY '00:00:01.000'
 
-		EXEC DBDIST.distribution.dbo.[TraceStatus] @tracer_id = 0, @isDelay = 0, @committime = @tracer_commit_time OUTPUT, @ServerName = 'GETTIME'
+		EXEC DBDIST.distribution.dbo.[DBA_ReIndex_TraceStatus] @tracer_id = 0, @isDelay = 0, @committime = @tracer_commit_time OUTPUT, @ServerName = 'GETTIME'
 		SET @time_offset = @time_offset + DATEDIFF(ms, @tracer_commit_time, GETDATE())
 		WAITFOR DELAY '00:00:01.000'
 
-		EXEC DBDIST.distribution.dbo.[TraceStatus] @tracer_id = 0, @isDelay = 0, @committime = @tracer_commit_time OUTPUT, @ServerName = 'GETTIME'
+		EXEC DBDIST.distribution.dbo.[DBA_ReIndex_TraceStatus] @tracer_id = 0, @isDelay = 0, @committime = @tracer_commit_time OUTPUT, @ServerName = 'GETTIME'
 		SET @time_offset = @time_offset + DATEDIFF(ms, @tracer_commit_time, GETDATE())
 
 		SET @time_offset = (@time_offset / 3)
@@ -141,7 +141,7 @@ BEGIN
 					-- Joe :: if got error that SP doesn't exists, code to create SP TraceStatus is right down below
 					-- send @@SERVERNAME, if check as Subscriber, if run this ReIndex on server other than DBTRANS
 					-- this will check if replication to this server was delay, which might  cause by index REORGANIZE
-					exec DBDIST.distribution.dbo.TraceStatus @tracer_id=@tokenID, @isDelay=@isDelay OUTPUT, @committime = @tracer_commit_time OUTPUT --, @ServerName = @@SERVERNAME
+					exec DBDIST.distribution.dbo.DBA_ReIndex_TraceStatus @tracer_id=@tokenID, @isDelay=@isDelay OUTPUT, @committime = @tracer_commit_time OUTPUT --, @ServerName = @@SERVERNAME
 				END
 			END
 			SELECT @Tracer_Time_Taken = DATEDIFF(second, @Token_Insert_Time,CURRENT_TIMESTAMP)
@@ -264,7 +264,7 @@ BEGIN
 					WAITFOR DELAY '00:00:05.000' -- wait 05 seconds
 					-- call DBDIST.distribution SP
 					-- Joe :: if got error that SP doesn't exists, code to create SP TraceStatus is right down below
-					exec DBDIST.distribution.dbo.TraceStatus @tracer_id=@tokenID, @isDelay=@isDelay OUTPUT, @committime = @tracer_commit_time OUTPUT --, @ServerName = @@SERVERNAME
+					exec DBDIST.distribution.dbo.DBA_ReIndex_TraceStatus @tracer_id=@tokenID, @isDelay=@isDelay OUTPUT, @committime = @tracer_commit_time OUTPUT --, @ServerName = @@SERVERNAME
 
 					IF (DATEDIFF(second, @Token_Insert_Time,CURRENT_TIMESTAMP) > 30)
 						BREAK --WHILE(@isDelay=1) :: ignore Tracer Status, as time already exceed target

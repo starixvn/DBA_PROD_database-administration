@@ -1,4 +1,4 @@
-CREATE PROCEDURE [dbo].[TraceStatus]
+CREATE PROCEDURE [dbo].[DBA_ReIndex_TraceStatus]
 	@tracer_id int
 	,@isDelay bit OUTPUT
 	,@committime datetime = NULL OUTPUT
@@ -7,7 +7,7 @@ AS
 /*
 	Created:	20100711@Joe
 	Task:		20100711 - rewrite code to support both check for Publisher and Subscriber
-	DB:			DBTXN.MonDB
+	DB:			DBDIST.distribution
 
 	Revisions:
 	-- 20100711@Joe :: rewrite code to support both check for Publisher and Subscriber
@@ -50,5 +50,5 @@ BEGIN
 	END
 END
 GO
-GRANT EXECUTE ON TraceStatus TO SQLLink
+GRANT EXECUTE ON distribution.dbo.[DBA_ReIndex_TraceStatus] TO [SQLLink]
 GO
