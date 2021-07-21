@@ -67,8 +67,9 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'DBA_ReIn
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'EXEC DBA_ReIndex_GetList
-  @FragmentThreshold = 30,
-  @TargetThreshold     = 15
+  @FragmentThreshold	= 30,
+  @TargetThreshold		= 15,
+  @Debug				= 1
 ', 
 		@database_name=N'bodb02', 
 		@flags=0
