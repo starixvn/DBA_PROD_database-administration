@@ -32,19 +32,25 @@ BEGIN
 
 	DECLARE @ReIndex_spid INT
 	DECLARE @RunSince DATETIME
-	DECLARE @doing NVARCHAR(300)
+	DECLARE @LogMessage NVARCHAR(300)
 
 	DECLARE @LastStatusUpdate datetime
-	DECLARE @rn INT, @id_db BIGINT, @id_table BIGINT, @id_index BIGINT
+	DECLARE @id_db BIGINT, @id_table BIGINT, @id_index BIGINT
 	DECLARE @name_table varchar(500), @name_index varchar(500)
 	DECLARE @TargetThredhold SMALLMONEY, @fragment SMALLMONEY, @page_count BIGINT
 	DECLARE @fragmentInfo VARCHAR(200), @fragmentMax SMALLMONEY, @fragmentMin SMALLMONEY
 	DECLARE @NotContinue tinyint
+	DECLARE @IsBettransCIX BIT
+	DECLARE @IsProcessOneRunning BIT
+	DECLARE @rn INT = 0, @rn_current INT = -1
 
 	DECLARE @TimeDebug DATETIME2
 	DECLARE @time_offset MONEY
-	DECLARE @Tracer_Time_Taken int, @Token_Insert_Time datetime2
+	DECLARE @Token_Insert_Time datetime2, @Tracer_Time_Taken INT, @Max_Tracer_Time INT = 0, @CheckCount INT
 	DECLARE @tracer_commit_time datetime
+	DECLARE @min_replication_delay INT = 5
+	DECLARE @max_replication_delay INT = 20
+
 	DECLARE @time_trace DATETIME,
 		@RunCounter INT
 
@@ -123,8 +129,14 @@ BEGIN
 		-------------------------------------------------
 		-- note : next loop will not check, unless earlier loop exit with @Tracer_Time_Taken > 15
 		--
-		WHILE (@Tracer_Time_Taken > 15) -- wait until Replication Delay less than 15 seconds, before continue
+		SELECT @IsProcessOneRunning = dbo.[f_CheckJobRunning]('DBA_Reorg_ProcessOne')
+
+		SET @CheckCount = 0
+		WHILE (@Tracer_Time_Taken > @min_replication_delay) -- wait until Replication Delay less than 15 seconds, before continue
 		BEGIN
+			IF @IsProcessOneRunning = 1 -- ReIndex still running, so skip 'no more delay' check
+				BREAK --WHILE (@Tracer_Time_Taken > @min_replication_delay)
+
 			SELECT @isDelay = 1, @Token_Insert_Time = SYSDATETIME(), @tracer_commit_time = NULL
 			-- check replication delay.
 			IF @@SERVERNAME IN ('DBTRANS', 'DB206')
@@ -136,7 +148,7 @@ BEGIN
 			
 				WHILE(@isDelay=1)
 				BEGIN
-					WAITFOR DELAY '00:00:05.000' -- wait 05 seconds
+					WAITFOR DELAY '00:00:03.000' -- wait 05 seconds
 					-- call DBDIST.distribution SP
 					-- Joe :: if got error that SP doesn't exists, code to create SP TraceStatus is right down below
 					-- send @@SERVERNAME, if check as Subscriber, if run this ReIndex on server other than DBTRANS
@@ -144,13 +156,25 @@ BEGIN
 					exec DBDIST.distribution.dbo.DBA_ReIndex_TraceStatus @tracer_id=@tokenID, @isDelay=@isDelay OUTPUT, @committime = @tracer_commit_time OUTPUT --, @ServerName = @@SERVERNAME
 				END
 			END
-			SELECT @Tracer_Time_Taken = DATEDIFF(second, @Token_Insert_Time,CURRENT_TIMESTAMP)
+			SELECT @Tracer_Time_Taken = DATEDIFF(second, @Token_Insert_Time, DATEADD(ms, @time_offset, @tracer_commit_time))
+
+			IF DATEDIFF(ms, @Token_Insert_Time, DATEADD(ms, @time_offset, @tracer_commit_time)) > @Max_Tracer_Time
+				SET @Max_Tracer_Time = DATEDIFF(ms, @Token_Insert_Time, DATEADD(ms, @time_offset, @tracer_commit_time))
 
 			-- remove this Used tracer token, so TracerHisoty in Replication monitor not flush with it.
 			EXEC sys.sp_deletetracertokenhistory @publication = @publication, @tracer_id = @tokenID
 
-			IF @Tracer_Time_Taken > 60  -- if delay is over 60 seconds, delay 2 minutes before start next Tracer Insert
-				WAITFOR DELAY '00:01:00.000'
+			IF @Tracer_Time_Taken > 60  -- if delay is over 60 seconds, delay XX seconds before start next Tracer Insert
+				WAITFOR DELAY '00:00:15.000'
+
+			-- perform check for 3 times, before confirmed as no delay and EXISTS
+			IF @Tracer_Time_Taken > @min_replication_delay
+				SELECT @CheckCount = 0
+			ELSE
+				SELECT @CheckCount = @CheckCount + 1, @Tracer_Time_Taken = @min_replication_delay + 1
+
+			IF @CheckCount = 3
+				BREAK --WHILE (@Tracer_Time_Taken > 5)
 		END
 
 		----------------------
@@ -159,9 +183,11 @@ BEGIN
 		SELECT @ReIndex_spid = VValue FROM bodb02.dbo.SystemSettings WITH (NOLOCK) WHERE VName = N'ReIndex_spid'
 		SELECT @RunSince     = CONVERT(datetime, VValue, 120) FROM bodb02.dbo.SystemSettings WITH (NOLOCK) WHERE VName = N'ReIndex_RunSince'
 
-		IF @ReIndex_spid <= 0 -- not have job running? alright, try start it.
+		--IF @ReIndex_spid <= 0     -- not have job running? alright, try start it.
+		IF @IsProcessOneRunning = 0 -- not have job running? alright, try start it.
 		BEGIN
-			SET @RunSince = CURRENT_TIMESTAMP
+			SET @ReIndex_spid = -1
+			SET @RunSince     = CURRENT_TIMESTAMP
 			-- Marker that Job already call for start
 			-- so, can try stop in it next loop, in case job failed to stop earlier.
 			UPDATE bodb02.dbo.SystemSettings 
@@ -179,17 +205,17 @@ BEGIN
 		SET @NotContinue = 0
 		WHILE (1=1)
 		BEGIN
-
 			WHILE (@ReIndex_spid <= 0) -- wait for ProcessOne reported for duty. (by update VValue from -1 to Positive Number)
 			BEGIN
 				SELECT @ReIndex_spid = VValue FROM bodb02.dbo.SystemSettings WITH (NOLOCK) WHERE VName = N'ReIndex_spid'
+				SELECT @IsProcessOneRunning = dbo.[f_CheckJobRunning]('DBA_Reorg_ProcessOne')
 
-				IF ((@ReIndex_spid = -2) OR (DATEDIFF(second, @LastStatusUpdate, CURRENT_TIMESTAMP) > 60))
+				IF ((@ReIndex_spid = -2) OR 
+					(DATEDIFF(second, @LastStatusUpdate, CURRENT_TIMESTAMP) > 60) AND @IsProcessOneRunning = 0)
 				BEGIN
 					-- if spid = -2 :: job is done !!
 					-- if time exceed 60 seconds, something wrong.
-					SET @NotContinue = 1
-
+					SET @NotContinue =  1
 				
 					if @ReIndex_spid <> -2
 					BEGIN -- stop job again for safety
@@ -215,44 +241,61 @@ BEGIN
 
 			-- retrieve info of current running task
 			SELECT @rn = VValue FROM bodb02.dbo.SystemSettings WITH (NOLOCK) WHERE VName = 'ReIndex_rn'
-			SELECT
-				@id_db = id_db, @id_table = id_table, @id_index = id_index, 
-				@name_table = name_table, @name_index = name_index,
-				@TargetThredhold = FragmentTarget, @page_count = page_count,
-				@fragment = Fragment, @fragmentInfo = CONVERT(varchar, CAST(Fragment AS money), 1), --(Fragment,'00.00'),
-				@time_trace = time_trace, @RunCounter=RunCounter
-				FROM MonDB.dbo.DBA_ReIndex_Record WITH (NOLOCK) 
-				WHERE rn = @rn
-
-			IF @Debug = 1
+			IF  @rn <> @rn_current
 			BEGIN
-				SET @doing = 'Terminator:REINDEX rn=' + CONVERT(varchar, CAST(@rn AS int),1)--CONVERT(varchar, CAST(@rn AS int),1) 
-					+ ' Started with Fragment ' + CONVERT(varchar, CAST(@fragment AS money), 1)--CONVERT(varchar, CAST(@fragment AS money),1)
-					+ ' [' + @name_table + '].[' + @name_index + '] ( ' + CONVERT(varchar, CAST(@id_db AS int),1) + ' , ' + CONVERT(varchar, CAST(@id_table AS int),1) + ' , ' + CONVERT(varchar, CAST(@id_index AS int),1) + ' )  '
-					+ CONVERT(varchar, CAST(@page_count AS int),1) + ' pages'
+				SELECT
+					@id_db = id_db, @id_table = id_table, @id_index = id_index, 
+					@name_table = name_table, @name_index = name_index,
+					@IsBettransCIX = CASE WHEN name_table = 'bettrans' AND index_type = 'C' THEN 1 ELSE 0 END,
+					@TargetThredhold = FragmentTarget, @page_count = page_count,
+					@fragment = Fragment, @fragmentInfo = CONVERT(varchar, CAST(Fragment AS money), 1), --(Fragment,'00.00'),
+					@time_trace = time_trace, @RunCounter=RunCounter
+					FROM MonDB.dbo.DBA_ReIndex_Record WITH (NOLOCK) 
+					WHERE rn = @rn
+
+				IF @Debug = 1
+				BEGIN
+					IF @RunCounter > 1
+						SELECT @fragmentInfo = LEFT(VValue,5)
+							FROM bodb02.dbo.SystemSettings WITH (NOLOCK)
+							WHERE VName = 'ReIndex_Fragment'
+
+					SET @LogMessage = 'Terminator:START [' + @name_table + '].[' + @name_index + '] ( ' + CONVERT(varchar, CAST(@id_db AS int),1) + ' , ' + CONVERT(varchar, CAST(@id_table AS int),1) + ' , ' + CONVERT(varchar, CAST(@id_index AS int),1) + ' )'
+						+ ' Previous Tracer Max Delay ' + CONVERT(varchar, CAST(@Max_Tracer_Time/1000.0 AS MONEY),1) + ' seconds'
+						+ CASE WHEN @RunCounter = 1
+						THEN ' Started Fragment ' + CONVERT(varchar, CAST(@fragment AS money), 1)--CONVERT(varchar, CAST(@fragment AS money),1)
+						--+ CONVERT(varchar, CAST(@page_count AS int),1) + ' pages'
+						ELSE ' Fragment Last Known = ' + @fragmentInfo END
 				
-				EXEC [MonDB].[dbo].[WriteLog_ReIndex]
-					@time_trace = @time_trace,
-					@record_rn = @rn,
-					@RunCounter = @RunCounter,
-					@doing = @doing
+					EXEC [MonDB].[dbo].[WriteLog_ReIndex]
+						@time_trace = @time_trace,
+						@record_rn = @rn,
+						@RunCounter = @RunCounter,
+						@doing = @LogMessage
+				END
+
+				SET @rn_current = @rn
+				SET @Max_Tracer_Time   = 0
 			END
 
+			--------------------------------
+			-- BEGIN : Tracer Delay Check --
+			--------------------------------
 			SET    @Tracer_Time_Taken = 0
-			WHILE (@Tracer_Time_Taken < 30) -- check for Replication Delay
+			WHILE (@Tracer_Time_Taken <= @max_replication_delay) -- check for Replication Delay
 			BEGIN
 				SELECT @ReIndex_spid = VValue FROM bodb02.dbo.SystemSettings WITH (NOLOCK) WHERE VName = N'ReIndex_spid'
 				IF (@ReIndex_spid = -2)
 				BEGIN
 					WAITFOR DELAY '00:00:02.000'
-					BREAK --WHILE (@Tracer_Time_Taken < 30) :: value become -2 --> current index already done it task
+					BREAK --WHILE (@Tracer_Time_Taken <= max_replication_delay) :: value become -2 --> current index already done it task
 				END
 				IF (SELECT bodb02.dbo.f_CheckJobRunning('DBA_Reorg_ProcessOne')) = 0
 				BEGIN
 					SET @ReIndex_spid = -2 -- set value to help escape from loop
 
 					WAITFOR DELAY '00:00:02.000'
-					BREAK --WHILE (@Tracer_Time_Taken < 30) :: job no longer run, without status report, it might become DeadLock victim already
+					BREAK --WHILE (@Tracer_Time_Taken <= max_replication_delay) :: job no longer run, without status report, it might become DeadLock victim already
 				END
 
 				-- check replication delay.
@@ -261,16 +304,22 @@ BEGIN
 			
 				WHILE(@isDelay=1)
 				BEGIN
-					WAITFOR DELAY '00:00:05.000' -- wait 05 seconds
+					WAITFOR DELAY '00:00:03.000' -- wait 05 seconds
 					-- call DBDIST.distribution SP
 					-- Joe :: if got error that SP doesn't exists, code to create SP TraceStatus is right down below
 					exec DBDIST.distribution.dbo.DBA_ReIndex_TraceStatus @tracer_id=@tokenID, @isDelay=@isDelay OUTPUT, @committime = @tracer_commit_time OUTPUT --, @ServerName = @@SERVERNAME
 
-					IF (DATEDIFF(second, @Token_Insert_Time,CURRENT_TIMESTAMP) > 30)
+					IF @isDelay = 1 AND DATEDIFF(second, @Token_Insert_Time,CURRENT_TIMESTAMP) > @max_replication_delay
+					BEGIN
+						SET @tracer_commit_time = DATEADD(ms, @time_offset, DATEADD(second, @max_replication_delay + 2, @Token_Insert_Time))
 						BREAK --WHILE(@isDelay=1) :: ignore Tracer Status, as time already exceed target
+					END
+
+					IF @isDelay = 0 AND DATEDIFF(ms, @Token_Insert_Time, DATEADD(ms, @time_offset, @tracer_commit_time)) > @Max_Tracer_Time
+						SET @Max_Tracer_Time = DATEDIFF(ms, @Token_Insert_Time, DATEADD(ms, @time_offset, @tracer_commit_time))
 				END --WHILE(@isDelay=1)
 
-				SELECT @Tracer_Time_Taken = DATEDIFF(second, @Token_Insert_Time,CURRENT_TIMESTAMP)
+				SELECT @Tracer_Time_Taken = DATEDIFF(second, @Token_Insert_Time, DATEADD(ms, @time_offset, @tracer_commit_time))
 
 				-- remove this Used tracer token, so TracerHisoty in Replication monitor not flush with it.
 				EXEC sys.sp_deletetracertokenhistory @publication = @publication, @tracer_id = @tokenID
@@ -279,7 +328,8 @@ BEGIN
 				-- update and check Fragment movement, if not move at all, stop going further
 				-- default at 5 minutes
 				-- give extra time 1 minute for every 350000 pages, because more page need more time to look for data to re-arrange.
-				IF DATEDIFF(second, @LastStatusUpdate, CURRENT_TIMESTAMP) >= 300 + (@page_count / 350000 * 60)
+				IF  @Tracer_Time_Taken <= @max_replication_delay -- no need to check for Fragment Level if Repl. Delay
+					AND DATEDIFF(second, @LastStatusUpdate, CURRENT_TIMESTAMP) >= 300 + (@page_count / 350000 * 60)
 				BEGIN 
 					-- check current Fragment level
 					SET @TimeDebug = SYSDATETIME()
@@ -289,19 +339,18 @@ BEGIN
 					
 					IF @Debug = 1
 					BEGIN
-						SET @doing = 'Terminator:REINDEX rn=' + CONVERT(varchar, CAST(@rn AS int),1)
-							+ ' Check-Fragment using ' + CONVERT(varchar, CAST(DATEDIFF(second, @TimeDebug, CURRENT_TIMESTAMP) AS int),1) + ' seconds' 
+						SET @LogMessage = 'Terminator:STATUS Check-Fragment using ' + CONVERT(varchar, CAST(DATEDIFF(ms, @TimeDebug, CURRENT_TIMESTAMP)/1000.0 AS DECIMAL(9,3)),1) + ' seconds' 
 							+ ' Fragment ' + CONVERT(varchar, CAST(@fragment AS money),1)
-							+ ' (after run ' + CONVERT(varchar, CAST((DATEDIFF(second, @LastStatusUpdate, CURRENT_TIMESTAMP)/60.0) AS int),1) + '/' 
-							+ CONVERT(varchar, CAST((DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP)/60.0) AS int),1) + ' minutes)'
-							+ ' Last Tracer ' + CONVERT(varchar, CAST(((DATEDIFF(millisecond, @Token_Insert_Time, ISNULL(DATEADD(ms, @time_offset, @tracer_commit_time), @TimeDebug))/1000.0)) AS int),1) + ' seconds (' 
+							+ ' (after run ' + CONVERT(varchar, CAST((DATEDIFF(second, @LastStatusUpdate, CURRENT_TIMESTAMP)/60.0) AS DECIMAL(9,2)),1) + '/' 
+							+ CONVERT(varchar, CAST((DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP)/60.0) AS DECIMAL(9,2)),1) + ' minutes)'
+							+ ' Last Tracer ' + CONVERT(varchar, CAST(((DATEDIFF(millisecond, @Token_Insert_Time, ISNULL(DATEADD(ms, @time_offset, @tracer_commit_time), @TimeDebug))/1000.0)) AS DECIMAL(9,3)),1) + ' seconds (' 
 							+ CONVERT(varchar, CAST(@tokenID AS int),1) + ')'
 						
 						EXEC [MonDB].[dbo].[WriteLog_ReIndex]
 							@time_trace = @time_trace,
 							@record_rn = @rn,
 							@RunCounter = @RunCounter,
-							@doing = @doing
+							@doing = @LogMessage
 					END
 
 					UPDATE bodb02.dbo.SystemSettings SET VValue = CONVERT(varchar, CAST(@fragment AS money),1)
@@ -309,7 +358,7 @@ BEGIN
 					UPDATE bodb02.dbo.SystemSettings SET @fragmentInfo = VValue = CONVERT(varchar, CAST(@fragment AS money),1) + ' ,' + LEFT(VValue, 180)
 						WHERE VName = 'ReIndex_Fragment'
 
-					IF (LEN(@fragmentInfo) >= 40) -- already more than 6 Rounds
+					IF (LEN(@fragmentInfo) >= 40) AND @IsBettransCIX = 0 -- already more than 6 Rounds :: exclude Bettrans Clustered Index
 					BEGIN
 						SELECT
 							@fragmentMax = MAX(CAST(val AS MONEY)),
@@ -324,16 +373,15 @@ BEGIN
 
 							IF @Debug = 1
 							BEGIN
-								SET @doing = 'Terminator:STOP REINDEX rn=' + CONVERT(varchar, CAST(@rn AS int),1) 
-									+ ' Fragment-Not-Improve after ' + CONVERT(varchar,cast(DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP) as int),1) + ' seconds (Allow ' + CONVERT(varchar, CAST(@TimeAllow AS int),1) + ')'
-									+ ' Fragment Min/Max/Last = ' + CONVERT(varchar, CAST(@fragmentMin AS money),1) + '/' + CONVERT(varchar, CAST(@fragmentMax AS money),1) + '/' + CONVERT(varchar, CAST(@fragment AS money),1)
+								SET @LogMessage = 'Terminator:STOP Fragment-Not-Improve after ' + CONVERT(varchar,cast(DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP) as int),1) + ' seconds (Allow ' + CONVERT(varchar, CAST(@TimeAllow AS int),1) + ')'
+									+ ' Fragment Last/Min/Max = ' + CONVERT(varchar, CAST(@fragment AS money),1) + '/' + CONVERT(varchar, CAST(@fragmentMin AS money),1) + '/' + CONVERT(varchar, CAST(@fragmentMax AS money),1) 
 									+ ' Fragment Info = ' + @fragmentInfo
 								
 								EXEC [MonDB].[dbo].[WriteLog_ReIndex]
 									@time_trace = @time_trace,
 									@record_rn = @rn,
 									@RunCounter = @RunCounter,
-									@doing = @doing
+									@doing = @LogMessage
 							END
 						END
 					END
@@ -344,7 +392,8 @@ BEGIN
 				-- running exceed @TimeAllow and Fragment drop below Threshold
 				-- stop active REORGANIZE process
 				-- 20210712@Joe : add special case for table with page > 500000, not stop before check 3 times, since value of 2nd/3rd check seem often not inconsistent
-				IF DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP) > @TimeAllow 
+				IF  @Tracer_Time_Taken <= @max_replication_delay
+					AND DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP) > @TimeAllow 
 					AND @fragment < @TargetThredhold 
 					AND	(@page_count <= 500000 OR (@page_count > 500000 AND LEN(@fragmentInfo) >= 26))
 				BEGIN
@@ -352,15 +401,14 @@ BEGIN
 
 					IF @Debug = 1
 					BEGIN
-						SET @doing = 'Terminator:STOP REINDEX rn=' + CONVERT(varchar, CAST(@rn AS int),1) 
-							+ ' Fragment-Below-Target after ' + CONVERT(varchar, (DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP)), 1) + ' seconds (Allow ' + CONVERT(varchar, @TimeAllow, 1) + ')'
+						SET @LogMessage = 'Terminator:STOP Fragment-Below-Target after ' + CONVERT(varchar, (DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP)), 1) + ' seconds (Allow ' + CONVERT(varchar, @TimeAllow, 1) + ')'
 							+ ' Fragment Last/Target = ' + CONVERT(varchar, CAST(@fragment AS money),1) + '/' + CONVERT(varchar, cast(@TargetThredhold as int),1)
 							+ ' Fragment Info = ' + @fragmentInfo
 						EXEC [MonDB].[dbo].[WriteLog_ReIndex]
 							@time_trace = @time_trace,
 							@record_rn = @rn,
 							@RunCounter = @RunCounter,
-							@doing = @doing
+							@doing = @LogMessage
 					END
 				END
 
@@ -377,86 +425,125 @@ BEGIN
 						SET VValue = 0 
 						WHERE VName = N'ReIndex_spid'
 					
-					BREAK --(@Tracer_Time_Taken < 30) :: exit for current WHILE loop
+					BREAK --(@Tracer_Time_Taken <= max_replication_delay) :: exit for current WHILE loop
 				END
 
 				IF @Tracer_Time_Taken < 10 -- take a little rest before continue to work
 					WAITFOR DELAY '00:00:05.000'
 
-			END --WHILE (@Tracer_Time_Taken < 30)
+			END --WHILE (@Tracer_Time_Taken <= @max_replication_delay)
+			------------------------------
+			-- END : Tracer Delay Check --
+			------------------------------
 
 			-- why out from loop, is job done?
 			IF @ReIndex_spid = -2
 				BREAK --WHILE (1=1)
-
-			-- delay exceed target? is it run long enough yet?
-			IF @Tracer_Time_Taken > 30 AND DATEDIFF(SECOND, @RunSince, CURRENT_TIMESTAMP) > @MinRunTime
+			
+			IF @Tracer_Time_Taken > @max_replication_delay -- delay exceed target?
 			BEGIN
-				EXEC msdb.dbo.sp_start_job @job_name = N'DBA_Reorg_JobControl',@step_name = N'Stop'
+				-- verify if job still run/not finish
+				IF (SELECT VValue FROM bodb02.dbo.SystemSettings WITH (NOLOCK) WHERE VName = N'ReIndex_spid') = -2
+					OR
+				   (SELECT bodb02.dbo.f_CheckJobRunning('DBA_Reorg_ProcessOne')) = 0
+					BREAK --WHILE (1=1)
 
-				-- rest a bit before go for next run
-				WAITFOR DELAY '00:01:00.000'
-
-				-- reset status before leaving.
-				UPDATE bodb02.dbo.SystemSettings
-				SET VValue = 0
-				WHERE VName = N'ReIndex_spid' 
-
-				IF @Debug = 1
+				--IF DATEDIFF(SECOND, @RunSince, CURRENT_TIMESTAMP) > @MinRunTime -- is it run long enough yet?
 				BEGIN
-					SET @doing = 'Terminator:STOP REINDEX rn=' + CONVERT(varchar, CAST(@rn AS int),1) 
-						+ ' Tracer-Delay-Exceed after ' + CONVERT(varchar, DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP),1) + ' seconds (MinRunTime ' + CONVERT(varchar, @MinRunTime,1) + ')'
-						+ ' Last Tracer ' + CONVERT(varchar, cast((DATEDIFF(millisecond, @Token_Insert_Time, ISNULL(DATEADD(ms, @time_offset, @tracer_commit_time), @TimeDebug))/1000.0) as money),1) + ' seconds (' + CONVERT(varchar, @tokenID,1) + ')'
-						+ ' Fragment Last = ' + CONVERT(varchar, CAST(@fragment AS money),1)
-					EXEC [MonDB].[dbo].[WriteLog_ReIndex]
-						@time_trace = @time_trace,
-						@record_rn = @rn,
-						@RunCounter = @RunCounter,
-						@doing = @doing
+					-- give extra time for it to do the work before stop.
+					IF @IsBettransCIX = 1 --AND @RunCounter = 9 -- last round for bettrans CIX, give more time than normal.
+						WAITFOR DELAY '00:01:00.000'
+					ELSE
+						WAITFOR DELAY '00:00:30.000'
+
+					EXEC msdb.dbo.sp_start_job @job_name = N'DBA_Reorg_JobControl',@step_name = N'Stop'
+					WAITFOR DELAY '00:00:06.000'
+
+					-- reset status before leaving.
+					UPDATE bodb02.dbo.SystemSettings
+					SET VValue = 0
+					WHERE VName = N'ReIndex_spid'
+
+					SET @rn_current = -1
+
+					IF @Debug = 1
+					BEGIN
+						SET @LogMessage = 'Terminator:STOP Tracer-Delay-Exceed ' + CONVERT(varchar, @max_replication_delay, 1) + ' seconds after running for ' + CONVERT(varchar, DATEDIFF(second, @RunSince, CURRENT_TIMESTAMP),1) + ' seconds ' --(MinRunTime ' + CONVERT(varchar, @MinRunTime,1) + ')'
+							--+ ' Last Tracer ' + CONVERT(varchar, cast((DATEDIFF(millisecond, @Token_Insert_Time, DATEADD(ms, @time_offset, @tracer_commit_time))/1000.0) as money),1) + ' seconds (' + CONVERT(varchar, @tokenID,1) + ')'
+							+ ' Fragment Last Known = ' + @fragmentInfo --CONVERT(varchar, CAST(@fragment AS money),1)
+						EXEC [MonDB].[dbo].[WriteLog_ReIndex]
+							@time_trace = @time_trace,
+							@record_rn = @rn,
+							@RunCounter = @RunCounter,
+							@doing = @LogMessage
+					END
+
+					BREAK --WHILE (1=1) :: since it's run long enough, and we already stop it, exit the loop to start over again.
 				END
-
-				BREAK --WHILE (1=1) :: since it's run long enough, and we already stop it, exit the loop to start over again.
 			END
+
+			-- run out of process time?
+			IF DATEDIFF(minute, @EndTime, CURRENT_TIMESTAMP) > 1
+				BREAK --WHILE (1=1)
+
 		END --WHILE (1=1)
-
-
 
 		-- if running pass @EndTime, let current index be the last
 		IF DATEDIFF(minute, @EndTime, CURRENT_TIMESTAMP) > 1
 		BEGIN
-			DELETE FROM MonDB.dbo.DBA_ReIndex_Record WHERE id_db = @id_db AND rn <> @rn
+			-- record info for this last task
+			IF @@SERVERNAME IN ('DBTRANS')
+			BEGIN
+				SELECT @fragmentInfo = LEFT(VValue, 5)
+					FROM bodb02.dbo.SystemSettings WITH (NOLOCK)
+					WHERE VName = 'ReIndex_Fragment'
+
+				INSERT INTO MonDB.dbo.[Mon_ReIndex_List] ([TableName],IndexName,[Type_desc],[Time_Start],[Time_End])
+				SELECT name_table, name_index,
+					CASE index_type WHEN 'C' THEN 'C' ELSE 'N' END + CAST(@RunCounter as varchar(20))
+					+ ' ' + CONVERT(varchar, Fragment,1) + ' ' + @fragmentInfo
+					+ ' ' + CONVERT(varchar, (DATEDIFF(minute,TimeStart, CURRENT_TIMESTAMP)),1),
+					TimeStart, GETDATE()
+				FROM MonDB.dbo.DBA_ReIndex_Record
+				WHERE rn = @rn
+			END
+			
+			-- clear all task
+			DECLARE @delete_count INT
+			DELETE FROM MonDB.dbo.DBA_ReIndex_Record WHERE id_db = @id_db --AND rn <> @rn
+			SET @delete_count = @@ROWCOUNT
 
 			IF @Debug = 1
 			BEGIN
-				SET @doing = 'Terminator:REINDEX remove ' + CONVERT(varchar, @@ROWCOUNT, 1) + ' task items'
+				SET @LogMessage = 'Terminator:ENDTIME MaxHour = ' + CONVERT(varchar, @MaxHour,1) + ' remove ' + CONVERT(varchar, @delete_count, 1) + ' task items'
 				EXEC [MonDB].[dbo].[WriteLog_ReIndex]
 					@time_trace = @time_trace,
 					@record_rn = @rn,
 					@RunCounter = @RunCounter,
-					@doing = @doing
+					@doing = @LogMessage
 			END
 
 		END
-		--BEGIN
-		--	IF EXISTS (SELECT * FROM MonDB.dbo.DBA_ReIndex_Record WITH (NOLOCK) WHERE rn = @rn)
-		--		DELETE FROM MonDB.dbo.DBA_ReIndex_Record WHERE rn <> @rn
-		--END
 
 	END --WHILE(  EXISTS (SELECT 1 FROM MonDB.dbo.DBA_ReIndex_Record WITH (NOLOCK))  )
 
+	-- stop task again, to prevent conflict with UpdateStats, in case, by whatever reason, job still run
+	--EXEC msdb.dbo.sp_start_job @job_name = N'DBA_Reorg_JobControl',@step_name = N'Stop'
+	--WAITFOR DELAY '000:00:10.000'
+
+	UPDATE bodb02.dbo.SystemSettings
+		SET VValue = 0 
+		WHERE VName = N'ReIndex_spid'
+
 	IF @Debug = 1
 	BEGIN
-		SET @doing = 'Terminator:REINDEX Finished'
+		SET @LogMessage = 'Terminator:START Update-Stats'
 		EXEC [MonDB].[dbo].[WriteLog_ReIndex]
 			@time_trace = @time_trace,
 			@record_rn = @rn,
 			@RunCounter = @RunCounter,
-			@doing = @doing
+			@doing = @LogMessage
 	END
-
-	-- stop task again, to prevent conflict with UpdateStats, in case, by whatever reason, job still run
-	EXEC msdb.dbo.sp_start_job @job_name = N'DBA_Reorg_JobControl',@step_name = N'Stop'
-	WAITFOR DELAY '000:00:10.000'
 	
 	EXEC sp_updatestats
   --DBCC DROPCLEANBUFFERS	
@@ -464,5 +551,16 @@ BEGIN
   
   	-- Enable back ReCompile job
 	IF @@SERVERNAME IN ('DBTRANS', 'DB206') EXEC msdb.dbo.sp_update_job @job_name = N'DBTRANS : recompile all' , @enabled = 1
+
+	IF @Debug = 1
+	BEGIN
+		SET @LogMessage = 'Terminator:FINISHED'
+		EXEC [MonDB].[dbo].[WriteLog_ReIndex]
+			@time_trace = @time_trace,
+			@record_rn = @rn,
+			@RunCounter = @RunCounter,
+			@doing = @LogMessage
+	END
+
 END
 GO

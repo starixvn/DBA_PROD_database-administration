@@ -22,10 +22,14 @@ BEGIN
 	DECLARE @name_table varchar(500), @name_index varchar(500), @index_type varchar(4)
 	DECLARE @RunCounter INT, @TimeStart DATETIME2(6), @time_trace DATETIME
 	DECLARE @command NVARCHAR(1000)
-	DECLARE @TargetThreshold SMALLMONEY, @fragment SMALLMONEY, @fragmentStart SMALLMONEY, @page_count BIGINT
+	DECLARE @TargetThreshold SMALLMONEY, @fragmentStart SMALLMONEY
 	DECLARE @fragmentInfo VARCHAR(1000), @fragmentMax SMALLMONEY, @fragmentMin SMALLMONEY
+	DECLARE @IsBettransCIX bit
+	DECLARE @fragment_current SMALLMONEY, @fragment_final SMALLMONEY
+	DECLARE @extra_info VARCHAR(1000), @fragment_count BIGINT
 
-	DECLARE @startTrace varchar(1000), @endTrace varchar(1000), @debug bit
+	DECLARE @Debug bit, @LogMessage varchar(1000)
+	DECLARE @LapseTime DATETIME
 
 	SELECT @id_db = DB_ID()
 
@@ -38,17 +42,20 @@ BEGIN
 		@id_table = id_table, @id_index = id_index, 
 		@name_table = name_table, @name_index = name_index, 
 		@index_type = CASE index_type WHEN 'C' THEN ' (C)' ELSE '' END,
+		@IsBettransCIX = CASE WHEN name_table = 'bettrans' AND index_type = 'C' THEN 1 ELSE 0 END, 
 		@command = command,
 		@TargetThreshold = FragmentTarget,
 		@fragmentStart   = Fragment,
-		@page_count = page_count,
 		@time_trace = time_trace,
-		@debug		= ISNULL(Debug,0)
+		@Debug		= ISNULL(Debug,0)
 	FROM MonDB.dbo.DBA_ReIndex_Record T 
 	WHERE id_db = @id_db
 
 	IF @@ROWCOUNT > 0 -- ok, confirmed got job to do
 	BEGIN
+		IF @Debug = 1 AND @@SERVERNAME NOT IN ('DBTRANS', 'DB206')
+			SET @Debug = 0
+
 		UPDATE bodb02.dbo.SystemSettings
 			SET VValue = @rn
 			WHERE VName = 'ReIndex_rn'
@@ -56,27 +63,49 @@ BEGIN
 			SET VValue = CONVERT(nvarchar(19),CURRENT_TIMESTAMP, 120) 
 			WHERE VName = N'ReIndex_RunSince'
 
-		-- report for duty
-		UPDATE bodb02.dbo.SystemSettings 
-			SET VValue = @@SPID 
-			WHERE VName = N'ReIndex_spid'
-
-		SELECT @fragment = avg_fragmentation_in_percent
+		SET @LapseTime = CURRENT_TIMESTAMP
+		SELECT
+			@fragment_current = avg_fragmentation_in_percent,
+			@fragment_count = fragment_count,
+			@extra_info =
+				--CONVERT(varchar, CAST(avg_fragmentation_in_percent AS DECIMAL(9,5)) , 1) + ' ' +
+				--CONVERT(varchar, CAST(avg_fragment_size_in_pages AS DECIMAL(9,5)) , 1) + ' ' +
+				CONVERT(varchar, fragment_count,1) + '/' +
+				CONVERT(varchar, page_count,1)
 			FROM sys.dm_db_index_physical_stats(@id_db, @id_table, @id_index, NULL, 'SAMPLED') AS fi 
 			WHERE alloc_unit_type_desc = 'IN_ROW_DATA'
 
 		IF @RunCounter = 1
+		BEGIN
+			-- UPDATE STATISTICS once before start job for bettrans Clustered Index, since this one might run for long period of time.
+			IF @IsBettransCIX = 1
+			BEGIN
+				IF @Debug = 1
+				BEGIN
+					SET @LogMessage = 'ProcessOne:START Update-Stats'
+
+					EXEC [MonDB].[dbo].[WriteLog_ReIndex]
+							@time_trace = @time_trace,
+							@record_rn = @rn,
+							@RunCounter = @RunCounter,
+							@doing = @LogMessage
+				END
+
+				EXEC sp_updatestats
+			END
+
 			UPDATE bodb02.dbo.SystemSettings
-				SET VValue = CONVERT(varchar, cast(@fragment as money),1),
+				SET VValue = CONVERT(varchar, cast(@fragment_current as money),1),
 					@fragmentInfo = ''
 				WHERE VName = 'ReIndex_Fragment'
-		ELSE IF @fragment > @TargetThreshold  -- not first run, let find out if we should continue the job
+		END
+		ELSE IF @fragment_current > @TargetThreshold  -- not first run, let find out if we should continue the job
 		BEGIN 
 			UPDATE bodb02.dbo.SystemSettings 
-				SET @fragmentInfo = VValue = CONVERT(varchar, cast(@fragment as money), 1) + ' ,' + LEFT(VValue, 180)
+				SET @fragmentInfo = VValue = CONVERT(varchar, cast(@fragment_current as money), 1) + ' ,' + LEFT(VValue, 180)
 				WHERE VName = 'ReIndex_Fragment'
 
-			IF LEN(@fragmentInfo) >= 40
+			IF LEN(@fragmentInfo) >= 40 AND @IsBettransCIX = 0
 			BEGIN
 				SELECT
 					@fragmentMax = MAX(CAST(val AS MONEY)),
@@ -87,38 +116,58 @@ BEGIN
 				-- last X rounds, no significant improvement
 				-- Let's stop it!
 				-- we will make it look like fragment already lower than @TargetThreshold
-				IF @fragmentMax - @fragmentMin < 2.00 SET @TargetThreshold = @fragment + 1
+				IF @fragmentMax - @fragmentMin < 2.00 SET @TargetThreshold = @fragment_current + 1
 			END
 
 			-- if this is extra job (allow to run when Fragment level not over Threshold, then allow to run only 2 round.
 			-- else, allow 7 rounds
 			-- Note : this can be either Terminator think the Fragment level is ok and stop previous job, or because Repl. delay.
-			IF (@fragmentStart < @FragmentThreshold AND @RunCounter > 2) OR @RunCounter > 7 SET @TargetThreshold = @fragment + 1
+			IF (@fragmentStart < @FragmentThreshold AND @RunCounter > 2) 
+				OR (@IsBettransCIX = 0 AND @RunCounter > 7) 
+				OR (@IsBettransCIX = 1 AND @RunCounter >= 4) -- AND @fragment_current < @FragmentThreshold)
+				SET @TargetThreshold = @fragment_current + 1
 		END
 
+		-- report for duty
+		UPDATE bodb02.dbo.SystemSettings 
+			SET VValue = @@SPID 
+			WHERE VName = N'ReIndex_spid'
 
-		SET @startTrace =	'ProcessOne:START [FROM ' + CAST('rn = ' as varchar(1000)) + CONVERT(varchar, @rn,1)
-				+ CASE WHEN @fragment > @TargetThreshold THEN ' ' ELSE ' SKIP:' END 
-				+ 'ORGANIZE [ ' + CONVERT(varchar, cast(@fragment as money), 1) + '% ] ON ' 
-				+ @name_table + '.' + @name_index + @index_type + ' ('
-				+ CAST(@id_db    as varchar(20)) + ','
-				+ CAST(@id_table as varchar(20)) + ',' 
-				+ CAST(@id_index as varchar(20)) + ') by spid ' + CAST(@@SPID  as varchar(20))
-		
+
 		-- before extra log for more info
-		IF @@SERVERNAME IN ('DBTRANS', 'DB206') AND @debug = 1
+		IF @Debug = 1
 		BEGIN
+			WAITFOR DELAY '00:00:01.000' -- this will allow Terminator to Log first.
+
+			SET @LogMessage = 'ProcessOne:' + CASE WHEN @fragment_current > @TargetThreshold THEN 'START REORGANIZE' ELSE 'SKIP' END 
+					+ ' [ ' + CONVERT(varchar, cast(@fragment_current as money), 1) + '% ' + @extra_info + ' pages ]' --CONVERT(varchar,@fragment_count,1) + ' pages ]' --' ON ' 
+					--+ @name_table + '.' + @name_index + @index_type + ' ('
+					--+ CAST(@id_db    as varchar(20)) + ','
+					--+ CAST(@id_table as varchar(20)) + ',' 
+					--+ CAST(@id_index as varchar(20)) + ')'
+					+ ' by spid ' + CAST(@@SPID  as varchar(20))
+					+ ' pre-process ' + CONVERT(varchar,CAST(DATEDIFF(ms, @LapseTime, CURRENT_TIMESTAMP)/1000.0 AS DECIMAL(9,3)),1) + ' seconds'
+					--+ ' ExtraInfo ' + @extra_info
+
 			EXEC [MonDB].[dbo].[WriteLog_ReIndex]
 				@time_trace = @time_trace,
 				@record_rn = @rn,
 				@RunCounter = @RunCounter,
-				@doing = @startTrace
+				@doing = @LogMessage
 		END
 		-- go to work! go to work!
-		IF @fragment > @TargetThreshold
+		IF @fragment_current > @TargetThreshold
 			EXEC sp_executesql @command
 
-		SELECT @fragment = avg_fragmentation_in_percent
+		SELECT
+			@fragment_final = avg_fragmentation_in_percent,
+			@fragment_count = fragment_count,
+			@extra_info =
+				--CONVERT(varchar, CAST(avg_fragmentation_in_percent AS DECIMAL(9,5)) , 1) + ' ' +
+				--CONVERT(varchar, CAST(avg_fragment_size_in_pages AS DECIMAL(9,5)) , 1) + ' ' +
+				CONVERT(varchar, fragment_count,1) + '/' +
+				CONVERT(varchar, page_count,1)
+
 			FROM sys.dm_db_index_physical_stats(@id_db, @id_table, @id_index, NULL, 'SAMPLED') AS fi 
 			WHERE alloc_unit_type_desc = 'IN_ROW_DATA'
 		
@@ -127,22 +176,28 @@ BEGIN
 			SET VValue = -2
 			WHERE VName = N'ReIndex_spid'
 
-		SET @endTrace = 'ProcessOne:DONE [FROM ' 
-			+ CONVERT(varchar, cast(@fragmentStart as money),1) + ' to ' 
-			+ CONVERT(varchar, cast(@fragment as money), 1) + '] after ' + CAST(@RunCounter as varchar(1000))
-			+ ' times with duration ' + CONVERT(varchar, (DATEDIFF(second, @TimeStart, CURRENT_TIMESTAMP)/60),1) 
-			+ ':' + CONVERT(varchar, (DATEDIFF(second, @TimeStart, CURRENT_TIMESTAMP)%60),1) + ' minutes'
-			+ CASE WHEN @RunCounter = 1 THEN '' ELSE ' (' + @fragmentInfo + ')' END
-			+ ' [' + CAST(@page_count AS VARCHAR(1000)) + ' pages]'
-		
 		-- log info
-		IF @@SERVERNAME IN ('DBTRANS', 'DB206') AND @debug = 1
+		IF @Debug = 1
 		BEGIN
+			IF @fragmentInfo IS NULL
+				SELECT @fragmentInfo = VValue
+				FROM bodb02.dbo.SystemSettings WITH (NOLOCK)
+				WHERE VName = 'ReIndex_Fragment'
+
+			SET @LogMessage = 'ProcessOne:DONE '
+				+ ' Fragment Final [ ' +  CONVERT(varchar, cast(@fragment_final as money), 1) + '% ' + @extra_info + ' pages ]' --CONVERT(varchar,@fragment_count,1) + ' pages ]'
+				+ ' from [' + CONVERT(varchar, cast(@fragmentStart as money),1) + '] ' + CONVERT(varchar, cast(@fragment_current as money),1) + '%'
+				+ ' after ' + CAST(@RunCounter as varchar(1000))
+				+ ' times with duration ' + CONVERT(varchar, (DATEDIFF(second, @TimeStart, CURRENT_TIMESTAMP)/60),1) 
+				+ ':' + CASE WHEN DATEDIFF(second, @TimeStart, CURRENT_TIMESTAMP)%60 < 10 THEN '0' ELSE '' END + CONVERT(varchar, (DATEDIFF(second, @TimeStart, CURRENT_TIMESTAMP)%60),1) + ' minutes'
+				-- + ' ExtraInfo ' + @extra_info
+				+ CASE WHEN @RunCounter = 1 THEN '' ELSE ' (' + @fragmentInfo + ')' END
+
 			EXEC [MonDB].[dbo].[WriteLog_ReIndex]
 					@time_trace = @time_trace,
 					@record_rn = @rn,
 					@RunCounter = @RunCounter,
-					@doing = @endTrace
+					@doing = @LogMessage
 		END
 		-- reach here, mean either it's done, or not get terminate
 		-- therefore, can remove it.
@@ -155,7 +210,8 @@ BEGIN
 			INSERT INTO MonDB.dbo.[Mon_ReIndex_List] ([TableName],IndexName,[Type_desc],[Time_Start],[Time_End])
 			SELECT @name_table, @name_index, 
 				CASE @index_type WHEN ' (C)' THEN 'C' ELSE 'N' END + CAST(@RunCounter as varchar(20)) 
-					+ ' ' + CONVERT(varchar, cast(@fragmentStart as money),1) + ' ' + CONVERT(varchar, cast(@fragment as money),1) 
+					+ ' ' + CONVERT(varchar, cast(@fragmentStart as money),1) 
+					+ ' ' + CASE WHEN LEN(CONVERT(varchar, cast(@fragment_final as money),1)) < 5 THEN '0' ELSE '' END + CONVERT(varchar, cast(@fragment_final as money),1) 
 					+ ' ' + CONVERT(varchar, (DATEDIFF(minute,@TimeStart, CURRENT_TIMESTAMP)),1),
 				@TimeStart, GETDATE()
 		END
@@ -167,5 +223,3 @@ BEGIN
 			WHERE VName = N'ReIndex_spid'
 END
 GO
-
-

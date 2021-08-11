@@ -104,18 +104,24 @@ BEGIN
 	SELECT @CNT = COUNT(*)
 	FROM @tmp
 		WHERE
-			Fragment > @FragmentThreshold AND page_count > 3
+			Fragment > @FragmentThreshold AND page_count > 8
 
 	IF @CNT >= 100
 		INSERT INTO MonDB.dbo.DBA_ReIndex_Record (time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment)
 		SELECT time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment
 		FROM @tmp
 		WHERE
-			Fragment > @FragmentThreshold AND page_count > 3
+			Fragment > @FragmentThreshold AND page_count > 8
+			AND NOT (name_table = 'bettrans' AND index_type = 'C')
 		ORDER BY
+			CASE WHEN name_table LIKE '%14' THEN 1 ELSE 0 END, -- do for 14 later.
 			CASE WHEN name_table = 'bettrans' AND index_type = 'C' THEN 1 ELSE 0 END, -- CIX bettrans, be last in high fragment
 			index_type DESC, -- clustered index first, for high fragement
-			CAST(Fragment * 100 AS bigint) * page_count DESC -- high value of Fragment x page next.
+			CASE WHEN name_table LIKE '%14' THEN -page_count 
+			ELSE CAST(Fragment * 100 AS bigint) * page_count END DESC -- high value of Fragment x page next.
+			--CASE WHEN name_table = 'bettrans' AND index_type = 'C' THEN 1 ELSE 0 END, -- CIX bettrans, be last in high fragment
+			--index_type DESC, -- clustered index first, for high fragement
+			--CAST(Fragment * 100 AS bigint) * page_count DESC -- high value of Fragment x page next.
 	ELSE
 	BEGIN
 		-- this will let ReIndex got more work in this round
@@ -125,19 +131,35 @@ BEGIN
 		SELECT TOP(100) time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment
 		FROM @tmp
 		WHERE
-			(Fragment - @TargetThreshold) > 3 AND page_count > 3
+			(Fragment - @TargetThreshold) > 3 AND page_count > 8
+			AND NOT (name_table = 'bettrans' AND index_type = 'C')
 		ORDER BY 
 			CASE WHEN Fragment > @FragmentThreshold THEN 0 ELSE 1 END, -- high fragment first
+			CASE WHEN name_table LIKE '%14' THEN 1 ELSE 0 END,
 			CASE WHEN name_table = 'bettrans' AND index_type = 'C' THEN 1 ELSE 0 END, -- CIX bettrans, be last in high fragment
 			index_type DESC, -- clustered index first, for high fragement
-			CAST(Fragment * 100 AS bigint) * page_count DESC -- high value of Fragment x page next.
+			CASE WHEN name_table LIKE '%14' THEN -page_count 
+			ELSE CAST(Fragment * 100 AS bigint) * page_count END DESC -- high value of Fragment x page next.
+			--CASE WHEN Fragment > @FragmentThreshold THEN 0 ELSE 1 END, -- high fragment first
+			--CASE WHEN name_table = 'bettrans' AND index_type = 'C' THEN 1 ELSE 0 END, -- CIX bettrans, be last in high fragment
+			--index_type DESC, -- clustered index first, for high fragement
+			--CAST(Fragment * 100 AS bigint) * page_count DESC -- high value of Fragment x page next.
 
 	END
-
+/*
 	IF @@SERVERNAME NOT IN ('DBTRANS', 'DB206')
 		DELETE r
 		FROM MonDB.dbo.DBA_ReIndex_Record AS r
 		WHERE name_table = 'bettrans' AND index_type = 'C'
+*/
+
+	-- add BetTrans Clustered Index as last job, only when Fragment exceed threshold
+	IF @@SERVERNAME IN ('DBTRANS', 'DB206')
+		INSERT INTO MonDB.dbo.DBA_ReIndex_Record (time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment)
+		SELECT time_trace, Debug, id_db, id_table, id_index, name_table, name_index, index_type, command, FragmentTarget, page_count, Fragment
+		FROM @tmp
+		WHERE (name_table = 'bettrans' AND index_type = 'C')
+		AND Fragment > @TargetThreshold
 
 END
 GO
