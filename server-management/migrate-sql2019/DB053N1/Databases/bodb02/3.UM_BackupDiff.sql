@@ -1,0 +1,15 @@
+/***
+	- Created@20211124: Bobby
+	- Host: Run on DB053
+	- Task: Do the backup diff of bodb02
+***/
+
+use master;
+go
+-- Time elapses.  
+-- Create a differential database backup, appending the backup  
+-- to the backup device containing the full database backup.  
+BACKUP DATABASE bodb02  
+   TO DISK = N'D:\MSSQL\Backup\bodb02_diff.bak'  
+   WITH DIFFERENTIAL;  
+GO
