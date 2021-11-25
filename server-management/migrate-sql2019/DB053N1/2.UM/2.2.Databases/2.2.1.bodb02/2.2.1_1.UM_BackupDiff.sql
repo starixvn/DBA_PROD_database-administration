@@ -11,5 +11,5 @@ go
 -- to the backup device containing the full database backup.  
 BACKUP DATABASE bodb02  
    TO DISK = N'D:\MSSQL\Backup\bodb02_diff.bak'  
-   WITH DIFFERENTIAL;  
+   WITH DIFFERENTIAL, SKIP, NOREWIND, NOUNLOAD,  STATS = 10;  
 GO

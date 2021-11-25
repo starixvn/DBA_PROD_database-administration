@@ -7,5 +7,5 @@ use master;
 go
 RESTORE DATABASE bodb02  
    FROM DISK = N'D:\MSSQL\Backup\bodb02_full_init.bak'  
-   WITH NORECOVERY;  
+   WITH FILE = 1, NORECOVERY, REPLACE,  STATS = 5;  
 GO  

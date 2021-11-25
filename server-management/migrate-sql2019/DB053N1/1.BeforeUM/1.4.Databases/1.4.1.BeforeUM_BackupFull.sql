@@ -9,5 +9,5 @@ go
 -- Create a full database backup first.  
 BACKUP DATABASE bodb02   
    TO DISK = N'G:\MSSQL\Backup\bodb02_full_init.bak'  
-   WITH INIT;  
+   WITH NOFORMAT, INIT, SKIP, NOREWIND, NOUNLOAD,  STATS = 10;  
 GO  
