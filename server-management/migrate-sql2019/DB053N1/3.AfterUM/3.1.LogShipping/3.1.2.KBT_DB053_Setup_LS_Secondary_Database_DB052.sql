@@ -1,32 +1,6 @@
 /***
 	- Created@20211124: Bobby
-	- Host: Run on DB052
-	- Task: Remove secondary database on DB052, MNL vs AWS
+	- Host: Run on DB053
+	- Task: Do DB053N1 Migration
 ***/
-use msdb;
-GO
-EXEC sp_delete_log_shipping_primary_secondary
-@primary_database = N'bodb_ChatBot'
-,@secondary_server = N'10.11.1.21'
-,@secondary_database = N'bodb_ChatBot';
-GO
-EXEC sp_delete_log_shipping_primary_secondary
-@primary_database = N'bodb_ChatBot'
-,@secondary_server = N'10.14.1.92'
-,@secondary_database = N'bodb_ChatBot';
-GO
-EXEC sp_delete_log_shipping_primary_secondary
-@primary_database = N'bodb_ChatBot'
-,@secondary_server = N'DB052'
-,@secondary_database = N'bodb_ChatBot';
-GO
-EXEC sp_delete_log_shipping_primary_secondary
-@primary_database = N'bodb_FraudSensor'
-,@secondary_server = N'DB052'
-,@secondary_database = N'bodb_FraudSensor';
-GO
-EXEC sp_delete_log_shipping_primary_secondary
-@primary_database = N'bodb_Ploutos'
-,@secondary_server = N'DB052'
-,@secondary_database = N'bodb_Ploutos';
-GO
+-- TODO:

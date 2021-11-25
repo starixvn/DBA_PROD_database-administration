@@ -1,11 +1,3 @@
--- SITDB05NEW(Single) ( -> SITDB05)
--- 1.First collect the output of the current instance configuration
-EXEC sp_helpserver 'DB053N1'
-SELECT @@servername
-
--- 2.EXECute the below query to change the instance name
-EXEC sp_dropserver 'DB053N1' 
-GO 
-EXEC sp_addserver 'DB053' , 'local'
-GO
-
+# RUN on Window Server DB053
+Step 1: Change computer name to DB053OLD
+Step 2: Change IP to 10.40.40.XXX
