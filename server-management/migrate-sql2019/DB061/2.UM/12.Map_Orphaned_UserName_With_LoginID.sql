@@ -1,4 +1,3 @@
---SITDB05
 -- 1.Sync Orphan USER
 EXEC [MONDB].[dbo].[DBA_Sync_Orphan_USER]
 
