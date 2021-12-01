@@ -1,0 +1,5 @@
+
+hostname
+
+netdom renamecomputer DB06N3 /newname:DB06N1
+

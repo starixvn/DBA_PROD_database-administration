@@ -1,0 +1,50 @@
+/*
+SELECT 'ALTER LOGIN ['+name+'] DISABLE;' FROM sys.sql_logins
+WHERE name NOT LIKE '#%'
+  AND name NOT LIKE '%\%'
+  AND name NOT LIKE 'RD%'
+  AND name NOT LIKE 'vn%'
+  AND name NOT IN ('viet',  'thien','sa')
+  AND name <> 'MonDB_User'
+  AND is_disabled=0
+ORDER BY 1
+GO
+
+*/
+-----------------------------------------------------------------------
+
+
+ALTER LOGIN [bodbAdminNet] DISABLE;
+ALTER LOGIN [bodbDownlineNet] DISABLE;
+ALTER LOGIN [bodbDownlineNetView] DISABLE;
+ALTER LOGIN [bodbExtAccNet] DISABLE;
+ALTER LOGIN [bodbLicenseeNet] DISABLE;
+ALTER LOGIN [bodbOWPNet] DISABLE;
+ALTER LOGIN [bodbRMSNet] DISABLE;
+ALTER LOGIN [bodbSPUNet] DISABLE;
+ALTER LOGIN [bodbTGRSNet] DISABLE;
+ALTER LOGIN [CNS_Sales] DISABLE;
+ALTER LOGIN [DataSync] DISABLE;
+ALTER LOGIN [db06_sync_custinfo_usr] DISABLE;
+ALTER LOGIN [Dot_3rdparty] DISABLE;
+ALTER LOGIN [Dot_Admin] DISABLE;
+ALTER LOGIN [Dot_Bonus] DISABLE;
+ALTER LOGIN [Dot_Casino] DISABLE;
+ALTER LOGIN [Dot_InfoSite] DISABLE;
+ALTER LOGIN [Dot_Intg] DISABLE;
+ALTER LOGIN [Dot_LicCentral] DISABLE;
+ALTER LOGIN [Dot_Member] DISABLE;
+ALTER LOGIN [Dot_P2P] DISABLE;
+ALTER LOGIN [Dot_PandR] DISABLE;
+ALTER LOGIN [Dot_RefUser] DISABLE;
+ALTER LOGIN [dwrs] DISABLE;
+ALTER LOGIN [dwrs2] DISABLE;
+ALTER LOGIN [ibcrep] DISABLE;
+ALTER LOGIN [LicBIUser] DISABLE;
+ALTER LOGIN [Member2API] DISABLE;
+ALTER LOGIN [Portal] DISABLE;
+ALTER LOGIN [repl_ap] DISABLE;
+ALTER LOGIN [RMAUser] DISABLE;
+ALTER LOGIN [Save_Files] DISABLE;
+ALTER LOGIN [ServerMonitor] DISABLE;
+ALTER LOGIN [SqlLink] DISABLE;
