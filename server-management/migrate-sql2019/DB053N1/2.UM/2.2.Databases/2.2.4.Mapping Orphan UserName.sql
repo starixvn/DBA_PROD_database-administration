@@ -1,7 +1,14 @@
---SITDB05
+/***
+	- Created@20211124: Bobby
+	- Host: Run on DB053N1
+	- Task: SET db properties
+***/
+use [MONDB]
+GO
 -- 1.Sync Orphan USER
-EXEC [MONDB].[dbo].[DBA_Sync_Orphan_USER]
+EXEC [dbo].[DBA_Sync_Orphan_USER]
 
+--------------------------------------------
 -- 2.Check Orphaned USER
 EXEC sp_MSForeachDB @commAND1='
  USE [?];

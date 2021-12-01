@@ -1,7 +1,7 @@
 /***
 	- Created@20211124: Bobby
 	- Host: Run on DB053
-	- Task: DO the backup full of bodb02
+	- Task: Migrate DB role members
 ***/
 use master;
 GO
@@ -9,7 +9,6 @@ DECLARE @DB_Users TABLE (ServerName SYSNAME, LogInAtServerLevel SYSNAME, UserAtD
  
 INSERT @DB_Users
 EXEC sp_MSforeachdb
- 
 '
 USE [?]
 SELECT

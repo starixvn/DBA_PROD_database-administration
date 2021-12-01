@@ -1,0 +1,27 @@
+﻿/***
+	- Created@20211124: Bobby
+	- Host: Run on DB053
+	- Task: SQLLogin - Disable
+***/
+USE [master]
+GO
+ALTER LOGIN [bodbAdminNet] DISABLE;
+ALTER LOGIN [bodbChartNet] DISABLE;
+ALTER LOGIN [bodbDownlineNet] DISABLE;
+ALTER LOGIN [bodbDownlineNetView] DISABLE;
+ALTER LOGIN [bodbExtAccNet] DISABLE;
+ALTER LOGIN [bodbinternalNet] DISABLE;
+ALTER LOGIN [bodbLicenseeNet] DISABLE;
+ALTER LOGIN [bodbPloutosNet] DISABLE;
+ALTER LOGIN [bodbRMSNet] DISABLE;
+ALTER LOGIN [bodbSPUNet] DISABLE;
+ALTER LOGIN [DataSync] DISABLE;
+ALTER LOGIN [dba_Cert_User] DISABLE;
+ALTER LOGIN [Dot_3rdparty] DISABLE;
+ALTER LOGIN [Dot_Admin] DISABLE;
+ALTER LOGIN [Dot_Casino] DISABLE;
+ALTER LOGIN [Dot_Member] DISABLE;
+ALTER LOGIN [dwrs2] DISABLE;
+ALTER LOGIN [portal] DISABLE;
+ALTER LOGIN [ServerMonitor] DISABLE;
+ALTER LOGIN [SqlLink] DISABLE;
