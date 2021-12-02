@@ -1,4 +1,5 @@
 -- Alter TempDB Modify File Path
+/*
 SELECT os.Cores, df.Files FROM
    (SELECT COUNT(*) AS Cores FROM sys.dm_os_schedulers WHERE status = 'VISIBLE ONLINE') AS os,
    (SELECT COUNT(*) AS Files FROM tempdb.sys.database_files WHERE type_desc = 'ROWS') AS df;
@@ -11,6 +12,7 @@ SELECT 'ALTER DATABASE ' + DB_NAME(database_id) + ' MODIFY FILE (NAME = ' + name
   + ', FILENAME = ''' + replace(physical_name,'K:\','H:\') + ''');'
 FROM sys.master_files
 WHERE database_id = DB_ID(N'tempdb');
+*/
 -----------------------------------------------------------------------------------------------------------
 
 
