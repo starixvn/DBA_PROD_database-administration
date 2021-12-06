@@ -4,10 +4,10 @@ values ('bodb02'),('LasDB_Archive'),('bodb_ACC'),('bodb_Licensee'),('bodb_OWP'),
 
 DECLARE @RowId INT, @serverName VARCHAR(128), @databaseName VARCHAR(128)
 	, @date VARCHAR(50), @fileName VARCHAR(255), @time VARCHAR(10)
+	, @BackupPath varchar(50) = 'G:\UMBackup'
 SELECT @RowId = 1, @serverName = @@SERVERNAME
 	, @date = CONVERT(VARCHAR(10), GETDATE(), 112)
 	, @time = REPLACE(CONVERT(VARCHAR(5), GETDATE(), 108), ':', '')
-	, @BackupPath = 'G:\UMBackup'
 WHILE EXISTS (SELECT TOP 1 1 FROM #databaseBackupList WHERE RowId = @RowId)
 BEGIN
 
