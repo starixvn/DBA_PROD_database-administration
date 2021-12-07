@@ -1,6 +1,6 @@
 CREATE TABLE #databaseBackupList(RowId INT IDENTITY(1,1), databaseName VARCHAR(200))
 INSERT INTO #databaseBackupList(databaseName)
-values ('bodb02'),('LasDB_Archive'),('bodb_ACC'),('bodb_Licensee'),('bodb_OWP'),('bodb_TGRS'),('MonDB'),('LogDB'),('LogPDB')
+values ('bodb02'),('bodb_ACC'),('bodb_Licensee'),('bodb_OWP'),('bodb_TGRS'),('MonDB')
 
 DECLARE @RowId INT, @serverName VARCHAR(128), @databaseName VARCHAR(128)
 	, @date VARCHAR(50), @fileName VARCHAR(255), @time VARCHAR(10)
