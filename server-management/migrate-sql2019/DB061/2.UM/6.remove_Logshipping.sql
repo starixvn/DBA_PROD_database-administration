@@ -31,15 +31,15 @@ GO
 --2. On the secondary server, execute sp_delete_log_shipping_secondary_database to delete 
 --the secondary database.
 --DB06, AWS_DB06 
-sp_delete_log_shipping_secondary_database N'bodb_OWP'
+EXEC master.dbo.sp_delete_log_shipping_secondary_database N'bodb_OWP'
 go
-sp_delete_log_shipping_secondary_database N'bodb_TGRS'
+EXEC master.dbo.sp_delete_log_shipping_secondary_database N'bodb_TGRS'
 --/DB06, AWS_DB06 
 
 --3. On the primary server, execute sp_delete_log_shipping_primary_database to delete information 
 --	about the log shipping configuration from the primary server. This also deletes the backup job.
 --DB061
-sp_delete_log_shipping_primary_database N'bodb_OWP'
+EXEC master.dbo.sp_delete_log_shipping_primary_database N'bodb_OWP'
 go
-sp_delete_log_shipping_primary_database N'bodb_TGRS'
+EXEC master.dbo.sp_delete_log_shipping_primary_database N'bodb_TGRS'
 --/DB061
