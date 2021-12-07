@@ -1,9 +1,9 @@
 /***
 	- Created@20211124: Bobby
-	- Host: Run on DB052
-	- Task: Remove secondary database on DB052, MNL vs AWS
+	- Host: Run on DB053
+	- Task: Remove secondary database on DB053
 ***/
-use msdb;
+use master;
 GO
 EXEC sp_delete_log_shipping_primary_secondary
 @primary_database = N'bodb_ChatBot'

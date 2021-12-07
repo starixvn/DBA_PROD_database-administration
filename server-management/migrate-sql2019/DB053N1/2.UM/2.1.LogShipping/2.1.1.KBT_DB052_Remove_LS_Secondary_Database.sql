@@ -3,7 +3,7 @@
 	- Host: Run on DB052
 	- Task: Remove secondary database on DB053
 ***/
-use msdb;
+use master;
 GO
 EXEC sp_delete_log_shipping_primary_secondary
 @primary_database = N'Affiliate_12BET'

@@ -1,9 +1,9 @@
 /***
 	- Created@20211124: Bobby
-	- Host: Run on DB052
+	- Host: Run on DB053
 	- Task: Delete Log secondary database on DB053
 ***/
-use msdb;
+use master;
 GO
 EXEC sp_delete_log_shipping_secondary_database N'Affiliate_12Bet'
 GO
