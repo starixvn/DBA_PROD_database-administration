@@ -10,6 +10,6 @@ go
 -- Create a differential database backup, appending the backup  
 -- to the backup device containing the full database backup.  
 BACKUP DATABASE bodb02  
-   TO DISK = N'D:\MSSQL\Backup\bodb02_diff.bak'  
-   WITH DIFFERENTIAL, SKIP, NOREWIND, NOUNLOAD,  STATS = 10;  
+   TO DISK = N'G:\MSSQL\Backup\bodb02_diff_20211208.bak'  
+   WITH DIFFERENTIAL, SKIP, NOREWIND, NOUNLOAD, COMPRESSION, STATS = 10;  
 GO
