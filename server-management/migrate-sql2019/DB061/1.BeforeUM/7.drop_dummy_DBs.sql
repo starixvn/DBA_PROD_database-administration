@@ -1,5 +1,5 @@
 /*
-	Task - Upgrade SQL Server DB055 to 2019
+	Task - Upgrade SQL Server DB061 to 2019
 		+ drop dummy DBs
 	Run on DB06N3
 */
