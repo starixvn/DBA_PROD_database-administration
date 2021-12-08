@@ -1,6 +1,6 @@
 /*
 	Task - Upgrade SQL Server DB061 to 2019
-		+ drop dummy DBs
+		+ detach DBs
 	Run on DB061
 */
 
