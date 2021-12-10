@@ -13,7 +13,7 @@ AS
 		- 20190419@Billy:	Initial - [Redmine: #111418]
 		- 20190524@Billy:	Change Letstalk linked server - [Redmine: #113125]
 		- 20190820@Billy:	Switch to fast notification - [Redmine: #118932]
-
+		- 20211208@Brice:	move to monDB - [Redmine: #000000]
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
 
