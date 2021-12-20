@@ -1,0 +1,8 @@
+﻿#Guide: https://www.percyreyes.com/2017/11/how-to-migrate-sql-server-aliases-easily.html
+#Run on Window Server
+Step 1: cmd -> regedit
+Step 2: Dill-down to
+	HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\MSSQLServe‌​r\Client\ConnectTo
+Step 3: Export to registry file .rds
+Step 4: Copy the registry file .rds to DB053N1
+Step 5: Import the registry file .rds to DB053N1

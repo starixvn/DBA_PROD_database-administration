@@ -1,0 +1,6 @@
+#Run on Window Server DB053N1
+#Source: G:\SOURCE\
+Step 1: Install SQL2019 ENT
+Step 2: Install CU12
+Step 3: Enable DAC https://quantricsdulieu.com/sql-server-dedicated-admin-connection-dac-dung-lam-gi/
+Step 4: Install SSMS18

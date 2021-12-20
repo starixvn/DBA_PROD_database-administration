@@ -1,0 +1,7 @@
+netsh interface ip show config
+
+netsh interface ip set address name= "10.1.x.x" static 10.1.1.100 255.255.0.0 none
+
+netsh interface ip set address name= "10.40.40.x" static 10.40.40.100 255.255.255.0 none
+
+-------------------------------------------------------------------------------------------------------
