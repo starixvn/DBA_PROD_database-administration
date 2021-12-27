@@ -8,7 +8,7 @@ select @@SERVERNAME
 
 CREATE TABLE #databaseBackupList(RowId INT IDENTITY(1,1), databaseName VARCHAR(200))
 INSERT INTO #databaseBackupList(databaseName)
-values ('bodb02'),('bodb_Licensee'),('SAS_adhocReport'),('bodb_TGRS_UAT'),('MonDB')
+values ('bodb02'),('bodb_Licensee'),('bodb_TGRS_UAT'),('MonDB')
 
 DECLARE @RowId INT, @serverName VARCHAR(128), @databaseName VARCHAR(128)
 	, @date VARCHAR(50), @fileName VARCHAR(255), @time VARCHAR(10)
