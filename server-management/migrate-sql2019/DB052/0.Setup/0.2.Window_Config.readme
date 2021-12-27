@@ -1,0 +1,6 @@
+#Run on Window Server DB053N1
+#Source: G:\SOURCE\
+Step 1: Update Config
+	+ Disable password policy on Windows Server
+	+ Enable the Lock Pages in Memory Option (Windows) (Account SQL (OS) Account before set this Option)
+Step 2: Install NTP Client Tool

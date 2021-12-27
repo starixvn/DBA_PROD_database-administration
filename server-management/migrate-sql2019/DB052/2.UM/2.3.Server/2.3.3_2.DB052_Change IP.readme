@@ -1,0 +1,3 @@
+# RUN on Window Server DB052
+Step 1: Change IP to 10.1.1.68
+Step 2: Disable IP 10.40.40.92

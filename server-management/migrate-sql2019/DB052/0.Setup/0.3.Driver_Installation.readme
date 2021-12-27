@@ -1,0 +1,7 @@
+#Run on Window Server DB053N1
+#Source: G:\SOURCE\
+Step 1: Install Visuall C++ (VC_redist.x64)
+Step 2: Install MySQL Connector (mysql-connector-odbc-8.0.27-winx64)
+Step 3: Config ODBC data source
+	+ CMD -> run (ODBC 64bit)
+	+ Add Syntem DNS (DBPROMO)
