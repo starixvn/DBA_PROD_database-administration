@@ -72,6 +72,7 @@ BEGIN
         , (FILENAME = N'H:\user_db\bodb02\Dep_Custsetting3rd_table_01.ndf')
         , (FILENAME = N'H:\user_db\bodb02\Dep_Custsetting3rd_table_02.ndf')
         , (FILENAME = N'H:\user_db\bodb02\Dep_Custsetting3rd_table_03.ndf')
+        , (FILENAME = N'H:\user_db\bodb02\Transfer_Table.ndf')
         , (FILENAME = N'H:\user_db\bodb02\P2PSetting_02.ndf')
         , (FILENAME = N'H:\user_db\bodb02\CustGameType_table_03.ndf')
         , (FILENAME = N'H:\user_db\bodb02\translog_index1.ndf')
@@ -132,6 +133,7 @@ BEGIN
         , (FILENAME = N'H:\user_db\bodb02\BettransInfo_table4.ndf')
         , (FILENAME = N'H:\user_db\bodb02\betlimit_index.ndf')
         , (FILENAME = N'H:\user_db\bodb02\betlimit_table.ndf')
+        , (FILENAME = N'H:\user_db\bodb02\Transfer_Index.ndf')
      FOR ATTACH;
 END
 GO
