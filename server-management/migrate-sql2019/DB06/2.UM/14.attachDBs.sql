@@ -1471,8 +1471,6 @@ BEGIN
 	, (FILENAME = N'H:\IBC_db\bodb02\betlimit_table.ndf')
 	, (FILENAME = N'H:\USER_DB\bodb02\Loyalty.ndf')
 	, (FILENAME = N'H:\IBC_DB\bodb02\BetMonitor.ndf')
-	, (FILENAME = N'H:\IBC_DB\bodb02\Transfer_Table.ndf')
-	, (FILENAME = N'H:\IBC_DB\bodb02\Transfer_Index.ndf')
 	FOR ATTACH;
 END
 
