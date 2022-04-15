@@ -1,11 +1,12 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DB042-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [vndba_sp_trace_WebApp]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
 	@TextDataLike NVARCHAR(256),
 	@TextDataLike2 NVARCHAR(256) = '',
 	@TextDataLike3 NVARCHAR(256) = '',
-	@TextDataLike4 NVARCHAR(256) = '',	
+	@TextDataLike4 NVARCHAR(256) = '',
+	@TextDataLike5 NVARCHAR(256) = '',
 	@TraceStartEvents BIT = 0,
 	@Mode TINYINT = 0,
 	@HasError BIT = 0 OUTPUT,
@@ -23,6 +24,7 @@ AS
 			20180917@Daniel: Support Core .NET service app
 			20191125@Daniel: Support site 'Ploutos'
 			20191211@Daniel: on_user DB: Support DB05BK1 & Remove DBTP
+			20201118@Daniel: Update info/code support latest server HA structure
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -66,7 +68,12 @@ BEGIN
 		RETURN
 	END
 
-	DECLARE @LoginNameLike NVARCHAR(30), @DatabaseNameLike NVARCHAR(30), @DatabaseNameLike2 NVARCHAR(30) = ''
+	DECLARE @LoginNameLike NVARCHAR(30), 
+		@DatabaseNameLike NVARCHAR(30), 
+		@DatabaseNameLike2 NVARCHAR(30) = '',
+		@DatabaseNameLike3 NVARCHAR(30) = '',
+		@DatabaseNameLike4 NVARCHAR(30) = '',
+		@DatabaseNameLike5 NVARCHAR(30) = ''
 
 	SELECT 
 		@LoginNameLike = 
@@ -85,7 +92,8 @@ BEGIN
 		END
 		
 	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2')
-		SELECT @DatabaseNameLike = 'custDB', @DatabaseNameLike2 = 'NAP_UserControl'
+		SELECT @DatabaseNameLike = 'custDB', @DatabaseNameLike2 = 'NAP_UserControl', @DatabaseNameLike3 = 'N88_UserControl',
+			@DatabaseNameLike4 = 'SiteConfig', @DatabaseNameLike5 = 'IPDB'
 	ELSE IF @Site = 'AFF'
 		SET @DatabaseNameLike = 'Affiliate_%'
 	ELSE IF @Site = 'FPS'
@@ -96,10 +104,13 @@ BEGIN
 		SET @DatabaseNameLike = 'bodb%'
 	
 	IF (@@SERVERNAME IN('DB05', 'DB03', 'DB05BK1') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
-		SET @DatabaseNameLike2 = 'ON_USER'
+		SELECT @DatabaseNameLike2 = 'ON_USER', @DatabaseNameLike3 = 'IPDB'
 
-	IF (@@SERVERNAME IN('DB052', 'DB054') AND @Site = 'NAP')
+	IF (@@SERVERNAME IN('DB052', 'DB053') AND @Site = 'NAP')
 		SET @DatabaseNameLike2 = 'bk'
+
+	IF (@@SERVERNAME IN('DBTRANS', 'DB06', 'DB061') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
+		SET @DatabaseNameLike2 = 'IPDB'
 
 	EXEC vndba_sp_Trace
 		@TraceTimer = @TraceTimer,
@@ -107,11 +118,15 @@ BEGIN
 		@LoginNameLike = @LoginNameLike,
 		@DatabaseNameLike = @DatabaseNameLike,
 		@DatabaseNameLike2 = @DatabaseNameLike2,
+		@DatabaseNameLike3 = @DatabaseNameLike3,
+		@DatabaseNameLike4 = @DatabaseNameLike4,
+		@DatabaseNameLike5 = @DatabaseNameLike5,
 		@MinCPU = 0,
 		@TextDataLike = @TextDataLike,
 		@TextDataLike2 = @TextDataLike2,
 		@TextDataLike3 = @TextDataLike3,	
 		@TextDataLike4 = @TextDataLike4,
+		@TextDataLike5 = @TextDataLike5,
 		@TraceStartEvents = @TraceStartEvents,
 		@mode = @mode,
 		@HasError = @HasError output,
