@@ -1,0 +1,1 @@
+forfiles -p "G:\TraceFiles" -s -m *.trc -d -1 /C "cmd /c del @path"
