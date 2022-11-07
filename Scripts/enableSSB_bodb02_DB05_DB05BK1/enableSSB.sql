@@ -18,16 +18,6 @@ ORDER BY 1
 GO
 
 /*
-SELECT 'ALTER DATABASE [' + name +'] SET TRUSTWORTHY ON;'
-FROM sys.databases
-WHERE database_id = db_id('bodb02')
-ORDER BY 1
-GO
-*/
-
-ALTER DATABASE [bodb02] SET TRUSTWORTHY ON;
-
-/*
 SELECT 'ALTER DATABASE [' + name + '] SET ENABLE_BROKER WITH NO_WAIT;'
 FROM sys.databases
 WHERE database_id = db_id('bodb02')
