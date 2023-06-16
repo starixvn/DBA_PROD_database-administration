@@ -1,0 +1,41 @@
+{
+"serverlist":["dbdist01","dbdist02","dbdist03","dbtrans","dbcust","db02","db061","db052","db054","dbmessage","db05", "dbdw2"],
+"commitid":"001",
+"restore":[
+{"server":"dbcust","dbs":["custdb","ipdb","nap_usercontrol","bodb_licensee","n88_usercontrol"]},
+{"server":"dbtrans","dbs":["bodb02","bodb_customerlog","custdb"]},
+{"server":"db02","dbs":["bodb02"]},
+{"server":"db061","dbs":["bodb02"]},
+{"server":"dbmessage","dbs":["bodb_message"]},
+{"server":"db054","dbs":["bodb_customerlog"]},
+{"server":"db05","dbs":["bodb_customer"]}],
+"csv":[
+{"server":"db061","db":"bodb_report","file":["tempcustid.csv","statement.csv"]}],
+"initstructure":[
+{"server":"dbcust","dbs":["bodb_customerlog"]},
+{"server":"dbtrans","dbs":["bodb_customerlog","logdb"]},
+{"server":"db05","dbs":["balancerecord","bodb_archive_customer_licensee","bodb_customer","on_user"]},
+{"server":"db061","dbs":["bodb_archive","bodb_owp","bodb_report","bodb_tgrs"]},
+{"server":"db054","dbs":["bodb_ost","bodb_customerlog","bodb_customerlog_archive","bodb_n88log","bodb_naplog"]},
+{"server":"db052","dbs":["bodb_oddsfeed","bodb_playtechcs","bk","bodb_fraudsensor","bodb_chatbot","bodb_ploutos","bodb_n88_archive"]},
+{"server":"dbdw2","dbs":["bodb_archive","bodb_account","bodb_audit","bodb_dwrs","bodb_staging","bodb_olap","bodb_naas","bodb02","bodb_ods","fn","mondb","bodb_vr2model","bodb_dt","bodb_adhoc","ssisdb","bodb_notification"]}],
+"initscripts":[],
+
+"comment1":"--------------------------------stable variable------------------------------",
+"driver":"{odbc driver 18 for sql server}",
+"volumedir":"/mount/volumes/"
+}
+
+
+
+ipdb,custdb,nap_usercontrol,bodb_licensee,n88_usercontrol,bodb02,bodb02,custdb,bodb02,bodb_licensee,bodb02,bodb02,bodb_licensee,servicebrokerdb,bodb02,bodb_licensee,bodb_message
+
+
+"bodb_customerlog","
+"bodb_customerlog","logdb","
+"balancerecord","bodb_archive_customer_licensee","bodb_customer","on_user","
+"bodb_archive","bodb_owp","bodb_report","bodb_tgrs","
+"bodb_ost","bodb_customerlog","bodb_customerlog_archive","bodb_n88log","bodb_naplog","
+"bodb_age","bodb_crm","bodb_maintenance","bodb_mms","bodb_n88","bodb_oic","bodb_rms","bodb_licenseereportarchive","bodb_summary","lasdb","las_logdb","bodb_licenseereport","summarylasdb","affiliate_12bet","bodb_3rdproduct",
+"bodb_oddsfeed","bodb_playtechcs","bk","bodb_fraudsensor","bodb_chatbot","bodb_ploutos","bodb_n88_archive","
+"bodb_archive","bodb_account","bodb_audit","bodb_dwrs","bodb_staging","bodb_olap","bodb_naas","bodb02","bodb_ods","fn","mondb","bodb_vr2model","bodb_dt","bodb_adhoc","ssisdb","bodb_notification"
