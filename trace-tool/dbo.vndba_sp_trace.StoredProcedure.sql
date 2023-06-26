@@ -29,6 +29,7 @@ AS
 			20170712@Daniel: Add write column data
 			20190731@Daniel: Resolve some servers don't have G:\
 			20201119@Daniel: Support more OR filters for DatabaseNameLike, TextDataLike
+			20230619@Daniel: Increase CPU check threshold
 
 		
 		Parameter's Explanation:
@@ -229,7 +230,7 @@ ORDER BY EventTime DESC
 
 IF (@@ERROR <> 0) RETURN
 
-IF(@CPUBusyPct > 30)
+IF(@CPUBusyPct > 50)
 BEGIN
 	SET @ErrorMsg =  'Sorry! Not allow run trace when server is busy, please contact DBA for further instructions.'
 	SET @HasError = 1

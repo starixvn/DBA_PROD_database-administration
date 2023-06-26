@@ -25,6 +25,7 @@ AS
 			20191125@Daniel: Support site 'Ploutos'
 			20191211@Daniel: on_user DB: Support DB05BK1 & Remove DBTP
 			20201118@Daniel: Update info/code support latest server HA structure
+			20230619@Daniel: Fix app name filter
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -114,7 +115,7 @@ BEGIN
 
 	EXEC vndba_sp_Trace
 		@TraceTimer = @TraceTimer,
-		@AppNameLike = '%.Net SqlClient Data Provider',
+		@AppNameLike = '%SqlClient Data Provider',
 		@LoginNameLike = @LoginNameLike,
 		@DatabaseNameLike = @DatabaseNameLike,
 		@DatabaseNameLike2 = @DatabaseNameLike2,
