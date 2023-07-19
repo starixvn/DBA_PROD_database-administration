@@ -30,6 +30,7 @@ AS
 			20190731@Daniel: Resolve some servers don't have G:\
 			20201119@Daniel: Support more OR filters for DatabaseNameLike, TextDataLike
 			20230619@Daniel: Increase CPU check threshold
+			20230719@Daniel: Allow more users trace
 
 		
 		Parameter's Explanation:
@@ -210,7 +211,7 @@ BEGIN
 	END
 END
 
-IF((SELECT COUNT(1) FROM sys.traces WHERE is_default = 0 AND status = 1) > 4)
+IF((SELECT COUNT(1) FROM sys.traces WHERE is_default = 0 AND status = 1) > 10)
 BEGIN
 	PRINT 'Sorry! Server already has many traces running, please contact DBA for further instructions.'
 	SET @HasError = 1
