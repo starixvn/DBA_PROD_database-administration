@@ -27,11 +27,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 2G
+          cpus: "8"
+          memory: 16G
         reservations:
           #cpus: "8"
-          memory: 1G
+          memory: 4G
 
     user: root #got error ERROR: Setup FAILED copying system data file 'C:\templatedata\model_replicatedmaster.mdf' to '/var/opt/..., should using this line
     #privileged: true
@@ -63,3 +63,4 @@ services:
         - ${MSSQL_DATA}/user_db:/var/mssql/user_db
         - ${MSSQL_CONF}/mssql.conf:/var/opt/mssql/mssql.conf        
         - ${LOGSHIPPNG_DIR}:/var/mssql/logshipping
+        - ${BACKUP_DIR}:/var/mssql/backup
