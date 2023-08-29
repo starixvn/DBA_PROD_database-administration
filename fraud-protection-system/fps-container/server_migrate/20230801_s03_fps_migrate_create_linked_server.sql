@@ -283,7 +283,7 @@ EXEC master.dbo.sp_serveroption @server=N'DBFRAUD', @optname=N'remote proc trans
 GO
 
 /****** Object:  LinkedServer [DBNOTI]    Script Date: 8/25/2023 2:44:28 AM ******/
-EXEC master.dbo.sp_addlinkedserver @server = N'DBNOTI', @srvproduct=N'SQL_Server', @provider=N'SQLNCLI', @datasrc=N'DBSPARE'
+EXEC master.dbo.sp_addlinkedserver @server = N'DBNOTI', @srvproduct=N'SQL_Server', @provider=N'MSOLEDBSQL', @datasrc=N'10.40.40.222' --DBSPARE
  /* For security reasons the linked server remote logins password is changed with ######## */
 EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'DBNOTI',@useself=N'False',@locallogin=NULL,@rmtuser=N'sqlLink',@rmtpassword='########'
 GO
@@ -328,9 +328,9 @@ EXEC master.dbo.sp_serveroption @server=N'DBNOTI', @optname=N'remote proc transa
 GO
 
 /****** Object:  LinkedServer [FPSADMIN]    Script Date: 8/25/2023 2:44:28 AM ******/
-EXEC master.dbo.sp_addlinkedserver @server = N'FPSADMIN', @srvproduct=N'SQL Server'
+EXEC master.dbo.sp_addlinkedserver @server = N'FPSADMIN', @srvproduct=N'SQL_Server', @provider=N'MSOLEDBSQL', @datasrc=N'10.40.40.33,16401'
  /* For security reasons the linked server remote logins password is changed with ######## */
-EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'FPSADMIN',@useself=N'False',@locallogin=NULL,@rmtuser=N'linkdbserver',@rmtpassword='########'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'FPSADMIN',@useself=N'False',@locallogin=NULL,@rmtuser=N'sqlLink',@rmtpassword='########'
 GO
 
 EXEC master.dbo.sp_serveroption @server=N'FPSADMIN', @optname=N'collation compatible', @optvalue=N'false'

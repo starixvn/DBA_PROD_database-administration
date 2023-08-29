@@ -10,6 +10,6 @@ USE msdb;
 
 GO
 
----log shipping - backup job of bodb_OWP
+---disable backup job
 EXEC msdb.dbo.sp_update_job @job_name = N'LSBackup_FPS_ADMIN', @enabled = 0;
 EXEC msdb.dbo.sp_update_job @job_name = N'LSBackup_FPS_LOG', @enabled = 0;

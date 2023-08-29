@@ -4,7 +4,7 @@
 	DB: 10.40.40.33,16401-master
 */
 
-USE master;
+USE FPS_LOG;
 
 GO
 
@@ -16,4 +16,4 @@ where issqlrole = 0
 
 go
 
-EXEC sp_changedbowner 'sa';
+EXEC FPS_LOG.dbo.sp_changedbowner 'sa';
