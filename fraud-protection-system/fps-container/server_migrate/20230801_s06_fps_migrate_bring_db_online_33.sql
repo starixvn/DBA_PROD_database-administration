@@ -1,0 +1,15 @@
+/*
+	Created: 20230801@Sol
+	Task: bring db online
+	DB: 10.40.40.33,16401-master
+*/
+
+USE master;
+
+GO 
+
+RESTORE DATABASE FPS_LOG WITH RECOVERY;
+
+GO
+
+RESTORE DATABASE FPS_ADMIN WITH RECOVERY;
