@@ -64,3 +64,5 @@ services:
         - ${MSSQL_CONF}/mssql.conf:/var/opt/mssql/mssql.conf        
         - ${LOGSHIPPNG_DIR}:/var/mssql/logshipping
         - ${BACKUP_DIR}:/var/mssql/backup
+        - ${TLS_DIR}/openssl.cnf:/etc/ssl/openssl.cnf
+        - ${MSSQL_CONF}/secrets:/var/opt/mssql/secrets
