@@ -1,0 +1,32 @@
+/*
+	Created: 20230921@Sol
+	Task: create new index
+	DB: FPS_DB02-FPS_DeviceFingerprint
+*/
+
+
+---create index
+USE [FPS_DeviceFingerprint]
+
+GO
+
+SET ANSI_PADDING ON
+GO
+
+/****** Object:  Index [IX_Device_Id]    Script Date: 9/20/2023 10:59:14 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Device_Id_T] ON [dbo].[Device]
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [DEVICE_INDEX_02_BigINT_T]
+GO
+
+SET ANSI_PADDING ON
+GO
+
+/****** Object:  Index [IX_Device_Code]    Script Date: 9/20/2023 11:00:53 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Device_Code_T] ON [dbo].[Device]
+(
+	[Code] ASC
+)
+INCLUDE([Id],[CreatedDate]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [DEVICE_INDEX_01_BigINT_T]
+GO
