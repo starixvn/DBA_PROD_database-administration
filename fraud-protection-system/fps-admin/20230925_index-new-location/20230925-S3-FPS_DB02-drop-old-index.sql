@@ -1,5 +1,5 @@
 /*
-	Created: 20230921@Sol
+	Created: 20230925@Sol
 	Task: drop old index
 	DB: FPS_DB02-FPS_DeviceFingerprint
 */
