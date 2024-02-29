@@ -1,0 +1,53 @@
+version: '3.7'
+networks:
+  app_network:
+    external: ${EXTERNAL_NETWORK}
+    name: ${MYSQL_NETWORK}
+    driver: ${DRIVER_NETWORK}
+
+services:
+  mysql:
+    image: mysql:${MYSQL_TAG}
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          #cpuset: "1,3" --version <= 2
+          memory: 2G
+
+    container_name: ${MYSQL_HOST}
+    hostname: ${MYSQL_HOST}
+    #user: ${UID}:${GID}
+    cap_add:
+      - SYS_NICE  # CAP_SYS_NICE
+
+    volumes:
+      - app_volume:/var/lib/mysql:rw
+      - ${MYSQL_LOG}:/var/log/mysql:rw
+      - ${MYSQL_CONF}/my.cnf:/etc/mysql/my.cnf:ro
+      - ${MYSQL_CONF}/conf.d:/etc/mysql/conf.d:ro
+      - ${MYSQL_TMP}:/var/log/mysql/tmp:rw
+      - ${MYSQL_BINLOG}:/var/log/mysql/binlog:rw
+      
+    env_file:
+      - ./mysql.env
+
+    ports:
+      - '${MYSQL_PORT}:3306'
+
+    networks:
+      app_network:
+        aliases: 
+          - ${MYSQL_HOST}
+
+    restart: always
+
+volumes:
+  app_volume:
+    external: ${EXTERNAL_VOLUME}
+    name: ${DATA_VOLUME}
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "${MYSQL_VOLUME_PATH}"
