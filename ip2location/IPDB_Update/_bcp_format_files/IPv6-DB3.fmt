@@ -1,0 +1,9 @@
+12.0
+7
+1 SQLCHAR 0 1 "\"" 0 first_double_quote  Latin1_General_CI_AI
+2 SQLCHAR 0 39 "\",\"" 1 ip_from ""
+3 SQLCHAR 0 39 "\",\"" 2 ip_to ""
+4 SQLCHAR 0 2 "\",\"" 3 country_code Latin1_General_CI_AI
+5 SQLCHAR 0 64 "\",\"" 4 country_name Latin1_General_CI_AI
+6 SQLCHAR 0 128 "\",\"" 5 region_name Latin1_General_CI_AI
+7 SQLCHAR 0 128 "\"\r\n" 6 city_name Latin1_General_CI_AI
