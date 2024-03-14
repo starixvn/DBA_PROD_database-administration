@@ -1,5 +1,5 @@
 /*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE [vndba_sp_trace_WebApp_xtest]
+ALTER PROCEDURE [vndba_sp_trace_WebApp]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
 	@TextDataLike NVARCHAR(256),
