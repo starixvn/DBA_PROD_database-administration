@@ -1,5 +1,5 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE [vndba_sp_trace_WebApp]
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+ALTER PROCEDURE [vndba_sp_trace_WebApp_xtest]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
 	@TextDataLike NVARCHAR(256),
@@ -26,6 +26,7 @@ AS
 			20191211@Daniel: on_user DB: Support DB05BK1 & Remove DBTP
 			20201118@Daniel: Update info/code support latest server HA structure
 			20230619@Daniel: Fix app name filter
+			20240309@Daniel: Change web login, support NAP policy
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -69,7 +70,8 @@ BEGIN
 		RETURN
 	END
 
-	DECLARE @LoginNameLike NVARCHAR(30), 
+	DECLARE @LoginNameLike NVARCHAR(30),
+		@LoginNameLike2 NVARCHAR(30) = '',
 		@DatabaseNameLike NVARCHAR(30), 
 		@DatabaseNameLike2 NVARCHAR(30) = '',
 		@DatabaseNameLike3 NVARCHAR(30) = '',
@@ -78,18 +80,23 @@ BEGIN
 
 	SELECT 
 		@LoginNameLike = 
-			CASE WHEN @Site IN ('NAP', 'AFF') THEN 'bodbAdminNet%'
-			WHEN @Site = 'EX-NAP' THEN 'bodbExtAccNet'
+			CASE WHEN @Site IN ('NAP', 'AFF') THEN 'wsv_nap%'
+			WHEN @Site = 'EX-NAP' THEN 'wsv_xnap'
 			WHEN @Site = 'DW' THEN 'dwrs'
-			WHEN @Site = 'PRMS' THEN 'bodbRMSNet'
+			WHEN @Site = 'PRMS' THEN 'wsv_rms'
 			WHEN @Site = 'LC' THEN 'bodbChartNet'					
-			WHEN @Site = 'ALPHA' THEN 'bodbDownlineNet%'
-			WHEN @Site = 'LICENSEE' THEN 'bodbLicenseeNet'
-			WHEN @Site = 'MEMBER' THEN 'Dot_Member'
+			WHEN @Site = 'ALPHA' THEN 'wsv_alp%'
+			WHEN @Site = 'LICENSEE' THEN 'wsv_lap'
+			WHEN @Site = 'MEMBER' THEN 'svc_tig'
 			WHEN @Site = 'FPS' THEN 'fps%'
-			WHEN @Site = 'FD' THEN 'bodbSPUNet'
-			WHEN @Site = 'OWP' THEN 'bodbOWPNet'
-			WHEN @Site = 'Ploutos' THEN 'bodbPloutosNet'
+			WHEN @Site = 'FD' THEN 'wsv_wasa'
+			WHEN @Site = 'OWP' THEN 'wsv_owp'
+			WHEN @Site = 'Ploutos' THEN 'wsv_pts'
+		END
+		
+	SELECT 
+		@LoginNameLike2 =
+			CASE WHEN @Site IN ('NAP') THEN 'wsv_pol%'
 		END
 		
 	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2')
@@ -117,6 +124,7 @@ BEGIN
 		@TraceTimer = @TraceTimer,
 		@AppNameLike = '%SqlClient Data Provider',
 		@LoginNameLike = @LoginNameLike,
+		@LoginNameLike2 = @LoginNameLike2,
 		@DatabaseNameLike = @DatabaseNameLike,
 		@DatabaseNameLike2 = @DatabaseNameLike2,
 		@DatabaseNameLike3 = @DatabaseNameLike3,

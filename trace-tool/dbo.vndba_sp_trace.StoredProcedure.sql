@@ -3,6 +3,10 @@ ALTER PROCEDURE [vndba_sp_trace]
 	@TraceTimer INT = 30,
 	@AppNameLike NVARCHAR(30) = '',
 	@LoginNameLike NVARCHAR(30),
+	@LoginNameLike2 NVARCHAR(30) = '',
+	@LoginNameLike3 NVARCHAR(30) = '',
+	@LoginNameLike4 NVARCHAR(30) = '',
+	@LoginNameLike5 NVARCHAR(30) = '',
 	@DatabaseNameLike NVARCHAR(30),
 	@DatabaseNameLike2 NVARCHAR(30) = '',
 	@DatabaseNameLike3 NVARCHAR(30) = '',
@@ -30,6 +34,7 @@ AS
 			20190731@Daniel: Resolve some servers don't have G:\
 			20201119@Daniel: Support more OR filters for DatabaseNameLike, TextDataLike
 			20230619@Daniel: Increase CPU check threshold
+			20240309@Daniel: Support more OR filters for LoginNameLike, TextDataLike
 
 		
 		Parameter's Explanation:
@@ -82,6 +87,47 @@ BEGIN
 	IF (LEN(ISNULL(@LoginNameLike,'')) = 0)
 	BEGIN
 		SET @ErrorMsg = 'Error:  Filter @LoginNameLike is empty or not set'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@LoginNameLike2,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@LoginNameLike2, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @LoginNameLike2 is too short or not set. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+
+IF CHARINDEX('%', ISNULL(@LoginNameLike3,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@LoginNameLike3, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @LoginNameLike3 is too short or not set. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@LoginNameLike4,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@LoginNameLike4, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @LoginNameLike4 is too short or not set. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@LoginNameLike5,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@LoginNameLike5, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @LoginNameLike5 is too short or not set. Please set at least 3 characters, not including wildcard %'
 		SET @HasError = 1
 		PRINT @ErrorMsg
 		RETURN
@@ -396,6 +442,51 @@ EXEC sys.sp_trace_setfilter
 	@logical_operator = 0, --AND
 	@comparison_operator = 6, --LIKE
 	@value = @LoginNameLike
+IF (@TextDataLike2 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike2
+END
+IF (@TextDataLike2 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike2
+END
+IF (@TextDataLike3 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike3
+END
+IF (@TextDataLike4 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike4
+END
+IF (@TextDataLike5 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike5
+END
 	
 --Set trace filter on @TextDataLike (1)
 SET @xVal = N'exec sp_%'
