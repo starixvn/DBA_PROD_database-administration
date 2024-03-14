@@ -1,4 +1,4 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB" executers="bodbAdminNet,wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [vndba_sp_trace]
 	@TraceTimer INT = 30,
 	@AppNameLike NVARCHAR(30) = '',
