@@ -1,5 +1,5 @@
 /*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB" executers="bodbAdminNet,wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE [vndba_sp_trace]
+ALTER PROCEDURE [dbo].[vndba_sp_trace]
 	@TraceTimer INT = 30,
 	@AppNameLike NVARCHAR(30) = '',
 	@LoginNameLike NVARCHAR(30),
@@ -442,7 +442,7 @@ EXEC sys.sp_trace_setfilter
 	@logical_operator = 0, --AND
 	@comparison_operator = 6, --LIKE
 	@value = @LoginNameLike
-IF (@TextDataLike2 <> '')
+IF (@LoginNameLike2 <> '')
 BEGIN
 	EXEC sys.sp_trace_setfilter 
 		@trace_id = @id, 
@@ -451,16 +451,7 @@ BEGIN
 		@comparison_operator = 6, --LIKE
 		@value = @LoginNameLike2
 END
-IF (@TextDataLike2 <> '')
-BEGIN
-	EXEC sys.sp_trace_setfilter 
-		@trace_id = @id, 
-		@columnid = 11,
-		@logical_operator = 1, --OR
-		@comparison_operator = 6, --LIKE
-		@value = @LoginNameLike2
-END
-IF (@TextDataLike3 <> '')
+IF (@LoginNameLike3 <> '')
 BEGIN
 	EXEC sys.sp_trace_setfilter 
 		@trace_id = @id, 
@@ -469,7 +460,7 @@ BEGIN
 		@comparison_operator = 6, --LIKE
 		@value = @LoginNameLike3
 END
-IF (@TextDataLike4 <> '')
+IF (@LoginNameLike4 <> '')
 BEGIN
 	EXEC sys.sp_trace_setfilter 
 		@trace_id = @id, 
@@ -478,7 +469,7 @@ BEGIN
 		@comparison_operator = 6, --LIKE
 		@value = @LoginNameLike4
 END
-IF (@TextDataLike5 <> '')
+IF (@LoginNameLike5 <> '')
 BEGIN
 	EXEC sys.sp_trace_setfilter 
 		@trace_id = @id, 
@@ -641,5 +632,9 @@ BEGIN
 		REPLACE([path], @folder, '') [Trace File] 
 	FROM sys.traces WHERE [path] LIKE @path + '%'
 END
+
+
+
+
 
 
