@@ -26,7 +26,7 @@ AS
 			20191211@Daniel: on_user DB: Support DB05BK1 & Remove DBTP
 			20201118@Daniel: Update info/code support latest server HA structure
 			20230619@Daniel: Fix app name filter
-			20240309@Daniel: Change web login, support NAP policy
+			20240309@Daniel: Change web login, support NAP policy, saparate account for AFF site
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -80,8 +80,9 @@ BEGIN
 
 	SELECT 
 		@LoginNameLike = 
-			CASE WHEN @Site IN ('NAP', 'AFF') THEN 'wsv_nap%'
+			CASE WHEN @Site = 'NAP' THEN 'wsv_nap%'
 			WHEN @Site = 'EX-NAP' THEN 'wsv_xnap'
+			WHEN @Site = 'AFF' THEN 'wsv_aff'
 			WHEN @Site = 'DW' THEN 'dwrs'
 			WHEN @Site = 'PRMS' THEN 'wsv_rms'
 			WHEN @Site = 'LC' THEN 'bodbChartNet'					
@@ -96,7 +97,7 @@ BEGIN
 		
 	SELECT 
 		@LoginNameLike2 =
-			CASE WHEN @Site IN ('NAP') THEN 'wsv_pol%'
+			CASE WHEN @Site IN ('NAP') THEN 'wsv_pol'
 		END
 		
 	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2')
