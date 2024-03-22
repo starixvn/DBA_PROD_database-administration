@@ -1,8 +1,12 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,FPSDEV-PerfMonDB,FPSDI-PerfMonDB,FPSLICALL-PerfMonDB" executers="bodbAdminNet,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE [vndba_sp_trace]
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB" executers="bodbAdminNet,wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+ALTER PROCEDURE [dbo].[vndba_sp_trace]
 	@TraceTimer INT = 30,
 	@AppNameLike NVARCHAR(30) = '',
 	@LoginNameLike NVARCHAR(30),
+	@LoginNameLike2 NVARCHAR(30) = '',
+	@LoginNameLike3 NVARCHAR(30) = '',
+	@LoginNameLike4 NVARCHAR(30) = '',
+	@LoginNameLike5 NVARCHAR(30) = '',
 	@DatabaseNameLike NVARCHAR(30),
 	@DatabaseNameLike2 NVARCHAR(30) = '',
 	@DatabaseNameLike3 NVARCHAR(30) = '',
@@ -30,6 +34,8 @@ AS
 			20190731@Daniel: Resolve some servers don't have G:\
 			20201119@Daniel: Support more OR filters for DatabaseNameLike, TextDataLike
 			20230619@Daniel: Increase CPU check threshold
+			20230719@Daniel: Allow more users trace
+			20240309@Daniel: Support more OR filters for LoginNameLike
 
 		
 		Parameter's Explanation:
@@ -82,6 +88,47 @@ BEGIN
 	IF (LEN(ISNULL(@LoginNameLike,'')) = 0)
 	BEGIN
 		SET @ErrorMsg = 'Error:  Filter @LoginNameLike is empty or not set'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@LoginNameLike2,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@LoginNameLike2, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @LoginNameLike2 is too short or not set. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+
+IF CHARINDEX('%', ISNULL(@LoginNameLike3,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@LoginNameLike3, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @LoginNameLike3 is too short or not set. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@LoginNameLike4,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@LoginNameLike4, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @LoginNameLike4 is too short or not set. Please set at least 3 characters, not including wildcard %'
+		SET @HasError = 1
+		PRINT @ErrorMsg
+		RETURN
+	END
+END
+IF CHARINDEX('%', ISNULL(@LoginNameLike5,'')) > 0 --not exact search
+BEGIN
+	IF (LEN(ISNULL(REPLACE(@LoginNameLike5, '%', ''),'')) < 3)
+	BEGIN
+		SET @ErrorMsg = 'Error:  Filter @LoginNameLike5 is too short or not set. Please set at least 3 characters, not including wildcard %'
 		SET @HasError = 1
 		PRINT @ErrorMsg
 		RETURN
@@ -210,7 +257,7 @@ BEGIN
 	END
 END
 
-IF((SELECT COUNT(1) FROM sys.traces WHERE is_default = 0 AND status = 1) > 4)
+IF((SELECT COUNT(1) FROM sys.traces WHERE is_default = 0 AND status = 1) > 10)
 BEGIN
 	PRINT 'Sorry! Server already has many traces running, please contact DBA for further instructions.'
 	SET @HasError = 1
@@ -396,6 +443,42 @@ EXEC sys.sp_trace_setfilter
 	@logical_operator = 0, --AND
 	@comparison_operator = 6, --LIKE
 	@value = @LoginNameLike
+IF (@LoginNameLike2 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike2
+END
+IF (@LoginNameLike3 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike3
+END
+IF (@LoginNameLike4 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike4
+END
+IF (@LoginNameLike5 <> '')
+BEGIN
+	EXEC sys.sp_trace_setfilter 
+		@trace_id = @id, 
+		@columnid = 11,
+		@logical_operator = 1, --OR
+		@comparison_operator = 6, --LIKE
+		@value = @LoginNameLike5
+END
 	
 --Set trace filter on @TextDataLike (1)
 SET @xVal = N'exec sp_%'
@@ -550,5 +633,9 @@ BEGIN
 		REPLACE([path], @folder, '') [Trace File] 
 	FROM sys.traces WHERE [path] LIKE @path + '%'
 END
+
+
+
+
 
 
