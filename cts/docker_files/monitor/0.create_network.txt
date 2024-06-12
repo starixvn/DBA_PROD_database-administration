@@ -1,0 +1,2 @@
+#run to create network first
+docker network create cts_net_monitor

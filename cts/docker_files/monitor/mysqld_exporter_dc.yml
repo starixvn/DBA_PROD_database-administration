@@ -1,0 +1,35 @@
+version: '3.7'
+name: mysqld-exporter
+
+networks:
+  monitoring:
+    external: true
+    name: cts_net_monitor
+    driver: bridge
+
+services:
+  mysqld_exporter:
+    image: prom/mysqld-exporter:latest
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+
+    container_name: mysqld-exporter
+    hostname: mysqld-exporter
+
+    ports:
+      - 9104:9104
+    
+    volumes:
+      - ./mysqld_exporter:/etc/mysqld_exporter:ro
+
+    command:
+     #- "--mysqld.username=vndba:${MYSQLD_EXPORTER_PASSWORD}"
+     #- "--mysqld.address=10.18.200.53:3361"
+     - "--config.my-cnf=/etc/mysqld_exporter/my_exp.cnf"
+    networks:
+      - monitoring
+
+    restart: always

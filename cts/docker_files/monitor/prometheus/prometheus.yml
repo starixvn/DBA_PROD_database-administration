@@ -1,0 +1,63 @@
+# my global config
+global:
+  scrape_interval:     5s # Set the scrape interval to every 5 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+scrape_configs:
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #   - targets: ['10.40.40.159:8082']
+  #     labels:
+  #       instance: cts_master_cadvisor
+
+  #   - targets: ['10.40.40.190:8082']
+  #     labels:
+  #       instance: cts_repl_cadvisor
+
+  - job_name: 'mysql_3361'
+    metrics_path: /probe
+    params:
+      auth_module: [client.server61]
+    static_configs:
+    - targets:
+      - 10.18.200.53:3361
+
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      # The mysqld_exporter host:port
+      replacement: 10.18.200.53:9104
+
+  - job_name: 'mysql_3362'
+    metrics_path: /probe
+    params:
+      auth_module: [client.server62]
+    static_configs:
+    - targets:
+      - 10.18.200.53:3362
+
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      # The mysqld_exporter host:port
+      replacement: 10.18.200.53:9104
+
+  - job_name: 'node'
+    static_configs:
+    - targets: ['10.18.200.53:9100']
+      labels:
+        instance: cts_node_exporter
+
+    
+
