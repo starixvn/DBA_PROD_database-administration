@@ -12,10 +12,14 @@ go
 -- [ 0 ] get current data count for comparison
 PRINT '=== Get RowCount ==='
 CREATE TABLE #RowCount (TableName varchar(50), RowCnt int)
-INSERT INTO #RowCount SELECT 'IPTable'     , COUNT(*) FROM dbo.IPTable with (NOLOCK)
-INSERT INTO #RowCount SELECT 'IPTable_Mini', COUNT(*) FROM dbo.IPTable_Mini WITH (NOLOCK)
-INSERT INTO #RowCount SELECT 'IPv6_DB1'    , COUNT(*) FROM dbo.TEMP_IPv6_DB1 WITH (NOLOCK)
-INSERT INTO #RowCount SELECT 'IPv6_DB3'    , COUNT(*) FROM dbo.TEMP_IPv6_DB3 WITH (NOLOCK)
+INSERT INTO #RowCount SELECT 'IPTable'			, COUNT(*) FROM dbo.IPTable with (NOLOCK)
+INSERT INTO #RowCount SELECT 'IPTable_Mini'		, COUNT(*) FROM dbo.IPTable_Mini WITH (NOLOCK)
+INSERT INTO #RowCount SELECT 'IPTable_Denied'	, COUNT(*) FROM dbo.IPTable_Denied WITH (NOLOCK)
+INSERT INTO #RowCount SELECT 'IPv6_DB1'			, COUNT(*) FROM dbo.TEMP_IPv6_DB1 WITH (NOLOCK)
+INSERT INTO #RowCount SELECT 'IPv6_DB3'			, COUNT(*) FROM dbo.TEMP_IPv6_DB3 WITH (NOLOCK)
+INSERT INTO #RowCount SELECT 'KeyMap_IPv6_DB1'  , COUNT(*) FROM dbo.TEMP_KeyMap_IPv6_DB1 WITH (NOLOCK)
+INSERT INTO #RowCount SELECT 'KeyMap_IPv6_DB3'  , COUNT(*) FROM dbo.TEMP_KeyMap_IPv6_DB3 WITH (NOLOCK)
+
 
 select * from #RowCount 
 
@@ -49,7 +53,7 @@ BULK INSERT [dbo].Country
       --ROWTERMINATOR = '\n',
 	FORMATFILE = 'D:\_000_Nexcel\IPDB_Monthly\_bcp_format_files\ipdb_country.FMT' , BATCHSIZE = 100000 
 	)
-
+	
 --update to remove china in tw name
 select * from Country where CountryCode = 'TW'
 UPDATE Country SET CountryName = 'Taiwan' WHERE CountryCode = 'TW'
@@ -258,7 +262,7 @@ DELETE TOP ( 100000)  FROM Staging_IPv6_DB1
 GO 12
 DELETE TOP (1000000) FROM Staging_IPv6_DB3
 GO 8
-DELETE TOP ( 200000)  FROM Staging_IPv6_DB3
+DELETE TOP ( 300000)  FROM Staging_IPv6_DB3
 GO 20
 
 
@@ -295,10 +299,15 @@ UNION ALL SELECT CASE WHEN cnt = 0 THEN 'OK' ELSE 'Please check #F' END Result F
 -- with correct new data, RowCount is expected to change.
 -- if count not change, possibly new version not release yet.
 ;WITH NewCount AS (
-      SELECT 'IPTable' TableName, COUNT(*) RowCnt FROM dbo.IPTable with (NOLOCK)
-UNION SELECT 'IPTable_Mini'     , COUNT(*) FROM dbo.IPTable_Mini WITH (NOLOCK)
-UNION SELECT 'IPv6_DB1'         , COUNT(*) FROM dbo.TEMP_IPv6_DB1 WITH (NOLOCK)
-UNION SELECT 'IPv6_DB3'         , COUNT(*) FROM dbo.TEMP_IPv6_DB3 WITH (NOLOCK)
+      SELECT 'IPTable' TableName , COUNT(*) RowCnt FROM dbo.IPTable with (NOLOCK)
+UNION SELECT 'IPTable_Mini'      , COUNT(*) FROM dbo.IPTable_Mini WITH (NOLOCK)
+UNION SELECT 'IPTable_Denied'    , COUNT(*) FROM dbo.IPTable_Denied WITH (NOLOCK)
+
+UNION SELECT 'IPv6_DB1'          , COUNT(*) FROM dbo.TEMP_IPv6_DB1 WITH (NOLOCK)
+UNION SELECT 'IPv6_DB3'          , COUNT(*) FROM dbo.TEMP_IPv6_DB3 WITH (NOLOCK)
+
+UNION SELECT 'KeyMap_IPv6_DB1'   , COUNT(*) FROM dbo.TEMP_KeyMap_IPv6_DB1 WITH (NOLOCK)
+UNION SELECT 'KeyMap_IPv6_DB3'   , COUNT(*) FROM dbo.TEMP_KeyMap_IPv6_DB3 WITH (NOLOCK)
 )
 SELECT rc.TableName, rc.RowCnt as CountBefore, NewCount.RowCnt as CountAfter
 FROM #RowCount rc INNER JOIN NewCount ON rc.TableName = NewCount.TableName
