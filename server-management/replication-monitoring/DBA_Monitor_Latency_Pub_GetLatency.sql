@@ -4,11 +4,12 @@ USE [MonDB]
 
 GO
 
-CREATE PROCEDURE [dbo].[DBA_Monitor_Latency_Pub_GetLatency]
+ALTER PROCEDURE [dbo].[DBA_Monitor_Latency_Pub_GetLatency]
 (
 	@IsDebug BIT = 0,
 	@Threshold INT = 30, --in second
-	@IsEmail BIT = 0
+	@IsEmail BIT = 0,
+	@PubExceptionSetting VARCHAR(MAX) = '[]'
 )
 AS
 /*  
@@ -17,6 +18,7 @@ AS
 	DB: DBTrans/DBCust/DB02/DBTP
 	Revision:
 		- 20240612@Sol: initial sp
+		- 20240612@Sol: add json setting for exception cases
 
 */
 BEGIN
@@ -28,6 +30,7 @@ BEGIN
 	DECLARE @ParamDefinition NVARCHAR(max) = '';
 	DECLARE @PubId INT, @PubName SYSNAME, @PubDatabase SYSNAME, @TraceTokenId INT;
 	DECLARE @MessageInfo NVARCHAR(MAX) = '';
+	DECLARE @currTime TIME = CAST(GETDATE() AS TIME) --get current time
 
 	DECLARE @TraceResult TABLE (
 		distributor_latency BIGINT,
@@ -37,9 +40,29 @@ BEGIN
 		overall_latency BIGINT
 		)
 
+	IF (ISNULL(@PubExceptionSetting,'') = '')
+		SET @PubExceptionSetting = '[]' --prevent error when parse json format
+
+	IF (ISJSON(@PubExceptionSetting) = 0) --not a valid json format
+		RAISERROR('ERROR! NOT A VALID JSON FORMAT.', 16, 1) --return user error and report to job failed
+
 	DECLARE @RepToken TABLE (PubId int, PubName sysname, PubDatabase Sysname, TraceTokenId Int, CreatedDate Datetime2, ModifiedDate Datetime2, Latency INT, IsDone BIT, SubName Sysname, SubDatabase Sysname);
 		
 	SET @ParamDefinition = '@dyn_tracer_token_id int, @dyn_publication sysname';
+
+	--store json data to temp table
+	DROP TABLE IF EXISTS #tmpPubExceptionSetting
+
+	SELECT * INTO #tmpPubExceptionSetting
+	FROM OPENJSON(@PubExceptionSetting) WITH (
+		PubName VARCHAR(128) 'strict $.pubName',
+		Threshold INT '$.Threshold',
+		FromTime VARCHAR(10) '$.FromTime',
+		ToTime VARCHAR(10) '$.ToTime'
+	);
+
+	--delete settings with range time does not contain current time
+	DELETE FROM #tmpPubExceptionSetting WHERE @currTime NOT BETWEEN FromTime AND ToTime
 
 	--insert token to check
 	INSERT INTO @RepToken
@@ -138,12 +161,24 @@ BEGIN
 	CLOSE Token_cursor;
 	DEALLOCATE Token_cursor;
 
+	---get data that need to alert
+	DECLARE @Result TABLE (PubId int, PubName sysname, PubDatabase Sysname, TraceTokenId Int, CreatedDate Datetime2, ModifiedDate Datetime2, Latency INT, IsDone BIT, SubName Sysname, SubDatabase Sysname)
+
+	INSERT INTO @Result
+	SELECT rs.*
+	FROM @RepToken rs
+		LEFT JOIN #tmpPubExceptionSetting s
+			ON rs.PubName = s.PubName
+	WHERE 1 = 
+			CASE 
+				WHEN s.PubName IS NULL AND rs.Latency > @Threshold THEN 1
+				WHEN s.PubName IS NOT NULL AND @currTime BETWEEN s.FromTime AND s.ToTime AND rs.Latency > s.Threshold THEN 1
+				WHEN s.pubName IS NOT NULL AND @currTime NOT BETWEEN s.FromTime AND s.ToTime AND rs.Latency > @Threshold THEN 1
+				ELSE 0
+			END
+
 	--check to send mail/skype here
-	IF EXISTS (
-			SELECT 1
-			FROM @RepToken r
-			WHERE r.Latency > @Threshold
-			)
+	IF EXISTS (SELECT 1 FROM @Result r )
 	BEGIN
 		IF @IsEmail = 1
 		BEGIN
@@ -156,8 +191,7 @@ BEGIN
 								td = c.SubName,'',
 								td = c.SubDatabase,'',
 								td = c.Latency
-							FROM @RepToken c
-							WHERE c.Latency > @Threshold
+							FROM @Result c
 							FOR XML PATH('tr'),
 								TYPE
 							) AS NVARCHAR(MAX)) + N'</table>'
@@ -176,12 +210,18 @@ BEGIN
 		BEGIN
 
 			SELECT @MessageInfo = @MessageInfo + concat(@@SERVERNAME, '.[', r.PubDatabase,']: ', r.PubName,' -> [', r.SubName, '].[', r.SubDatabase, '] ==> ', r.Latency, ' (s)','{{NewLine}}')
-			FROM @RepToken r
-			WHERE r.Latency > @Threshold
+			FROM @Result r
 			ORDER BY r.PubDatabase, r.PubName, r.SubName, r.SubDatabase
 
 			IF @IsDebug = 1
 				PRINT @MessageInfo
+
+			----un-comment when deploy to dbtp
+			--EXECUTE	DBNOTI.NotificationDB.dbo.DBA_Letstalk_NewJobMessage 
+			--	@ServerName = N'PONTUS'
+			--	, @JobId = NULL, @JobName = N'Custom Message'
+			--	, @Message = @MessageInfo
+			--	, @CaseId = 1;
 
 			--send noti to DB JOB MONITOR chat group in TEAMS
 			EXECUTE	DBNOTI.NotificationDB.dbo.DBA_Letstalk_NewJobMessage 
