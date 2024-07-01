@@ -1,6 +1,4 @@
-
-
-use IPDB;
+USE IPDB;
 
 go
 
@@ -162,6 +160,16 @@ GO
 
 -- [ 5 ] for row which ipKeyFrom not equal to ipKeyTo, break it. so, we don't required BETWEEN to check for ipKey, just compare with ipKeyFrom
 PRINT '=== eliminate range for ipKey ==='
+
+
+---------================
+-- 20240618: manual update those ips range to VN: 103.199.41.182, 103.199.41.97 , 103.199.41.251, 103.199.41.159
+-- SELECT dbo.ipconvert('103.199.41.182') 
+-- select * from IPTable i with(nolock) WHERE ipFrom = 1741105408 AND ipTo = 1741105663
+UPDATE IPTable SET countrySHORT='VN', countryLong='Viet Nam', IsModified=1, ipREGION = 'Ho Chi Minh', ipCITY = 'Ho Chi Minh City' 
+WHERE ipKeyFrom = 103 AND ipKeyTO = 103 AND ipFrom = 1741105408 AND ipTo = 1741105663
+
+
 
 -- make a unique ipKeyFROM value
 CREATE TABLE #Number (number int PRIMARY KEY)
