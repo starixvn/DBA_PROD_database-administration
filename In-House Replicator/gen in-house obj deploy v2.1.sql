@@ -337,13 +337,13 @@ else -- hybrid - sync deleted data to sub
 		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 3, 10, CHAR(9))
 	+ '						)
 		GROUP BY
-		ORDER BY [RepUpdateTime]
 		'
 	+ STUFF ((
 		select REPLICATE(CHAR(9),3) + ',[' + name +']' + CHAR(13) from @PK_cols
 		order by ord
 		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 4, CHAR(9) + '')
 	+ '
+		ORDER BY [RepUpdateTime]
 	END;
 ' 
 end 
