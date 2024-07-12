@@ -1,0 +1,3 @@
+truncate table TEMP_IPTable_Denied
+truncate table TEMP_IPTable_Mini
+GO

@@ -1,0 +1,7 @@
+14.0
+5
+1		SQLCHAR				0		1		"\""		0	first_double_quote  SQL_Latin1_General_CP1_CI_AS
+2       SQLCHAR             0       100     "\",\""		2	CountryCode			SQL_Latin1_General_CP1_CI_AS
+3       SQLCHAR             0       2       "\",\""		1	CountryName			SQL_Latin1_General_CP1_CI_AS
+4       SQLCHAR             0       3       "\",\""		0	""					""
+5       SQLCHAR             0       3       "\"\r\n"	0	""					""
