@@ -140,10 +140,13 @@ CREATE TABLE ' + @tbl_name + CHAR(13) + '(' + CHAR(13) + STUFF((
 						   THEN '(' + CAST(c.[precision] AS VARCHAR(5)) + ',' + CAST(c.scale AS VARCHAR(5)) + ')'
 						ELSE ''
 					END +          
-					CASE WHEN c.is_nullable = 1 OR pc.name is null THEN ' NULL' ELSE ' NOT NULL' END + CHAR(13)
+					CASE WHEN c.is_nullable = 1 OR pc.name is null THEN ' NULL' ELSE ' NOT NULL' END
+					+ CASE WHEN ic.is_identity = 1 THEN ' IDENTITY(' + convert(varchar(10), ISNULL(ic.seed_value, 0)) + ',' + CAST(ISNULL(ic.increment_value, '1') AS CHAR(1)) + ')' ELSE '' END
+					 + CHAR(13)
 		FROM sys.columns c WITH (NOWAIT)
 			INNER JOIN sys.types tp WITH (NOWAIT) ON c.user_type_id = tp.user_type_id
 			LEFT JOIN sys.default_constraints dc WITH (NOWAIT) ON c.default_object_id != 0 AND c.[object_id] = dc.parent_object_id AND c.column_id = dc.parent_column_id
+			LEFT JOIN sys.identity_columns ic WITH (NOWAIT) ON c.is_identity = 1 AND c.[object_id] = ic.[object_id] AND c.column_id = ic.column_id
 			LEFT JOIN @PK_cols pc on c.name = pc.name
 		WHERE c.[object_id] = OBJECT_ID(@tbl_name) AND c.name NOT IN('RepUpdateTime', 'IsDeleted')
 		ORDER BY c.column_id
