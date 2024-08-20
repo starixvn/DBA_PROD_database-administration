@@ -8,11 +8,11 @@
 DECLARE @SrcDBName VARCHAR(50) = 'CustDB' --Source or publisher db name
 DECLARE @TargetDBName VARCHAR(50) = 'bodb02'--Target or subscriber db name
 DECLARE @DistDBName VARCHAR(50) = 'ReplCustDB'--Distributor db name
-DECLARE @tbl_name VARCHAR(50) = 'customer_danieltest' --Table name Dep_CustBetSettingGame_Member, Dep_ChargeInfoSetting
-DECLARE @RepGroup tinyint = 0 --RepGroup for source-target, if have dist then it's for source-distributor
+DECLARE @tbl_name VARCHAR(50) = 'Dep_CustBetSettingGame_Member_DanielTest' --Table name Dep_CustBetSettingGame_Member, Dep_ChargeInfoSetting
+DECLARE @RepGroup tinyint = 1 --RepGroup for source-target, if have dist then it's for source-distributor
 
 DECLARE @SyncDelete BIT = 1 --hybrid(1) sync delete action, standard(0) no sync delete acion
-DECLARE @HaveDist BIT = 1 -- direct(0) source-target without distributor, indirect (1) via distributor source-distributor-target
+DECLARE @HaveDist BIT = 0 -- direct(0) source-target without distributor, indirect (1) via distributor source-distributor-target
 DECLARE @RepGroup_dist tinyint = 0 --RepGroup for distributor-target
 
 DECLARE @RepAlterSchema BIT = 0 --for alter/drop related objects for schema changes (add new column, change datatype etc) - to be implemented - not available yet!
