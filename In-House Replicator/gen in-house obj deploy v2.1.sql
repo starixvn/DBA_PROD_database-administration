@@ -8,11 +8,11 @@
 DECLARE @SrcDBName VARCHAR(50) = 'CustDB' --Source or publisher db name
 DECLARE @TargetDBName VARCHAR(50) = 'bodb02'--Target or subscriber db name
 DECLARE @DistDBName VARCHAR(50) = 'ReplCustDB'--Distributor db name
-DECLARE @tbl_name VARCHAR(50) = 'Dep_CustBetSettingGame_Member_DanielTest' --Table name Dep_CustBetSettingGame_Member, Dep_ChargeInfoSetting
+DECLARE @tbl_name VARCHAR(50) = 'BetSetting_Member' --Table name Dep_CustBetSettingGame_Member, Dep_ChargeInfoSetting
 DECLARE @RepGroup tinyint = 1 --RepGroup for source-target, if have dist then it's for source-distributor
 
 DECLARE @SyncDelete BIT = 1 --hybrid(1) sync delete action, standard(0) no sync delete acion
-DECLARE @HaveDist BIT = 0 -- direct(0) source-target without distributor, indirect (1) via distributor source-distributor-target
+DECLARE @HaveDist BIT = 1 -- direct(0) source-target without distributor, indirect (1) via distributor source-distributor-target
 DECLARE @RepGroup_dist tinyint = 0 --RepGroup for distributor-target
 
 DECLARE @RepAlterSchema BIT = 0 --for alter/drop related objects for schema changes (add new column, change datatype etc) - to be implemented - not available yet!
@@ -230,7 +230,7 @@ BEGIN
 
 	DECLARE @__time_start DATETIME2 = DATEADD(MILLISECOND, -@back_fix, @start);
 	DECLARE @__time_end DATETIME2;
-	DECLARE @__time_upperbound DATETIME2 = DATEADD(MILLISECOND, -@back_fix, SYSDATETIME());
+	DECLARE @__time_upperbound DATETIME2 = DATEADD(MILLISECOND, [dbo].[f_GetUpperBound_BackFix](), SYSDATETIME());
 
 	SET LOCK_TIMEOUT 1000;
 
@@ -257,7 +257,7 @@ BEGIN
 		where cc.name not IN('RepUpdateTime', 'IsDeleted')
 		order by ord
 		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 4, CHAR(9) + '')
-	+ '			,[RepUpdateTime]			,[isDeleted]			,SYSDATETIME() AS [_FetchedTime]
+	+ '			,[RepUpdateTime]			,ISNULL(IsDeleted, 0) AS IsDeleted			,SYSDATETIME() AS [_FetchedTime]
 		FROM [dbo].[' + @tbl_name + ']  WITH (NOLOCK, INDEX = IX_' + @tbl_name + '_RepUpdateTime)
 		WHERE [RepUpdateTime] > @__time_start AND [RepUpdateTime] <= @__time_end
 		ORDER BY [RepUpdateTime];
@@ -388,7 +388,7 @@ BEGIN
 
 	DECLARE @__time_start DATETIME2 = DATEADD(MILLISECOND, -@back_fix, @start);
 	DECLARE @__time_end DATETIME2;
-	DECLARE @__time_upperbound DATETIME2 = DATEADD(MILLISECOND, -@back_fix, SYSDATETIME());
+	DECLARE @__time_upperbound DATETIME2 = DATEADD(MILLISECOND, [dbo].[f_GetUpperBound_BackFix](), SYSDATETIME());
 
 	SET LOCK_TIMEOUT 1000;
 
@@ -414,7 +414,7 @@ BEGIN
 		where cc.name not IN('RepUpdateTime', 'IsDeleted')
 		order by ord
 		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 4, CHAR(9) + '')
-	+ '			,[RepUpdateTime]			,[isDeleted]			,SYSDATETIME() AS [_FetchedTime]
+	+ '			,[RepUpdateTime]			,ISNULL(IsDeleted, 0) AS IsDeleted			,SYSDATETIME() AS [_FetchedTime]
 		FROM [dbo].[' + @tbl_name + ']  WITH (NOLOCK, INDEX = IX_' + @tbl_name + '_RepUpdateTime)
 		WHERE [RepUpdateTime] > @__time_start AND [RepUpdateTime] <= @__time_end
 		ORDER BY [RepUpdateTime];
