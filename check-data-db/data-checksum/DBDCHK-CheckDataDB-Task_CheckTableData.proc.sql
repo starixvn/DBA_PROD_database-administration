@@ -496,7 +496,7 @@ OPTION (RECOMPILE);
 ';
 		
 			if (ISNULL(@TargetId, 0) = ISNULL(@TargetID_hasIsDeleted, 0))
-				SELECT	@ExecuteSP = stuff(@ExecuteSP, patindex('%<=%', @ExecuteSP) + 14, 1, ' AND isDeleted = 0 ')
+				SELECT	@ExecuteSP = stuff(@ExecuteSP, patindex('%<=%', @ExecuteSP) + 14, 1, ' AND ISNULL(isDeleted, 0) = 0 ')
 
 			EXECUTE	async.ASyncExecution @ExecuteSP;
 		END;
