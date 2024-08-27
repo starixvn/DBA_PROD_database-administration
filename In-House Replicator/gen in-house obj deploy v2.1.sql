@@ -513,7 +513,7 @@ BEGIN
 				ORDER by ord
 				FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, CHAR(9)) + ','
 		, ' ')
-	+ '[isDeleted] = [tvp].[isDeleted]                   ,[RepUpdateTime]	= CASE WHEN [tvp].[RepUpdateTime] > [t].[RepUpdateTime] THEN [tvp].[RepUpdateTime] ELSE [t].[RepUpdateTime] END
+	+ '[isDeleted] = [tvp].[isDeleted]                   ,[RepUpdateTime]	= CASE WHEN [tvp].[RepUpdateTime] > ISNULL([t].RepUpdateTime,'''') THEN [tvp].[RepUpdateTime] ELSE [t].[RepUpdateTime] END
     WHEN NOT MATCHED THEN
         INSERT (' + CHAR(13)
 	+ STUFF ((
@@ -587,7 +587,7 @@ BEGIN
 				ORDER by ord
 				FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, CHAR(9)) + ','
 		, ' ')
-	+ '' + case when @SyncDelete = 0 then '[isDeleted] = [tvp].[isDeleted]                   ,' else '' end + '[RepUpdateTime]	= CASE WHEN [tvp].[RepUpdateTime] > [t].[RepUpdateTime] THEN [tvp].[RepUpdateTime] ELSE [t].[RepUpdateTime] END
+	+ '' + case when @SyncDelete = 0 then '[isDeleted] = [tvp].[isDeleted]                   ,' else '' end + '[RepUpdateTime]	= CASE WHEN [tvp].[RepUpdateTime] > ISNULL([t].RepUpdateTime,'''') THEN [tvp].[RepUpdateTime] ELSE [t].[RepUpdateTime] END
     WHEN NOT MATCHED THEN' 
  else -- hybrid - sync deleted data to sub
 '	WHEN MATCHED AND [tvp].isDeleted = 0 THEN
@@ -599,7 +599,7 @@ BEGIN
 				ORDER by ord
 				FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, CHAR(9)) + ','
 		, ' ')
-	+ '' + case when @SyncDelete = 0 then '[isDeleted] = [tvp].[isDeleted]                   ,' else '' end + '[RepUpdateTime]	= CASE WHEN [tvp].[RepUpdateTime] > [t].[RepUpdateTime] THEN [tvp].[RepUpdateTime] ELSE [t].[RepUpdateTime] END
+	+ '' + case when @SyncDelete = 0 then '[isDeleted] = [tvp].[isDeleted]                   ,' else '' end + '[RepUpdateTime]	= CASE WHEN [tvp].[RepUpdateTime] > ISNULL([t].RepUpdateTime,'''') THEN [tvp].[RepUpdateTime] ELSE [t].[RepUpdateTime] END
 	WHEN MATCHED AND [tvp].isDeleted = 1 THEN 
 		DELETE
     WHEN NOT MATCHED AND [tvp].isDeleted = 0 THEN' 	
@@ -642,6 +642,7 @@ USE ' + @TargetDBName + '
 GO' + @SQL
 select CONVERT(XML, (SELECT N' --' + char(13) + CONVERT(NVARCHAR(MAX), @sql_Target) + char(13) + N'--' AS [processing-instruction(query)] FOR XML PATH('')))  [2. Deploy SP put on Target]
 PRINT @sql_Target
+
 
 -------------------------------------------------
 if @HaveDist = 1
@@ -726,4 +727,102 @@ SELECT @sql_Target = @SQL
 select CONVERT(XML, (SELECT N' --' + char(13) + CONVERT(NVARCHAR(MAX), @sql_Target) + char(13) + N'--' AS [processing-instruction(query)] FOR XML PATH('')))  [3. Insert repl setting on Target]
 PRINT CHAR(13) + @sql_Target
 
+
+
+-------------------------------------------------
+SELECT @sql = '
+ALTER PROCEDURE [dbo].[DR_Repl_Put' + @tbl_name + '_Dist]
+    @tvp_param TVP_Repl' + @tbl_name + ' READONLY
+AS
+/*
+	Created: by Patrick	
+	Task: rep In-House
+	DB: KL DBCUST-CustDB
+	
+	Revisions:
+		- 20240730@Patrick: Scale out DBCUST [RedmineID: #199915]
+
+	Example:
+				
+*/
+BEGIN
+    SET NOCOUNT ON;
+	INSERT INTO [dbo].[' + @tbl_name + '_Del_InHouse](
+'	+ STUFF ((
+		select CHAR(9) + CHAR(9) + ',[' + name +']' + CHAR(13) from @PK_cols
+		where name NOT IN('RepUpdateTime', 'IsDeleted')
+		order by ord
+		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, CHAR(9) + CHAR(9))
+	+ '		,[RepUpdateTime]
+	)
+	SELECT
+'	+ STUFF ((
+		select CHAR(9) + CHAR(9) + ',[' + name +']' + CHAR(13) from @PK_cols
+		where name NOT IN('RepUpdateTime', 'IsDeleted')
+		order by ord
+		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, CHAR(9) + CHAR(9))
+	+ '		,[RepUpdateTime]
+	FROM (
+		MERGE [dbo].[' + @tbl_name + '] [t]
+		USING @tvp_param [tvp] ON' + 
+	+ STUFF ((
+				SELECT REPLICATE(CHAR(9),7)+ 'AND [t].[' + name + '] = [tvp].[' + name + ']' + CHAR(13) FROM @PK_cols
+				ORDER by ord
+				FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 11, CHAR(9)) + '		WHEN MATCHED AND [tvp].isDeleted = 0 THEN
+        UPDATE SET' +
+	+ iif (exists(select 1 from @NonPK_cols where name NOT IN('RepUpdateTime', 'IsDeleted')),  
+		STUFF ((
+				SELECT ',[' + name + '] = [tvp].[' + name + ']' + CHAR(13) + '                   ' FROM @NonPK_cols
+				where name NOT IN('RepUpdateTime', 'IsDeleted')
+				ORDER by ord
+				FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, CHAR(9)) + ','
+		, ' ') + '[RepUpdateTime]	= CASE WHEN [tvp].[RepUpdateTime] > ISNULL([t].RepUpdateTime,'''') THEN [tvp].[RepUpdateTime] ELSE [t].[RepUpdateTime] END
+		WHEN MATCHED AND [tvp].isDeleted = 1 THEN 
+			DELETE
+		WHEN NOT MATCHED AND [tvp].isDeleted = 0 THEN
+			INSERT(
+'	+ STUFF ((
+		select CHAR(9)+CHAR(9)+CHAR(9)+ CHAR(9)+ ',[' + name +']' + CHAR(13) from
+		(
+			select * FROM @PK_cols
+			union all select * FROM @NonPK_cols
+		) cc
+		where cc.name NOT IN('RepUpdateTime', 'IsDeleted')
+		order by ord
+		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 3, 3, CHAR(9)+CHAR(9))
+	+ '				,[RepUpdateTime]
+			)
+			VALUES (
+'	+ STUFF ((
+		select CHAR(9)+CHAR(9)+CHAR(9)+ CHAR(9)+ ',tvp.[' + name +']' + CHAR(13) from
+		(
+			select * FROM @PK_cols
+			union all select * FROM @NonPK_cols
+		) cc
+		where cc.name NOT IN('RepUpdateTime', 'IsDeleted')
+		order by ord
+		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 3, 3, CHAR(9)+CHAR(9))
+	+ '				,tvp.[RepUpdateTime]
+			)
+
+		OUTPUT $action
+		' + STUFF ((
+		select REPLICATE(CHAR(9),3) + ',deleted.[' + name +']' + CHAR(13) from @PK_cols
+		order by ord
+		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, CHAR(9) + '') + '			,tvp.[RepUpdateTime]
+	) AS __deleting(
+		[Action]
+	' + STUFF ((
+		select REPLICATE(CHAR(9),2) + ',[' + name +']' + CHAR(13) from @PK_cols
+		order by ord
+		FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, CHAR(9) + '') + '		,[RepUpdateTime]
+		)
+	WHERE [Action] = ''DELETE''; --only capture deleted $action
+END'
+SELECT @sql_Target = ' --============================================================================================================================
+-- 4. Deploy SP put on Target DR Source
+USE ' + @TargetDBName + '
+GO' + @SQL
+select CONVERT(XML, (SELECT N' --' + char(13) + CONVERT(NVARCHAR(MAX), @sql_Target) + char(13) + N'--' AS [processing-instruction(query)] FOR XML PATH('')))  [4. Deploy SP put on Target DR Source]
+PRINT @sql_Target
 
