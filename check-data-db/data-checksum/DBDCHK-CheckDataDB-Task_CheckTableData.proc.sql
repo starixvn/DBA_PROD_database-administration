@@ -74,8 +74,10 @@ BEGIN;
 			,	PRIMARY KEY CLUSTERED (TargetId, RowNum)
 			);
 
-	DECLARE @TargetID_hasIsDeleted INT = NULL
-
+	DECLARE @Targets_hasIsDeleted AS TABLE (
+				TargetId		INT
+			);
+	
 
 	-- Get variables --
 	SELECT	@TableId			= tbl.TableId
@@ -270,8 +272,9 @@ WHERE	s.name = @SchName
 		END;
 
 
-		-- Get target server has table has isDeleted column:
-		select @TargetID_hasIsDeleted = TargetID from @TargetSchemas where ColName = 'IsDeleted'
+		-- Get target servers has table has isDeleted column:
+		insert @Targets_hasIsDeleted
+		select TargetID from @TargetSchemas where ColName = 'IsDeleted'
 		--------------------------------------------------------
 
 		DELETE	ts
@@ -495,7 +498,7 @@ WHERE	r.ChkDate = @CheckTime
 OPTION (RECOMPILE);
 ';
 		
-			if (ISNULL(@TargetId, 0) = ISNULL(@TargetID_hasIsDeleted, 0))
+			if (ISNULL(@TargetId, 0) IN(select ISNULL(TargetID, 0) from @Targets_hasIsDeleted))
 				SELECT	@ExecuteSP = stuff(@ExecuteSP, patindex('%<=%', @ExecuteSP) + 14, 1, ' AND ISNULL(isDeleted, 0) = 0 ')
 
 			EXECUTE	async.ASyncExecution @ExecuteSP;
