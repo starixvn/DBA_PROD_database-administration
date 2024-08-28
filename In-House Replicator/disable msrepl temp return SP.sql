@@ -1,7 +1,7 @@
 /*
 	Task: Generate alter msrep SPs putting return to stop replication on rep tables
 	Created by Daniel @20240801
-	Run on subscribers db
+	Run on subscribers db repl from DBCUST
 
 */
 

@@ -1,7 +1,7 @@
 /*
 	Task: Generate alter SPs putting return to disable
 	Created by Daniel @20240819
-	Run on subscribers db DB06x, DBTP10C
+	Run on subscribers db DB06x, DBTP10C, KL DBKLC1, KL DBCUST
 
 */
 
