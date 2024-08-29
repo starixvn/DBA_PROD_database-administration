@@ -1,0 +1,88 @@
+/*<info serverAlias="DB061-master></info>*/
+/*  
+	Created by: 20240829@Sol
+	Task: add vnteam to linked server
+	DB: DB061-master
+*/
+
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DB02', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DB03', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DB05', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DB052', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DB053', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DB054', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DB05BK1', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DB062', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBACC', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBAGE', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBARC', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBCASINOADMINCS\ADMIN', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBCTG', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBCUST', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBDISTRM', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBDW2', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBEAS', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBEXT', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBLAS', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBLIC', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBLOG', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBMNL', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBNOTI', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBPOLICY', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBPTCS', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBRPT', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBSPARE', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBSPU', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBSUM', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBSUM_STDBY', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBTP', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBTRANS', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBTXN', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBUSERLOG', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'DBWH', @locallogin = N'vnteam', @useself = N'True'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'SSAS02', @locallogin = N'vnteam', @useself = N'True'
+
+GO
+
+--- REVERT ---
+/*
+
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DB02', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DB03', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DB05', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DB052', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DB053', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DB054', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DB05BK1', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DB062', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBACC', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBAGE', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBARC', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBCASINOADMINCS\ADMIN', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBCTG', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBCUST', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBDISTRM', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBDW2', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBEAS', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBEXT', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBLAS', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBLIC', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBLOG', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBMNL', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBNOTI', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBPOLICY', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBPTCS', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBRPT', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBSPARE', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBSPU', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBSUM', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBSUM_STDBY', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBTP', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBTRANS', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBTXN', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBUSERLOG', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'DBWH', @locallogin = N'vnteam'
+EXEC master.dbo.sp_droplinkedsrvlogin @rmtsrvname = N'SSAS02', @locallogin = N'vnteam'
+
+
+*/
