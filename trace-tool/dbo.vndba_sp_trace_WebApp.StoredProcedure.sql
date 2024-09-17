@@ -128,6 +128,7 @@ BEGIN
 		@AppNameLike = '%SqlClient Data Provider',
 		@LoginNameLike = @LoginNameLike,
 		@LoginNameLike2 = @LoginNameLike2,
+		@LoginNameLike3 = @LoginNameLike3,
 		@DatabaseNameLike = @DatabaseNameLike,
 		@DatabaseNameLike2 = @DatabaseNameLike2,
 		@DatabaseNameLike3 = @DatabaseNameLike3,
