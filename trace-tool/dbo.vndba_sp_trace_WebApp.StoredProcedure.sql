@@ -1,4 +1,4 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB" executers="wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,DBTP-MonDB" executers="wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [vndba_sp_trace_WebApp]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
@@ -125,7 +125,7 @@ BEGIN
 
 	EXEC vndba_sp_Trace
 		@TraceTimer = @TraceTimer,
-		@AppNameLike = '%SqlClient Data Provider',
+		--@AppNameLike = '%SqlClient Data Provider',
 		@LoginNameLike = @LoginNameLike,
 		@LoginNameLike2 = @LoginNameLike2,
 		@LoginNameLike3 = @LoginNameLike3,
