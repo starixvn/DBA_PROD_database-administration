@@ -9,10 +9,18 @@ USE master;
 
 GO
 
-CREATE USER [sqllink] FOR LOGIN [sqllink];
+IF NOT EXISTS (
+		SELECT 1
+		FROM sys.database_principals
+		WHERE DB_NAME() = 'master'
+			AND name = 'sqllink'
+		)
+BEGIN
 
-GO
+	CREATE USER [sqllink] FOR LOGIN [sqllink];
 
-GRANT EXECUTE ON xp_readerrorlog TO [sqllink];
+	GRANT EXECUTE ON xp_readerrorlog TO [sqllink];
+
+END
 
 GO
