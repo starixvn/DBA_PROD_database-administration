@@ -1,4 +1,4 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB" executers="bodbAdminNet,wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,DBTP-MonDB" executers="wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
 ALTER PROCEDURE [vndba_sp_trace_WebApp]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
@@ -27,6 +27,7 @@ AS
 			20201118@Daniel: Update info/code support latest server HA structure
 			20230619@Daniel: Fix app name filter
 			20240309@Daniel: Change web login, support NAP policy, saparate account for AFF site
+			20240916@Daniel: support login asv_cust (API create cust), DBCUST.GlobCustDB (scale-out)
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -72,6 +73,9 @@ BEGIN
 
 	DECLARE @LoginNameLike NVARCHAR(30),
 		@LoginNameLike2 NVARCHAR(30) = '',
+		@LoginNameLike3 NVARCHAR(30) = '',
+		@LoginNameLike4 NVARCHAR(30) = '',
+		@LoginNameLike5 NVARCHAR(30) = '',
 		@DatabaseNameLike NVARCHAR(30), 
 		@DatabaseNameLike2 NVARCHAR(30) = '',
 		@DatabaseNameLike3 NVARCHAR(30) = '',
@@ -95,13 +99,11 @@ BEGIN
 			WHEN @Site = 'Ploutos' THEN 'wsv_pts'
 		END
 		
-	SELECT 
-		@LoginNameLike2 =
-			CASE WHEN @Site IN ('NAP') THEN 'wsv_pol'
-		END
+	SELECT @LoginNameLike2 = CASE WHEN @Site IN ('NAP') THEN 'wsv_pol' END
+	SELECT @LoginNameLike3 = CASE WHEN @Site IN ('NAP','EX-NAP','ALPHA','MEMBER') THEN 'asv_cust' END --support acc called from API on some sites
 		
 	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2')
-		SELECT @DatabaseNameLike = 'custDB', @DatabaseNameLike2 = 'NAP_UserControl', @DatabaseNameLike3 = 'N88_UserControl',
+		SELECT @DatabaseNameLike = '%custDB', @DatabaseNameLike2 = 'NAP_UserControl', @DatabaseNameLike3 = 'N88_UserControl',
 			@DatabaseNameLike4 = 'SiteConfig', @DatabaseNameLike5 = 'IPDB'
 	ELSE IF @Site = 'AFF'
 		SET @DatabaseNameLike = 'Affiliate_%'
@@ -123,9 +125,10 @@ BEGIN
 
 	EXEC vndba_sp_Trace
 		@TraceTimer = @TraceTimer,
-		@AppNameLike = '%SqlClient Data Provider',
+		--@AppNameLike = '%SqlClient Data Provider',
 		@LoginNameLike = @LoginNameLike,
 		@LoginNameLike2 = @LoginNameLike2,
+		@LoginNameLike3 = @LoginNameLike3,
 		@DatabaseNameLike = @DatabaseNameLike,
 		@DatabaseNameLike2 = @DatabaseNameLike2,
 		@DatabaseNameLike3 = @DatabaseNameLike3,
