@@ -14,6 +14,7 @@ AS
 	Revisions:
 		- 20200123@Billy:	Initial - [Redmine: #127620]
 		- 20240823@Daniel:	Support compare in-house tables exclude row isDeleted = 1 in comparision
+		- 20241031@Daniel: Support tables have partition column other than CustID
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
