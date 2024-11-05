@@ -1,7 +1,5 @@
-SET QUOTED_IDENTIFIER ON;
-SET ANSI_NULLS ON;
-GO
-CREATE PROCEDURE	chksum.Task_CheckTableData
+/*<info serverAlias="DBDCHK-CheckDataDB" executers="" viewers="" isFunction="0" isNested="1"></info>*/
+ALTER PROCEDURE	[chksum].[Task_CheckTableData]
 						@Schema				NVARCHAR(128)
 					,	@Table				NVARCHAR(128)
 					,	@CheckTime			DATETIME		= NULL
@@ -15,6 +13,7 @@ AS
 
 	Revisions:
 		- 20200123@Billy:	Initial - [Redmine: #127620]
+		- 20240823@Daniel:	Support compare in-house tables exclude row isDeleted = 1 in comparision
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -75,6 +74,10 @@ BEGIN;
 			,	PRIMARY KEY CLUSTERED (TargetId, RowNum)
 			);
 
+	DECLARE @Targets_hasIsDeleted AS TABLE (
+				TargetId		INT
+			);
+	
 
 	-- Get variables --
 	SELECT	@TableId			= tbl.TableId
@@ -268,6 +271,12 @@ WHERE	s.name = @SchName
 			EXECUTE	@ExecuteSP @Query, @Param, @TargetId, @Schema, @Table;
 		END;
 
+
+		-- Get target servers has table has isDeleted column:
+		insert @Targets_hasIsDeleted
+		select TargetID from @TargetSchemas where ColName = 'IsDeleted'
+		--------------------------------------------------------
+
 		DELETE	ts
 		FROM		@TargetSchemas AS ts
 		INNER JOIN	chksum.CheckExcluded AS ex
@@ -388,6 +397,7 @@ SELECT	@Duration = DATEDIFF(MILLISECOND, @Start, GETDATE());'
 		) AS xq(str)
 	) AS cols(str);
 
+
 	SELECT	@Param = N'';
 	SELECT	@Param += N'@IntervalFrom BIGINT, @IntervalTo BIGINT, @Count BIGINT OUTPUT, @Chksum BIGINT OUTPUT, @Stdev BIGINT OUTPUT, @Duration BIGINT OUTPUT';
 
@@ -487,6 +497,9 @@ WHERE	r.ChkDate = @CheckTime
 	AND	c.TableId = @TableId
 OPTION (RECOMPILE);
 ';
+		
+			if (ISNULL(@TargetId, 0) IN(select ISNULL(TargetID, 0) from @Targets_hasIsDeleted))
+				SELECT	@ExecuteSP = stuff(@ExecuteSP, patindex('%<=%', @ExecuteSP) + 14, 1, ' AND ISNULL(isDeleted, 0) = 0 ')
 
 			EXECUTE	async.ASyncExecution @ExecuteSP;
 		END;
@@ -496,5 +509,3 @@ OPTION (RECOMPILE);
 			AND	IntervalTo		= @IntervalTo;
 	END;
 END;
-GO
-/*<info serverAlias="DBDCHK-CheckDataDB" executers="" viewers="" isFunction="0" isNested="1"></info>*/
