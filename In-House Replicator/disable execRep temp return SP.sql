@@ -29,7 +29,8 @@ where o.name IN(
 'Acc_Dep_DynamicCustSetting_06',
 'Acc_Dep_DynamicCustSetting_10',
 'Acc_CustSetting3rd_11',
-'Acc_CustSetting3rd_16'
+'Acc_CustSetting3rd_16',
+'Acc_CustomerInfo_Execrep_05' -- new added for VR update huge using execRep
 )
 --order by o.name
 
