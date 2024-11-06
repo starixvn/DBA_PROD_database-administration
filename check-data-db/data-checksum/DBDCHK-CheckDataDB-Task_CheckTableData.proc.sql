@@ -108,7 +108,7 @@ This table is not configured correctly. Exiting...';
 			RETURN 16;
 		END;
 
-		IF	@MaxPartitionValue IS NULL
+		IF	(@MaxPartitionValue IS NULL OR @PartitionCol NOT IN('CustID','AgentID'))
 		BEGIN;
 			SELECT	TOP(1)
 					@Server			= src.TargetServer
@@ -179,9 +179,12 @@ Cannot determine @MaxPartitionValue to continue checking data. Exiting...';
 		AND	l.isActive = 1;
 
 	-- Get intervals --
+	if (@PartitionInterval > @MaxPartitionValue)
+		set @PartitionInterval = @MaxPartitionValue
+		
 	INSERT INTO	@Intervals (IntervalFrom, IntervalTo)
 	SELECT	[IntervalFrom]	= (t.id - 1) * @PartitionInterval
-		,	[IntervalTo]	= CASE WHEN t.id * @PartitionInterval - 1 < @MaxPartitionValue THEN t.id * @PartitionInterval - 1 ELSE @MaxPartitionValue END
+		,	[IntervalTo]	= CASE WHEN t.id * @PartitionInterval < @MaxPartitionValue THEN t.id * @PartitionInterval - 1 ELSE @MaxPartitionValue END
 	FROM	(
 		SELECT	TOP(@MaxPartitionValue / @PartitionInterval + 1)
 				[id] = ROW_NUMBER() OVER(ORDER BY (SELECT NULL))
