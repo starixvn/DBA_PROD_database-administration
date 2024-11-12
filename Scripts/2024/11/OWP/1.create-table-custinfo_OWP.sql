@@ -57,11 +57,14 @@ GO
 
 ALTER TABLE [dbo].[custInfo_OWP] ADD  CONSTRAINT [DF_custInfo_OWP_RepUpdateTime]  DEFAULT (sysdatetime()) FOR [RepUpdateTime]
 GO
+ 
+INSERT INTO SystemSettings (VName, VValue)
+
+VALUES ('LastOWPCustId', 0)
 
 INSERT INTO SystemSettings (VName, VValue)
-VALUES ('LastCustId', 0)
-INSERT INTO SystemSettings (VName, VValue)
-VALUES ('LastUpdateTime', CONVERT(VARCHAR(500), GETDATE(), 121))
 
+VALUES ('LastOWPUpdateTime', CONVERT(VARCHAR(500), GETDATE(), 121))
+ 
 GO
 

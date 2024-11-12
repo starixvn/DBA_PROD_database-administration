@@ -32,10 +32,10 @@ BEGIN
 
 	--get lastcustid from systemsettings
 	SELECT 
-		@LastCustId = CASE WHEN s.vname = 'LastCustId' THEN CAST(VValue AS INT) ELSE @LastCustId END,
-		@LastUpdateTime = CASE WHEN s.vname = 'LastUpdateTime' THEN CAST(VValue AS DATETIME) ELSE @LastUpdateTime END
+		@LastCustId = CASE WHEN s.vname = 'LastOWPCustId' THEN CAST(VValue AS INT) ELSE @LastCustId END,
+		@LastUpdateTime = CASE WHEN s.vname = 'LastOWPUpdateTime' THEN CAST(VValue AS DATETIME) ELSE @LastUpdateTime END
 	FROM SystemSettings s WITH (NOLOCK)
-	WHERE s.VName IN ('LastCustId',	'LastUpdateTime')
+	WHERE s.VName IN ('LastOWPCustId',	'LastOWPUpdateTime')
 
 	IF (@LastCustId IS NULL OR @LastUpdateTime IS NULL)
 	BEGIN
@@ -165,7 +165,7 @@ BEGIN
 			--update lastcustid
 			UPDATE dbo.SystemSettings
 			SET VValue = @runningCustId
-			WHERE VName = 'LastCustId'
+			WHERE VName = 'LastOWPCustId'
 		END
 	END
 	ELSE --print message info and continuous to update part
@@ -297,14 +297,14 @@ BEGIN
 			--update lastcustid
 			UPDATE dbo.SystemSettings
 			SET VValue = CONVERT(VARCHAR(500),GETDATE(), 121)
-			WHERE VName = 'LastUpdateTime'
+			WHERE VName = 'LastOWPUpdateTime'
 
 		END
 
 		--update lastcustid
 		UPDATE dbo.SystemSettings
 		SET VValue = CONVERT(VARCHAR(500),@CurrentTime, 121)
-		WHERE VName = 'LastUpdateTime'
+		WHERE VName = 'LastOWPUpdateTime'
 	END
 	ELSE --print message info and exit at the end of SP
 	BEGIN
