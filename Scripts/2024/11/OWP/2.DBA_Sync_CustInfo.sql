@@ -181,7 +181,7 @@ BEGIN
 
 	--get new list custid for update
 	INSERT INTO #tmp_List_CustId (CustId)
-	SELECT c.CustId
+	SELECT DISTINCT c.CustId
 	FROM bodb_CustHistory.dbo.CustInfo_History c WITH (NOLOCK)
 	WHERE c.UpdateTime > @LastUpdateTime
 		AND c.UpdateTime <= @CurrentTime
