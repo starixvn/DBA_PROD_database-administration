@@ -15,6 +15,7 @@ AS
 		- 20200123@Billy:	Initial - [Redmine: #127620]
 		- 20240823@Daniel:	Support compare in-house tables exclude row isDeleted = 1 in comparision
 		- 20241031@Daniel: Support tables have partition column other than CustID
+		- 20241204@Daniel: fix fail checksum schema if STDEV is NULL
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -288,9 +289,9 @@ WHERE	s.name = @SchName
 				AND	ts.ColName = ex.ColName;
 
 		UPDATE	t
-		SET		TargetStatus	= CASE	WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND chk.Stdev = src.Stdev AND chk.ChkSumOrder = src.ChkSumOrder AND chk.StdevOrder = src.StdevOrder
+		SET		TargetStatus	= CASE	WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND isnull(chk.Stdev, 0) = isnull(src.Stdev, 0) AND chk.ChkSumOrder = src.ChkSumOrder AND isnull(chk.StdevOrder, 0) = isnull(src.StdevOrder, 0)
 											THEN 2
-										WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND chk.Stdev = src.Stdev AND NOT(chk.ChkSumOrder = src.ChkSumOrder AND chk.StdevOrder = src.StdevOrder)
+										WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND isnull(chk.Stdev, 0) = isnull(src.Stdev, 0) AND NOT(chk.ChkSumOrder = src.ChkSumOrder AND isnull(chk.StdevOrder, 0) = isnull(src.StdevOrder, 0))
 											THEN 1
 										ELSE 0
 								  END
