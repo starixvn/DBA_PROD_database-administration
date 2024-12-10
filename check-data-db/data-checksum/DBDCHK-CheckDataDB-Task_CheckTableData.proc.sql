@@ -16,7 +16,8 @@ AS
 		- 20240823@Daniel:	Support compare in-house tables exclude row isDeleted = 1 in comparision
 		- 20241031@Daniel: Support tables have partition column other than CustID
 		- 20241204@Daniel: fix fail checksum schema if STDEV is NULL
-
+		- 20241210@Daniel: Add check empty tables
+		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
 
@@ -144,14 +145,25 @@ FROM	~~Schema~~.~~Table~~ WITH (NOLOCK);';
 
 			SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 			EXECUTE	@ExecuteSP @Query, @Param, @MaxPartitionValue OUTPUT;
-			
-			-- Abort if cannot obtain the value --
-			IF	@@ERROR <> 0 OR @MaxPartitionValue IS NULL
+
+			-- Skip if empty table --
+			IF	@@ERROR = 0 AND @MaxPartitionValue IS NULL
 			BEGIN;
 				SELECT	@Msg = N'';
 				SELECT	@Msg += N'\
 [Check Table Data] - ' + @Schema + N'.' + @Table + N'
-Cannot determine @MaxPartitionValue to continue checking data. Exiting...';
+Empty table. Skip check...';
+				PRINT @Msg
+				RETURN;
+			END;
+			
+			-- Abort if cannot obtain the value --
+			IF	@@ERROR <> 0 AND @MaxPartitionValue IS NULL
+			BEGIN;
+				SELECT	@Msg = N'';
+				SELECT	@Msg += N'\
+[Check Table Data] - ' + @Schema + N'.' + @Table + N'
+Error occured when obtaining @MaxPartitionValue, cannot check data. Exiting...';
 
 				EXECUTE	DBNOTI.NotificationDB.dbo.Skype_SendMessage 'BILLY', @Msg;
 				RAISERROR(@Msg, 16, 1) WITH NOWAIT;
