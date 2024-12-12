@@ -14,7 +14,10 @@ AS
 	Revisions:
 		- 20200123@Billy:	Initial - [Redmine: #127620]
 		- 20240823@Daniel:	Support compare in-house tables exclude row isDeleted = 1 in comparision
-
+		- 20241031@Daniel: Support tables have partition column other than CustID
+		- 20241204@Daniel: fix fail checksum schema if STDEV is NULL
+		- 20241210@Daniel: Add check empty tables
+		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
 
@@ -107,7 +110,7 @@ This table is not configured correctly. Exiting...';
 			RETURN 16;
 		END;
 
-		IF	@MaxPartitionValue IS NULL
+		IF	(@MaxPartitionValue IS NULL OR @PartitionCol NOT IN('CustID','AgentID'))
 		BEGIN;
 			SELECT	TOP(1)
 					@Server			= src.TargetServer
@@ -142,14 +145,25 @@ FROM	~~Schema~~.~~Table~~ WITH (NOLOCK);';
 
 			SELECT	@ExecuteSP = QUOTENAME(@Server) + N'.' + QUOTENAME(@Database) + N'.sys.sp_executesql';
 			EXECUTE	@ExecuteSP @Query, @Param, @MaxPartitionValue OUTPUT;
-			
-			-- Abort if cannot obtain the value --
-			IF	@@ERROR <> 0 OR @MaxPartitionValue IS NULL
+
+			-- Skip if empty table --
+			IF	@@ERROR = 0 AND @MaxPartitionValue IS NULL
 			BEGIN;
 				SELECT	@Msg = N'';
 				SELECT	@Msg += N'\
 [Check Table Data] - ' + @Schema + N'.' + @Table + N'
-Cannot determine @MaxPartitionValue to continue checking data. Exiting...';
+Empty table. Skip check...';
+				PRINT @Msg
+				RETURN;
+			END;
+			
+			-- Abort if cannot obtain the value --
+			IF	@@ERROR <> 0 AND @MaxPartitionValue IS NULL
+			BEGIN;
+				SELECT	@Msg = N'';
+				SELECT	@Msg += N'\
+[Check Table Data] - ' + @Schema + N'.' + @Table + N'
+Error occured when obtaining @MaxPartitionValue, cannot check data. Exiting...';
 
 				EXECUTE	DBNOTI.NotificationDB.dbo.Skype_SendMessage 'BILLY', @Msg;
 				RAISERROR(@Msg, 16, 1) WITH NOWAIT;
@@ -178,9 +192,12 @@ Cannot determine @MaxPartitionValue to continue checking data. Exiting...';
 		AND	l.isActive = 1;
 
 	-- Get intervals --
+	if (@PartitionInterval > @MaxPartitionValue)
+		set @PartitionInterval = @MaxPartitionValue
+		
 	INSERT INTO	@Intervals (IntervalFrom, IntervalTo)
 	SELECT	[IntervalFrom]	= (t.id - 1) * @PartitionInterval
-		,	[IntervalTo]	= CASE WHEN t.id * @PartitionInterval - 1 < @MaxPartitionValue THEN t.id * @PartitionInterval - 1 ELSE @MaxPartitionValue END
+		,	[IntervalTo]	= CASE WHEN t.id * @PartitionInterval < @MaxPartitionValue THEN t.id * @PartitionInterval - 1 ELSE @MaxPartitionValue END
 	FROM	(
 		SELECT	TOP(@MaxPartitionValue / @PartitionInterval + 1)
 				[id] = ROW_NUMBER() OVER(ORDER BY (SELECT NULL))
@@ -284,9 +301,9 @@ WHERE	s.name = @SchName
 				AND	ts.ColName = ex.ColName;
 
 		UPDATE	t
-		SET		TargetStatus	= CASE	WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND chk.Stdev = src.Stdev AND chk.ChkSumOrder = src.ChkSumOrder AND chk.StdevOrder = src.StdevOrder
+		SET		TargetStatus	= CASE	WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND isnull(chk.Stdev, 0) = isnull(src.Stdev, 0) AND chk.ChkSumOrder = src.ChkSumOrder AND isnull(chk.StdevOrder, 0) = isnull(src.StdevOrder, 0)
 											THEN 2
-										WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND chk.Stdev = src.Stdev AND NOT(chk.ChkSumOrder = src.ChkSumOrder AND chk.StdevOrder = src.StdevOrder)
+										WHEN chk.Cnt = src.Cnt AND chk.ChkSum = src.ChkSum AND isnull(chk.Stdev, 0) = isnull(src.Stdev, 0) AND NOT(chk.ChkSumOrder = src.ChkSumOrder AND isnull(chk.StdevOrder, 0) = isnull(src.StdevOrder, 0))
 											THEN 1
 										ELSE 0
 								  END
