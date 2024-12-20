@@ -265,6 +265,8 @@ WHERE	s.name = @SchName
 			END;
 
 			--Get target servers has table has isDeleted column:
+			delete @Targets_hasIsDeleted
+			
 			insert @Targets_hasIsDeleted
 			select TargetID from @TargetSchemas where ColName = 'IsDeleted'
 			--------------------------------------------------------
