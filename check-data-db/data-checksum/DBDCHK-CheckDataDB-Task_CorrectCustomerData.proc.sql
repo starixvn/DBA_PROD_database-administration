@@ -16,6 +16,7 @@ AS
 		- 20200304@Billy:	Add more debugging info - [Redmine: #129726]
 		- 20200520@Billy:	Fix bug when converting MONEY datatype - [Redmine: #000000]
 							When debugging, do NOT update status - [Redmine: #000000]
+		- 20241219@Daniel: Add condition IsDeleted = 0 when get data into adhoc tables for correction
 
 	Developer's Notes:
 		- @IgnoreRunningChecksum:		[optional]		- Decide to ignore current running checksum or not
@@ -86,6 +87,9 @@ BEGIN;
 			,	PRIMARY KEY CLUSTERED (TargetId, RowNum)
 			);
 
+	DECLARE @Targets_hasIsDeleted AS TABLE (
+				TargetId		INT
+			);
 
 	-- Check Checksum Task Status --
 	IF	(SELECT TOP(1) isFinished FROM chksum.CheckHistory WITH (NOLOCK) ORDER BY ChkDate DESC) = 0
@@ -260,6 +264,11 @@ WHERE	s.name = @SchName
 				EXECUTE	@ExecuteSP @Query, @Param, @TargetId, @Schema, @Table;
 			END;
 
+			--Get target servers has table has isDeleted column:
+			insert @Targets_hasIsDeleted
+			select TargetID from @TargetSchemas where ColName = 'IsDeleted'
+			--------------------------------------------------------
+			
 			DELETE	ts
 			FROM		@TargetSchemas AS ts
 			INNER JOIN	chksum.CheckExcluded AS ex
@@ -492,6 +501,9 @@ EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
 
 				SELECT	@OuterParam = N'';
 				SELECT	@OuterParam += N'@Query NVARCHAR(MAX), @Param NVARCHAR(MAX), @ExecuteSP NVARCHAR(MAX), ' + @Param;
+				
+				if (ISNULL(@TargetId, 0) IN(select ISNULL(TargetID, 0) from @Targets_hasIsDeleted))
+					SELECT	@Query = stuff(@Query, patindex('%<=%', @Query) + 14, 1, ' AND ISNULL(isDeleted, 0) = 0 ')				
 
 				EXECUTE	sys.sp_executesql @OuterQuery, @OuterParam, @Query, @Param, @ExecuteSP, @IntervalFrom, @IntervalTo;
 			END;
