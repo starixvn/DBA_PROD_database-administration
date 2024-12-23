@@ -1,5 +1,3 @@
-
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- This stored procedure analyzes the performance of stored procedures
 -- @ServerName: The name of the server to connect to
 -- @DBName: The name of the database to analyze
@@ -84,7 +82,7 @@ BEGIN
         , QueryPlan VARCHAR(MAX), IsAbnormalRecurrent BIT , isExclude BIT , isChecked BIT DEFAULT(0)
     ) 
      CREATE TABLE #tb_AbnormalList  (
-          SPID INT, SPName VARCHAR(256), ServerName VARCHAR(256), LinkedServerName VARCHAR(256), DBName VARCHAR(256)
+         SPID INT, SPName VARCHAR(256), ServerName VARCHAR(256), LinkedServerName VARCHAR(256), DBName VARCHAR(256)
         , EventDate DATE, EventTime SMALLDATETIME, FromEventTime SMALLDATETIME, ToEventTime SMALLDATETIME 
         , ExecCount_Per_minute DECIMAL(22,3), CPUTime_Per_minute DECIMAL(22,3), LogicalReads_Per_minute DECIMAL(22,3)
         , ElapsedTime_Per_minute DECIMAL(22,3)
@@ -140,21 +138,22 @@ BEGIN
         WHILE (@i >= 0) 
         BEGIN
             INSERT INTO @tb_RangeDate  (textDay,IsCheck)
-            SELECT CONVERT(VARCHAR(8), DATEADD(DAY, -@i, @CheckDate), 112), 0
+            SELECT CONVERT(VARCHAR(8), DATEADD(DAY, -7 * @i, @CheckDate), 112), 0
 
             SET @i = @i - 1
         END
 
-        --DECLARE @FromDate DATE = '20241211'
-        --DECLARE @NumberDateCheck INT  = 4
-        --DECLARE @tb_RangeDate TABLE (textDay VARCHAR(8), IsCheck BIT)
-        --WHILE (@NumberDateCheck >= 0) BEGIN
-        --    INSERT INTO @tb_RangeDate  (textDay,IsCheck)
-        --    SELECT CONVERT(VARCHAR(8), DATEADD(DAY, -@NumberDateCheck, @FromDate), 112), 0
 
-        --    SET @NumberDateCheck = @NumberDateCheck - 1
-        --END
-        --select * from @tb_RangeDate
+  --      DECLARE @FromDate DATE = GETDATE()
+  --      DECLARE @NumberDateCheck INT  = 1
+  --      DECLARE @tb_RangeDate TABLE (textDay VARCHAR(8), IsCheck BIT)
+  --      WHILE (@NumberDateCheck >= 0) BEGIN
+  --          INSERT INTO @tb_RangeDate  (textDay,IsCheck)
+  --          SELECT CONVERT(VARCHAR(8), DATEADD(DAY,-7 * @NumberDateCheck, @FromDate), 112), 0
+
+  --          SET @NumberDateCheck = @NumberDateCheck - 1
+  --      END
+  --      select * from @tb_RangeDate
     END
 
     INSERT INTO @tb_ListLinkedServer (LinkedServerName)
@@ -275,7 +274,7 @@ BEGIN
             WHILE (@i > 0) 
             BEGIN
                 INSERT INTO @tb_RangeDate1  (textDay,IsCheck)
-                SELECT CONVERT(VARCHAR(8), DATEADD(DAY, -@i - @NumberDateCheck, @CheckDate), 112), 0
+                SELECT CONVERT(VARCHAR(8), DATEADD(DAY, (-7 * @i) - (@NumberDateCheck * 7)  , @CheckDate ), 112), 0
 
                 SET @i = @i - 1
             END
@@ -290,10 +289,11 @@ BEGIN
                 SELECT TOP 1  @textDay =  textDay
                 FROM @tb_RangeDate1  WHERE IsCheck = 0
 
-                INSERT INTO #tmp_MonReport (SPID, SPName, ServerName, DBName, Execution_count, CPUTime, LogicalReads, ElapsedTime, TimeRange, EventTime,ExecCount_Per_minute, CPUTime_Per_minute, LogicalReads_Per_minute, ElapsedTime_Per_minute,textDay, RowNo)
+                INSERT INTO #tmp_MonReport (SPID, SPName, ServerName, DBName, Execution_count, CPUTime, LogicalReads, ElapsedTime, TimeRange, 
+                    EventTime,ExecCount_Per_minute, CPUTime_Per_minute, LogicalReads_Per_minute, ElapsedTime_Per_minute,textDay, RowNo)
                 EXEC dbo.vnDBA_SP_GetAbnormalReport @LinkServerName = @LinkServerName, @ServerName = @SrvName, @DBName = @DBName, @SPName = @SPName, @SPIDs = @SPIDs, @textDay = @textDay
 
-                --select @LinkServerName, @ServerName, @DBName, @SPName, @SPIDs, @textDay
+                select @LinkServerName, @ServerName, @DBName, @SPName, @SPIDs, @textDay
                 UPDATE @tb_RangeDate1  SET IsCheck = 1 WHERE textDay = @textDay
 
             END
@@ -338,7 +338,7 @@ BEGIN
         ), cte_avgstdev AS
         (
             SELECT SPID
-                    , AVG(Execution_count) AS Avg_ExecutionCount
+               , AVG(Execution_count) AS Avg_ExecutionCount
                     , AVG(CPUTime_Per_minute) AS Avg_CPUTime
                     , AVG(LogicalReads_Per_minute) AS Avg_LogicalReads
                     , AVG(ElapsedTime_Per_minute) AS Avg_ElapsedTime
@@ -373,49 +373,54 @@ BEGIN
 
             ;WITH cte_result AS
             (
-                SELECT s.SPID, s.RowNo AS SPRowID , SPName , ServerName , DBName , CAST(EventTime AS DATE) AS EventDate , EventTime , ExecCount_Per_minute , 
-                    CPUTime_Per_minute , LogicalReads_Per_minute, ElapsedTime_Per_minute , Avg_ExecutionCount , 
-                    Avg_CPUTime , Avg_LogicalReads , Avg_ElapsedTime , StdDev_ExecutionCount , StdDev_CPUTime , StdDev_LogicalReads , 
-                    StdDev_ElapsedTime , ExecCount_ZCore , CPUTime_ZCore , ElapsedTime_ZCore , LogicalReads_ZCore ,
-                    CONCAT_WS(',',IIF(Is_ExecutionCount_Abnomaly = 1,'ExecutionCount',NULL),IIF(Is_CPUTime_Abnomaly = 1,'CPUTime',NULL),IIF(Is_ElapsedTime_Abnomaly = 1,'ElapsedTime',NULL)
-                                ,IIF(Is_LogicalReads_Abnomaly = 1,'LogicalReads',NULL)) AS AbnormalReason
-                    , ROW_NUMBER() OVER (PARTITION BY s.SPID , CAST(EventTime AS DATE) ORDER BY (b.ExecCount_ZCore + b.CPUTime_ZCore + b.ElapsedTime_ZCore + b.LogicalReads_ZCore) DESC) AS RowNo
-                FROM #tmp_MonReport s
-                    INNER JOIN #tmp_MonReport_Statistics t ON s.SPID = t.SPID
-                    CROSS APPLY (
-                        SELECT  
-                            CASE WHEN ((ExecCount_Per_minute - Avg_ExecutionCount) > @Threshold_ZCore * StdDev_ExecutionCount) 
-                                AND StdDev_ExecutionCount > 0 
-                                AND IIF(Avg_ExecutionCount=0,0,StdDev_ExecutionCount/Avg_ExecutionCount) > @Threshold_CV THEN 1
-                            ELSE 0 END AS Is_ExecutionCount_Abnomaly
-                            , CASE WHEN ((CPUTime_Per_minute - Avg_CPUTime) > @Threshold_ZCore * StdDev_CPUTime)
-                                AND StdDev_CPUTime > 0 
-                                AND IIF(Avg_CPUTime=0,0,StdDev_CPUTime/Avg_CPUTime) > @Threshold_CV THEN 1
-                            ELSE 0 END AS Is_CPUTime_Abnomaly
-                            , CASE WHEN ((ElapsedTime_Per_minute - Avg_ElapsedTime) > @Threshold_ZCore * StdDev_ElapsedTime) 
-                                AND StdDev_ElapsedTime > 0 
-                                AND IIF(Avg_ElapsedTime=0,0,StdDev_ElapsedTime/Avg_ElapsedTime) > @Threshold_CV THEN 1
-                            ELSE 0 END AS Is_ElapsedTime_Abnomaly
-                            , CASE WHEN ((LogicalReads_Per_minute - Avg_LogicalReads) > @Threshold_ZCore * StdDev_LogicalReads)
-                                AND StdDev_LogicalReads > 0 
-                                AND IIF(Avg_LogicalReads=0,0,StdDev_LogicalReads/Avg_LogicalReads) > @Threshold_CV THEN 1
-                             ELSE 0 END AS Is_LogicalReads_Abnomaly
+            SELECT s.SPID, s.RowNo AS SPRowID , SPName , ServerName , DBName , CAST(EventTime AS DATE) AS EventDate , EventTime , ExecCount_Per_minute , 
+                CPUTime_Per_minute , LogicalReads_Per_minute, ElapsedTime_Per_minute , Avg_ExecutionCount , 
+                Avg_CPUTime , Avg_LogicalReads , Avg_ElapsedTime , StdDev_ExecutionCount , StdDev_CPUTime , StdDev_LogicalReads , 
+                StdDev_ElapsedTime , ExecCount_ZCore , CPUTime_ZCore , ElapsedTime_ZCore , LogicalReads_ZCore ,
+                CONCAT_WS(',',IIF(Is_ExecutionCount_Abnomaly = 1,'ExecutionCount',NULL),IIF(Is_CPUTime_Abnomaly = 1,'CPUTime',NULL),IIF(Is_ElapsedTime_Abnomaly = 1,'ElapsedTime',NULL)
+                            ,IIF(Is_LogicalReads_Abnomaly = 1,'LogicalReads',NULL)) AS AbnormalReason
+                , ROW_NUMBER() OVER (PARTITION BY s.SPID , CAST(EventTime AS DATE) ORDER BY (b.ExecCount_ZCore + b.CPUTime_ZCore + b.ElapsedTime_ZCore + b.LogicalReads_ZCore) DESC) AS RowNo
+            FROM #tmp_MonReport s
+                INNER JOIN #tmp_MonReport_Statistics t ON s.SPID = t.SPID
+                CROSS APPLY (
+                    SELECT  
+                        CASE WHEN ((ExecCount_Per_minute - Avg_ExecutionCount) > @Threshold_ZCore * StdDev_ExecutionCount) 
+                            AND StdDev_ExecutionCount > 0 
+                            AND IIF(Avg_ExecutionCount=0,0,StdDev_ExecutionCount/Avg_ExecutionCount) > @Threshold_CV THEN 1
+                        ELSE 0 END AS Is_ExecutionCount_Abnomaly
+                        , CASE WHEN ((CPUTime_Per_minute - Avg_CPUTime) > @Threshold_ZCore * StdDev_CPUTime)
+                            AND StdDev_CPUTime > 0 
+                            AND IIF(Avg_CPUTime=0,0,StdDev_CPUTime/Avg_CPUTime) > @Threshold_CV THEN 1
+                        ELSE 0 END AS Is_CPUTime_Abnomaly
+                        , CASE WHEN ((ElapsedTime_Per_minute - Avg_ElapsedTime) > @Threshold_ZCore * StdDev_ElapsedTime) 
+                            AND StdDev_ElapsedTime > 0 
+                            AND IIF(Avg_ElapsedTime=0,0,StdDev_ElapsedTime/Avg_ElapsedTime) > @Threshold_CV THEN 1
+                        ELSE 0 END AS Is_ElapsedTime_Abnomaly
+                        , CASE WHEN ((LogicalReads_Per_minute - Avg_LogicalReads) > @Threshold_ZCore * StdDev_LogicalReads)
+                            AND StdDev_LogicalReads > 0 
+                            AND IIF(Avg_LogicalReads=0,0,StdDev_LogicalReads/Avg_LogicalReads) > @Threshold_CV THEN 1
+                            ELSE 0 END AS Is_LogicalReads_Abnomaly
                                 
-                            , CASE WHEN StdDev_ExecutionCount = 0 THEN 0 ELSE CAST((ExecCount_Per_minute - Avg_ExecutionCount) / StdDev_ExecutionCount AS DECIMAL(22,3)) END AS ExecCount_ZCore
-                            , CASE WHEN StdDev_CPUTime = 0 THEN 0 ELSE CAST((CPUTime_Per_minute - Avg_CPUTime) / StdDev_CPUTime AS DECIMAL(22,3)) END AS CPUTime_ZCore
-                            , CASE WHEN StdDev_ElapsedTime = 0 THEN 0 ELSE CAST((ElapsedTime_Per_minute - Avg_ElapsedTime) / StdDev_ElapsedTime AS DECIMAL(22,3)) END AS ElapsedTime_ZCore
-                            , CASE WHEN StdDev_LogicalReads = 0 THEN 0 ELSE CAST((LogicalReads_Per_minute - Avg_LogicalReads) / StdDev_LogicalReads AS DECIMAL(22,3)) END AS LogicalReads_ZCore
-                    ) b
-                WHERE (textDay = @textDayFilter )
-                   -- AND (Is_ExecutionCount_Abnomaly = 1 OR Is_CPUTime_Abnomaly = 1 OR Is_ElapsedTime_Abnomaly = 1 OR Is_LogicalReads_Abnomaly = 1)
+                        , CASE WHEN StdDev_ExecutionCount = 0 THEN 0 ELSE CAST((ExecCount_Per_minute - Avg_ExecutionCount) / StdDev_ExecutionCount AS DECIMAL(22,3)) END AS ExecCount_ZCore
+                        , CASE WHEN StdDev_CPUTime = 0 THEN 0 ELSE CAST((CPUTime_Per_minute - Avg_CPUTime) / StdDev_CPUTime AS DECIMAL(22,3)) END AS CPUTime_ZCore
+                        , CASE WHEN StdDev_ElapsedTime = 0 THEN 0 ELSE CAST((ElapsedTime_Per_minute - Avg_ElapsedTime) / StdDev_ElapsedTime AS DECIMAL(22,3)) END AS ElapsedTime_ZCore
+                        , CASE WHEN StdDev_LogicalReads = 0 THEN 0 ELSE CAST((LogicalReads_Per_minute - Avg_LogicalReads) / StdDev_LogicalReads AS DECIMAL(22,3)) END AS LogicalReads_ZCore
+                ) b
+            WHERE (textDay = @textDayFilter )
+            AND EventTime be
+                -- AND (Is_ExecutionCount_Abnomaly = 1 OR Is_CPUTime_Abnomaly = 1 OR Is_ElapsedTime_Abnomaly = 1 OR Is_LogicalReads_Abnomaly = 1)
             )
             SELECT 
             ServerName, DBName, SPID, SPName, EventTime, AbnormalReason,
-                ExecCount_Per_minute, Avg_ExecutionCount, StdDev_ExecutionCount,ExecCount_ZCore,cast(cast(IIF(Avg_ExecutionCount=0,0,StdDev_ExecutionCount/Avg_ExecutionCount) as DECIMAL(9,4)) as float) as ExecutionCount_CV
-                , CPUTime_Per_minute , Avg_CPUTime, StdDev_CPUTime,CPUTime_ZCore,cast(cast(IIF(Avg_CPUTime=0,0,StdDev_CPUTime/Avg_CPUTime) as DECIMAL(9,4)) as float) as CPUTime_CV
-                , ElapsedTime_Per_minute , Avg_ElapsedTime, StdDev_ElapsedTime,ElapsedTime_ZCore, cast(cast(IIF(Avg_ElapsedTime=0,0,StdDev_ElapsedTime/Avg_ElapsedTime) as DECIMAL(9,4)) as float) as ElapsedTime_CV
-                , LogicalReads_Per_minute , Avg_LogicalReads, StdDev_LogicalReads,LogicalReads_ZCore,cast(cast(IIF(Avg_LogicalReads=0,0,StdDev_LogicalReads/Avg_LogicalReads) as DECIMAL(9,4)) as float) as LogicalReads_CV
-                --, LEAD(SPRowID) OVER (PARTITION BY SPID, CAST(EventTime AS DATE) ORDER BY EventTime) - SPRowID AS DiffNextPoint
+            ExecCount_Per_minute, Avg_ExecutionCount, StdDev_ExecutionCount,ExecCount_ZCore,
+                cast(cast(IIF(Avg_ExecutionCount=0,0,StdDev_ExecutionCount/Avg_ExecutionCount) as DECIMAL(9,4)) as float) as ExecutionCount_CV
+            , CPUTime_Per_minute , Avg_CPUTime, StdDev_CPUTime,CPUTime_ZCore,
+                cast(cast(IIF(Avg_CPUTime=0,0,StdDev_CPUTime/Avg_CPUTime) as DECIMAL(9,4)) as float) as CPUTime_CV
+            , ElapsedTime_Per_minute , Avg_ElapsedTime, StdDev_ElapsedTime,ElapsedTime_ZCore,
+                cast(cast(IIF(Avg_ElapsedTime=0,0,StdDev_ElapsedTime/Avg_ElapsedTime) as DECIMAL(9,4)) as float) as ElapsedTime_CV
+            , LogicalReads_Per_minute , Avg_LogicalReads, StdDev_LogicalReads,LogicalReads_ZCore,
+                cast(cast(IIF(Avg_LogicalReads=0,0,StdDev_LogicalReads/Avg_LogicalReads) as DECIMAL(9,4)) as float) as LogicalReads_CV
+            --, LEAD(SPRowID) OVER (PARTITION BY SPID, CAST(EventTime AS DATE) ORDER BY EventTime) - SPRowID AS DiffNextPoint
             FROM cte_result
             ORDER BY ServerName,DBName,SPID,EventTime
                
@@ -453,7 +458,7 @@ BEGIN
                 LogicalReads_ZCore,
     
                 -- Concatenate abnormal reasons based on conditions
-                CONCAT_WS(',', 
+     CONCAT_WS(',', 
                     IIF(Is_ExecutionCount_Abnomaly = 1, 'ExecutionCount', NULL),
                     IIF(Is_CPUTime_Abnomaly = 1, 'CPUTime', NULL),
                     IIF(Is_ElapsedTime_Abnomaly = 1, 'ElapsedTime', NULL),
@@ -757,12 +762,13 @@ BEGIN
 END
 
 GO
-DECLARE @CheckDate DATE = '20240909'
-EXEC vnDBA_SP_AbnormalReport @ServerName = 'DB062'
-                           , @DBName = 'bodb02'
+DECLARE @CheckDate DATE = '20241222'
+EXEC vnDBA_SP_AbnormalReport @ServerName = 'DB02'
+                           , @DBName = ''
                            , @Threshold_ZCore = 3
                            , @Threshold_CV = 0
-                           , @SPName = 'Dot_Member_Result_SoccerDetail'
+                           , @SPName = 'Dot_Admin_GetSportsTickerChild'
                            , @CheckDate = @CheckDate
+                           , @NumberDateCheck = 1
                            , @Debug = 1 
 GO
