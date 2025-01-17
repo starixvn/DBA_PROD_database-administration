@@ -504,9 +504,9 @@ EXECUTE	@ExecuteSP @Query, @Param, @IntervalFrom, @IntervalTo;
 				SELECT	@OuterParam = N'';
 				SELECT	@OuterParam += N'@Query NVARCHAR(MAX), @Param NVARCHAR(MAX), @ExecuteSP NVARCHAR(MAX), ' + @Param;
 				
-				SELECT	@Query = REPLACE(@Query,' AND ISNULL(isDeleted, 0) = 0 ', '')
+				SELECT	@Query = REPLACE(@Query,' AND ISNULL(isDeleted, 0) = 0', ';')
 				if (ISNULL(@TargetId, 0) IN(select ISNULL(TargetID, 0) from @Targets_hasIsDeleted))
-					SELECT	@Query = stuff(@Query, patindex('%<=%', @Query) + 14, 1, ' AND ISNULL(isDeleted, 0) = 0 ')				
+					SELECT	@Query = stuff(@Query, patindex('%<=%', @Query) + 14, 1, ' AND ISNULL(isDeleted, 0) = 0')			
 
 				EXECUTE	sys.sp_executesql @OuterQuery, @OuterParam, @Query, @Param, @ExecuteSP, @IntervalFrom, @IntervalTo;
 			END;
