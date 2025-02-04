@@ -17,6 +17,7 @@ AS
 		- 20200520@Billy:	Fix bug when converting MONEY datatype - [Redmine: #000000]
 							When debugging, do NOT update status - [Redmine: #000000]
 		- 20241219@Daniel: Add condition IsDeleted = 0 when get data into adhoc tables for correction
+		- 20250204@Daniel: Fix bug get data failed & remove sync delete action
 
 	Developer's Notes:
 		- @IgnoreRunningChecksum:		[optional]		- Decide to ignore current running checksum or not
@@ -980,6 +981,7 @@ OPTION (RECOMPILE);
 					BREAK;
 
 				SELECT	@OuterQuery = REPLACE(REPLACE(@Query, N'~~Server~~', @Server), N'~~Database~~', @Database);
+/* remove sync del
 				EXECUTE	sys.sp_executesql @OuterQuery, @Param, @ReturnQuery OUTPUT;
 
 				-- Error debugger --
@@ -1030,7 +1032,7 @@ OPTION (RECOMPILE);
 
 						RAISERROR('', 0, 0) WITH NOWAIT;
 					END;
-				END;
+				END; */
 			END;
 		END;
 
