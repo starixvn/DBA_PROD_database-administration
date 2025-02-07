@@ -181,9 +181,9 @@ BEGIN
 
 	--get new list custid for update
 	INSERT INTO #tmp_List_CustId (CustId)
-	SELECT DISTINCT c.CustId
+	SELECT distinct c.CustId
 	FROM bodb_CustHistory.dbo.CustInfo_History c WITH (NOLOCK)
-	WHERE c.UpdateTime > @LastUpdateTime
+	WHERE c.UpdateTime >= @LastUpdateTime
 		AND c.UpdateTime <= @CurrentTime
 		AND c.roleid > 4
 
@@ -288,7 +288,7 @@ BEGIN
 				c.CCNonSports = u.CCNonSports,
 				c.autosuspend3 = u.autosuspend3,
 				c.RepUpdateTime = u.RepUpdateTime
-			FROM custInfo c
+			FROM custInfo_OWP c WITH(ROWLOCK)
 			INNER JOIN #tmp_update u WITH (NOLOCK) ON c.custid = u.custid
 
 			--drop temp table
@@ -301,15 +301,20 @@ BEGIN
 
 		END
 
-		--update lastcustid
-		UPDATE dbo.SystemSettings
-		SET VValue = CONVERT(VARCHAR(500),@CurrentTime, 121)
-		WHERE VName = 'LastOWPUpdateTime'
+		----update lastcustid
+		--UPDATE dbo.SystemSettings
+		--SET VValue = CONVERT(VARCHAR(500),@CurrentTime, 121)
+		--WHERE VName = 'LastOWPUpdateTime'
 	END
 	ELSE --print message info and exit at the end of SP
 	BEGIN
 		RAISERROR ('Info: NO new Cust to UPDATE.', 0, 1) WITH NOWAIT;
 	END
+
+	--update lastcustid
+	UPDATE dbo.SystemSettings
+	SET VValue = CONVERT(VARCHAR(500),@CurrentTime, 121)
+	WHERE VName = 'LastOWPUpdateTime'
 
 	--drop temp table
 	DROP TABLE #tmp_batch_IDs
@@ -317,4 +322,3 @@ BEGIN
 	DROP TABLE #tmp_List_CustId
 END
 GO
-
