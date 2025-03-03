@@ -1,5 +1,12 @@
 /*
 	Task: Stop and disable SQL Jobs related to indicated databases
+		bodb_archive
+		bodb_Report
+		SAS_adhocReport_UAT
+		MONDB
+		DEL_LasDB_Archive
+		bodb_TGRS_UAT
+		
 	Created on 20250303 by Daniel
 	Run on DB062
 */

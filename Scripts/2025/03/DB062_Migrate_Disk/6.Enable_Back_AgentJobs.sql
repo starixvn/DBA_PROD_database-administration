@@ -1,10 +1,17 @@
 /*
 	Task: Enable back SQL Jobs related to indicated databases
+		bodb_archive
+		bodb_Report
+		SAS_adhocReport_UAT
+		MONDB
+		DEL_LasDB_Archive
+		bodb_TGRS_UAT
+		
 	Created on 20250303 by Daniel
 	Run on DB062
 */
 
--- Enable back jobs:
+-- Enable back jobs (script gen list jobs copied from step 1):
 EXEC msdb.dbo.sp_update_job @job_name = 'Archive Credit Account: Load statement', @enabled = 1;
 EXEC msdb.dbo.sp_update_job @job_name = 'bodb_Report: Customer Status History', @enabled = 1;
 EXEC msdb.dbo.sp_update_job @job_name = 'bodb_Report: Daily Summary rptStatement', @enabled = 1;
