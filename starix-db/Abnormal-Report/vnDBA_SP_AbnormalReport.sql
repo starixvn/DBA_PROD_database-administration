@@ -1,137 +1,219 @@
--- This stored procedure analyzes the performance of stored procedures
--- @ServerName: The name of the server to connect to
--- @DBName: The name of the database to analyze
--- @SPName: The name of the stored procedure to filter results
--- The procedure collects execution statistics and identifies anomalies
-ALTER PROCEDURE vnDBA_SP_AbnormalReport 
+USE [StarixDB]
+GO
+ALTER PROCEDURE [dbo].[vnDBA_SP_AbnormalReport]
    @ServerName VARCHAR(1000)='' ,
     @DBName VARCHAR(1000)='' ,
     @SPName VARCHAR(256)='' ,
     @CheckDate DATE ='' ,
-    @NumberDateCheck INT  = 2,      -- Define Minimum,Maximum Range
+    @NumberDateCheck INT  = 1,      -- Define Minimum,Maximum Range
     @CheckTime_Day VARCHAR(1000) = NULL,  -- '20240925', -- Define Minimum,Maximum Range
-    @Threshold_ZCore FLOAT = 3,
-    @Threshold_CV INT = 1,              -- STDEV / AVG
-    @Debug BIT = 0
+    @ThresholdZCore FLOAT = 3,
+    @AbnormalPoint INT = 3,
+    @Debug BIT = 0,
+    @PropertyAbnormal VARCHAR(1000) = ''
 AS
---select @FromDate = DATEADD(DAY,-1,GETDATE()) 
+
 /*
-    Created: @Evan
-    DB: 
-    Revisions: 
-        - @Evan: Initial 
+    Creator:    20241212@Evan
+    Task:       Report Abnormal Stored Procedure all server
+    Database:   DBDWCSS.StarixDB
+        - 20241212@Evan: Initial 
+        
     Param's Explanation:   
-        @SPName: Filter SP Name
-        @NumberDateCheck = N:  Compare standard deviation on data set N days ago
-            
+        @ServerName: 
+                    '': All server
+                    'ServerName': The name of the server to connect to.
+        @DBName:    
+                    '': All database
+                    'DBName': The name of the database to analyze.
+        @SPName: 
+                    '': All stored procedure
+                    'SPName': The name of the stored procedure to filter results.
+        @CheckDate: The date for which to check the stored procedure performance.
+        @NumberDateCheck: The number of days to check for performance anomalies.
+        @CheckTime_Day: Specific days to check, formatted as 'YYYYMMDD'.
+        @ThresholdZCore: The Z-score threshold for identifying anomalies.
+        @Debug: A flag to enable or disable debug messages.
+        @PropertyAbnormal: ExecutionCount|LogicalReads|CPUTime|ElapsedTime
 */
+
 
 
 BEGIN
 
     SET NOCOUNT ON;
 
-    -- Set the current date and time
     DECLARE     @Filter_Todate SMALLDATETIME 
             ,   @Filter_Fromdate SMALLDATETIME
 
-    -- Filter range time by param @FromDate
+    -- Set date range for checking
     DECLARE @textDayFilter VARCHAR(8)
     SELECT @textDayFilter = CONVERT(VARCHAR(8),@CheckDate,112)
 
     SELECT @Filter_Fromdate = @CheckDate
     SELECT @Filter_Todate = CAST(@CheckDate AS SMALLDATETIME) + '23:59:00';
   
-    -- Get list linked-server
+    -- Temporary tables for server names and linked servers
     DECLARE @tb_ListServerName TABLE (ServerName VARCHAR(256))
     DECLARE @tb_ListLinkedServer TABLE (LinkedServerName VARCHAR(256) , IsCheck BIT DEFAULT(0), ErrMsg  VARCHAR(1000), sqlcmd varchar(max))
     
-    DROP TABLE IF EXISTS #tmp_MonReport_Statistics
-    DROP TABLE IF EXISTS #tmp_MonReport
-    DROP TABLE IF EXISTS #tmp_AbnormalResult
-    DROP TABLE IF EXISTS #tb_AbnormalList
-    DROP TABLE IF EXISTS #tb_AbnormalList_temp
-    DROP TABLE IF EXISTS #tb_ServersHasQueryStore
+    -- Drop temporary tables if they exist
+    DROP TABLE IF EXISTS #Mon_SPPF_Report  
+    DROP TABLE IF EXISTS #Mon_SPPF_Report_Stats
+    DROP TABLE IF EXISTS #ListAbnormal_org 
+    DROP TABLE IF EXISTS #ListAbnormal_Result
+    DROP TABLE IF EXISTS #QueryStoreOnServer
+    DROP TABLE IF EXISTS #AbnormaLoop
 
-    -- Get info Mon_SPPF_Report
-    CREATE TABLE #tmp_MonReport (
-          SPID INT, SPName VARCHAR(256), ServerName VARCHAR(256), DBName VARCHAR(256)
-        , Execution_count DECIMAL(22,3), CPUTime DECIMAL(22,3), LogicalReads DECIMAL(22,3)
-        , ElapsedTime DECIMAL(22,3)
-        , TimeRange INT, EventTime SMALLDATETIME
-        , ExecCount_Per_minute DECIMAL(22,3), CPUTime_Per_minute DECIMAL(22,3)
-        , LogicalReads_Per_minute DECIMAL(22,3), ElapsedTime_Per_minute DECIMAL(22,3)
-        , textDay  VARCHAR(10)
-        , RowNo INT
-    )
-    CREATE CLUSTERED INDEX [IX_tmpMonReport_SPID] ON #tmp_MonReport (SPID, textDay)
-
-    -- Get statistics
-    CREATE TABLE #tmp_MonReport_Statistics (
-          SPID INT
-        , Avg_ExecutionCount DECIMAL(22,3), Avg_CPUTime DECIMAL(22,3), Avg_LogicalReads DECIMAL(22,3), Avg_ElapsedTime DECIMAL(22,3)
-        , StdDev_ExecutionCount DECIMAL(22,3), StdDev_CPUTime DECIMAL(22,3), StdDev_LogicalReads DECIMAL(22,3), StdDev_ElapsedTime DECIMAL(22,3)
-        , Q3_ExecutionCount DECIMAL(22,3), Q3_CPUTime DECIMAL(22,3), Q3_LogicalReads DECIMAL(22,3), Q3_ElapsedTime DECIMAL(22,3)
-        , IQR_ExecutionCount DECIMAL(22,3), IQR_CPUTime DECIMAL(22,3), IQR_LogicalReads DECIMAL(22,3), IQR_ElapsedTime DECIMAL(22,3)
-    )
-
-    CREATE TABLE #tmp_AbnormalResult (
-        SPName VARCHAR(256) , ServerName VARCHAR(256)
-        , LinkedServerName VARCHAR(256), DBName VARCHAR(256)
-        , EventTimeAbnormal SMALLDATETIME , From_REventTime SMALLDATETIME ,To_REventTime SMALLDATETIME , AbnormalReason VARCHAR(MAX)
-        , QueryPlan VARCHAR(MAX), IsAbnormalRecurrent BIT , isExclude BIT , isChecked BIT DEFAULT(0)
-    ) 
-     CREATE TABLE #tb_AbnormalList  (
-         SPID INT, SPName VARCHAR(256), ServerName VARCHAR(256), LinkedServerName VARCHAR(256), DBName VARCHAR(256)
-        , EventDate DATE, EventTime SMALLDATETIME, FromEventTime SMALLDATETIME, ToEventTime SMALLDATETIME 
-        , ExecCount_Per_minute DECIMAL(22,3), CPUTime_Per_minute DECIMAL(22,3), LogicalReads_Per_minute DECIMAL(22,3)
-        , ElapsedTime_Per_minute DECIMAL(22,3)
-        , AbnormalReason VARCHAR(MAX)
-        , ExecCount_ZCore DECIMAL(22,3), CPUTime_ZCore DECIMAL(22,3)
-        , LogicalReads_ZCore DECIMAL(22,3), ElapsedTime_ZCore DECIMAL(22,3)
-        , ExecPlanCnt SMALLINT, IsAbnormalRecurrent BIT
-        , SPRowID INT
-    )
-    CREATE TABLE #tb_AbnormalList_temp  (
-          SPID INT, SPName VARCHAR(256), ServerName VARCHAR(256), DBName VARCHAR(256)
-        , EventDate DATE, EventTime SMALLDATETIME
-        , ExecCount_Per_minute DECIMAL(22,3), CPUTime_Per_minute DECIMAL(22,3), LogicalReads_Per_minute DECIMAL(22,3)
-        ,  ElapsedTime_Per_minute DECIMAL(22,3)
-        , AbnormalReason VARCHAR(MAX), RowNo INT, DiffNextPoint INT
-        , ExecCount_ZCore DECIMAL(22,3), CPUTime_ZCore DECIMAL(22,3)
-        , LogicalReads_ZCore DECIMAL(22,3), ElapsedTime_ZCore DECIMAL(22,3)
-        , SPRowID INT
-    )
-    
-    DECLARE @tb_SendMail TABLE (LinkServerName VARCHAR(1000), Mail_body VARCHAR(MAX))
-    DECLARE @AbnormalPoint SMALLINT = 3, @isCheck_QUERYSTORE BIT = 1; 
-
-    CREATE TABLE #tb_ServersHasQueryStore  (
-        ServerName VARCHAR(256), LinkedServerName VARCHAR(256)
-        , DBName VARCHAR(256), QueryStoreState VARCHAR(8)
-        , isChecked BIT DEFAULT ((0))
-    )
-
-    DECLARE @tb_DataQueryStore TABLE (
-       EventTime SMALLDATETIME, SPName VARCHAR(256),plan_cnt SMALLINT, rownum INT, QueryIDs VARCHAR(MAX)
-    )
+    CREATE TABLE #AbnormaLoop  (SPID INT, SPRowID INT, fromdate SMALLDATETIME, todate SMALLDATETIME, Cntnum INT)
 
     DECLARE @CurrDate DATETIME = GETDATE()
     DECLARE @Yesterdate SMALLDATETIME = DATEADD(DAY,-1,@CurrDate), @Msg VARCHAR (500)
             ,@sqlCMD NVARCHAR(MAX), @textDay VARCHAR(8) , @LinkServerName VARCHAR(256) , @SrvName VARCHAR(256) , @EventDate SMALLDATETIME
-            ,@Json VARCHAR(MAX)
-            ,@_DBName VARCHAR(256)
+            ,@Json VARCHAR(MAX),@_DBName VARCHAR(256)
+
+    DECLARE @CounterList TABLE ([value] VARCHAR(20),[Threshold] INT)
+    INSERT INTO @CounterList
+    VALUES('ExecutionCount',100),('LogicalReads',10000),('CPUTime',5000),('ElapsedTime',0)
+   
+    DECLARE @CounterListCheck TABLE ([value] VARCHAR(20),[Threshold] INT)
+    INSERT INTO @CounterListCheck
+    SELECT b.value,b.Threshold FROM string_split(@PropertyAbnormal,',') a INNER JOIN @CounterList b on a.value =b.value 
+
+    IF @@ROWCOUNT = 0
+        INSERT INTO @CounterListCheck SELECT value,Threshold FROM @CounterList
+        
+    DECLARE @StatisPrefix TABLE ([value] VARCHAR(20))
+    INSERT INTO @StatisPrefix
+    VALUES('Min'),('Max'),('Avg'),('Avg_per_minute'),('Stdev'),('ZCore'),('IsAbnormal'),('Threshold')
+  
+    DECLARE @Rules TABLE ([RuleNo] varchar(100), [Rule] varchar(100), command varchar(1000))
+    INSERT INTO @Rules ([RuleNo],[Rule],command)
+    VALUES
+    ('IsAbnormal','Determine anomalies based on thresholds',
+        'CASE WHEN ($Avg_per_minute -  $Avg) > ' + CAST(@ThresholdZCore AS VARCHAR(10)) + ' * $Stdev AND $Avg_per_minute > $Threshold AND  $Avg > $Threshold AND  $Stdev > 0 THEN 1 ELSE 0 END AS $IsAbnormal') 
+    ,('zcore','Calculate Z-scores',
+        'CASE WHEN $Stdev = 0 THEN 0  ELSE CAST(($Avg_per_minute - $Avg) / $Stdev AS DECIMAL(22,3)) END AS $ZCore') 
+    ,
+    ('Threshold','Calculate normal value',
+        '(' + CAST(@ThresholdZCore AS VARCHAR(10)) + ' * $Stdev) + $Avg as $Normal') 
+
+    --SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Threshold')
+    --SELECT STRING_AGG(a.value+b.value,',') FROM @CounterList a CROSS JOIN @StatisPrefix b where a.value IN ('ExecutionCount') AND b.value <> '' --ExecutionCountAvg_per_minute,LogicalReadsAvg_per_minute,CPUTimeAvg_per_minute,ElapsedTimeAvg_per_minute
+    --SELECT STRING_AGG(b.value+'('+a.value +')',',') FROM @CounterList a CROSS JOIN @StatisPrefix b where b.value IN ('Stdev') 
+    --SELECT b.value,STRING_AGG(a.value,',') FROM @CounterList a CROSS JOIN @StatisPrefix b where b.value IN ('Stdev','Avg')  
+    --group by b.value
+    -- (3 * StdDev_ExecutionCount) + Avg_ExecutionCount as ExecCount_Normal
+
+    -- Get info Mon_SPPF_Report
+    CREATE TABLE #Mon_SPPF_Report (
+          SPID INT, SPName VARCHAR(256), ServerName VARCHAR(256), DBName VARCHAR(256)
+        , TimeRange INT, EventTime SMALLDATETIME, textDay  VARCHAR(10)
+        , HourOfDay INT
+        , SPRowID INT
+    )
+    CREATE CLUSTERED INDEX [IX_tmpMonReport_SPID] ON #Mon_SPPF_Report (SPID, textDay)
+
+    -- Create temp table
+    CREATE TABLE #Mon_SPPF_Report_Stats (
+          SPID INT
+    )
+    CREATE TABLE #ListAbnormal_org  (
+          SPID INT, SPName VARCHAR(256), ServerName VARCHAR(256), DBName VARCHAR(256)
+        , EventDate DATE, EventTime SMALLDATETIME
+        , AbnormalReason VARCHAR(MAX)
+        , AbnormalReason1 VARCHAR(MAX)
+        , NormalValue VARCHAR(MAX)
+        , SPRowID INT
+        , RowNo INT
+    )
+    CREATE TABLE #ListAbnormal_Result  (
+         SPID INT, SPName VARCHAR(256), ServerName VARCHAR(256), LinkedServerName VARCHAR(256), DBName VARCHAR(256)
+        , EventDate DATE, EventTime SMALLDATETIME, FromEventTime SMALLDATETIME, ToEventTime SMALLDATETIME 
+        , AbnormalReason VARCHAR(MAX)
+        , AbnormalReason1 VARCHAR(MAX)
+        , NormalValue VARCHAR(MAX)
+        , ExecPlanCnt SMALLINT, IsAbnormalRecurrent BIT,QueryPlan VARCHAR(MAX), isExclude BIT , isChecked BIT DEFAULT(0)
+        , SPRowID INT
+    )
+
+    CREATE TABLE #QueryStoreOnServer  (
+        ServerName VARCHAR(256), LinkedServerName VARCHAR(256)
+        , DBName VARCHAR(256), QueryStoreState VARCHAR(8)
+        , isChecked BIT DEFAULT ((0))
+    )
+    
+    DECLARE @tb_DataQueryStore TABLE (
+       EventTime SMALLDATETIME, SPName VARCHAR(256),plan_cnt SMALLINT, rownum INT, QueryIDs VARCHAR(MAX)
+    )
+    -- Add column
+    SELECT @sqlCMD = 'ALTER TABLE #Mon_SPPF_Report ' + CHAR(10) + 'ADD '
+    SELECT @sqlCMD = @sqlCMD + ' [' + a.value + b.value + '] ' + 'DECIMAL(22,3)' + ','
+    FROM @CounterList a CROSS JOIN @StatisPrefix b
+    WHERE b.value IN ('','Avg_per_minute')
+
+    SELECT @sqlCMD = SUBSTRING(@sqlCMD, 1, LEN(@sqlCMD) - 1)
+    EXEC sp_executesql @sqlCMD
+    
+    SELECT @sqlCMD = 'ALTER TABLE #Mon_SPPF_Report_Stats ' + CHAR(10) + 'ADD '
+    SELECT @sqlCMD = @sqlCMD + ' [' + a.value + b.value + '] ' + 'DECIMAL(22,3)' + ',' 
+    FROM @CounterListCheck a CROSS JOIN @StatisPrefix b
+    WHERE b.value IN ('Stdev','Avg','Threshold')
+
+    SELECT @sqlCMD = SUBSTRING(@sqlCMD, 1, LEN(@sqlCMD) - 1)
+    EXEC sp_executesql @sqlCMD
+    SELECT @sqlCMD = 'ALTER TABLE #ListAbnormal_org ' + CHAR(10) + 'ADD '
+    SELECT @sqlCMD = @sqlCMD + ' [' + a.value + b.value + '] ' + 'DECIMAL(22,3)' + ',' 
+    FROM @CounterListCheck a CROSS JOIN @StatisPrefix b
+    WHERE b.value IN ('ZCore')
+    
+    SELECT @sqlCMD = SUBSTRING(@sqlCMD, 1, LEN(@sqlCMD) - 1)
+    EXEC sp_executesql @sqlCMD
+    SET @sqlCMD =  REPLACE(@sqlCMD,'#ListAbnormal_org','#ListAbnormal_Result')
+    EXEC sp_executesql @sqlCMD
+
+    SELECT @sqlCMD = 'ALTER TABLE #ListAbnormal_org ' + CHAR(10) + 'ADD '
+    SELECT @sqlCMD = @sqlCMD + ' [' + a.value + b.value + '] ' + 'DECIMAL(22,3)' + ',' 
+    FROM @CounterListCheck a CROSS JOIN @StatisPrefix b
+    WHERE b.value IN ('Threshold')
+
+    SELECT @sqlCMD = SUBSTRING(@sqlCMD, 1, LEN(@sqlCMD) - 1)
+    EXEC sp_executesql @sqlCMD
+    SET @sqlCMD =  REPLACE(@sqlCMD,'#ListAbnormal_org','#ListAbnormal_Result')
+    EXEC sp_executesql @sqlCMD
+    
+    --
+    SELECT @sqlCMD = 'ALTER TABLE #ListAbnormal_org ' + CHAR(10) + 'ADD '
+    SELECT @sqlCMD = @sqlCMD + ' [' + a.value + b.value + '] ' + 'DECIMAL(22,3)' + ',' 
+    FROM @CounterListCheck a CROSS JOIN @StatisPrefix b
+    WHERE b.value IN ('Avg_per_minute')
+
+    SELECT @sqlCMD = SUBSTRING(@sqlCMD, 1, LEN(@sqlCMD) - 1)
+    EXEC sp_executesql @sqlCMD
+    SET @sqlCMD =  REPLACE(@sqlCMD,'#ListAbnormal_org','#ListAbnormal_Result')
+    EXEC sp_executesql @sqlCMD
+
+   
+     
+    -- ===========================
+
+    DECLARE @tb_SendMail TABLE (LinkServerName VARCHAR(1000), Mail_body VARCHAR(MAX))
+    DECLARE @isCheck_QUERYSTORE BIT = 1; 
 
     -- List Scan date 
     DECLARE @tb_RangeDate TABLE (textDay VARCHAR(8), IsCheck BIT)
     DECLARE @tb_RangeDate1 TABLE (textDay VARCHAR(8), IsCheck BIT)
+
     DECLARE @i INT = @NumberDateCheck
 
-    -- Get range time to calculate Standard deviation (STDEV)
+    -- Get range time to calculate Standard deviation (Stdev)
     IF EXISTS (SELECT 1 FROM STRING_SPLIT (@CheckTime_Day,',') WHERE VALUE <> '')
     BEGIN
         INSERT INTO @tb_RangeDate  (textDay,IsCheck)
         SELECT VALUE, 0 FROM STRING_SPLIT (@CheckTime_Day,',') WHERE VALUE <> ''
+
+        INSERT INTO @tb_RangeDate  (textDay,IsCheck)
+        SELECT CONVERT(VARCHAR(8), @CheckDate, 112),0
     END
     ELSE
     BEGIN
@@ -143,19 +225,8 @@ BEGIN
             SET @i = @i - 1
         END
 
-
-  --      DECLARE @FromDate DATE = GETDATE()
-  --      DECLARE @NumberDateCheck INT  = 1
-  --      DECLARE @tb_RangeDate TABLE (textDay VARCHAR(8), IsCheck BIT)
-  --      WHILE (@NumberDateCheck >= 0) BEGIN
-  --          INSERT INTO @tb_RangeDate  (textDay,IsCheck)
-  --          SELECT CONVERT(VARCHAR(8), DATEADD(DAY,-7 * @NumberDateCheck, @FromDate), 112), 0
-
-  --          SET @NumberDateCheck = @NumberDateCheck - 1
-  --      END
-  --      select * from @tb_RangeDate
     END
-
+    
     INSERT INTO @tb_ListLinkedServer (LinkedServerName)
     SELECT DISTINCT linkedServer
     FROM vnDBA_Perf_Servers c WITH (NOLOCK) 
@@ -166,12 +237,11 @@ BEGIN
         'DBDIST01CKBT','DBDIST02CKBT','DBDWCSSKBT',
         'DBDIST03KBT','DBTP02C_INST2','IHRDISTC1KBT'
         ,'DBDW2KBT','DBODDSC1KBT','DBODDSC2KBT')
-  
-    --Could not find stored procedure 'MonDB.dbo.vnDBA_sp_GetPlanCount'.
-    --DBDW2KBT
-    --DBODDSC1KBT
-    --DBODDSC2KBT
-    -- Process each linked server get info Mon_SPPF_Report
+    /*
+        Could not find stored procedure 'MonDB.dbo.vnDBA_sp_GetPlanCount'.
+            DBDW2KBT, DBODDSC1KBT, DBODDSC2KBT
+    */
+    
     IF @Debug = 1   
     BEGIN
         SET @Msg = CONCAT(@@SERVERNAME, '_',db_name(),'_',OBJECT_NAME(@@PROCID), ' - Processing abnormal check on: ', FORMAT(@CurrDate, 'yyyy-MM-dd HH:mm:ss'));
@@ -180,7 +250,7 @@ BEGIN
         SET @Msg = 'Get data Mon_SPPF_Report in ( ' + (SELECT STRING_AGG(textDay, ',') FROM @tb_RangeDate) +' )'
         RAISERROR (@Msg , 0, 1) WITH NOWAIT
 
-        SET @Msg = 'Check time: ' + IIF(@textDayFilter IS NULL,'all range time',@textDayFilter)
+  SET @Msg = 'Check time: ' + IIF(@textDayFilter IS NULL,'all range time',@textDayFilter)
         RAISERROR (@Msg , 0, 1) WITH NOWAIT
 
         SET @Msg = 'Server checklist: ' + @ServerName
@@ -188,7 +258,8 @@ BEGIN
 
     END
     
-    WHILE EXISTS (SELECT TOP 1 1 FROM @tb_ListLinkedServer WHERE IsCheck = 0)
+    -- Loop through each linked server to gather information
+    WHILE (1 = 1)
     BEGIN TRY
        
         DELETE FROM @tb_ListServerName
@@ -196,17 +267,26 @@ BEGIN
         SELECT TOP 1 @LinkServerName = LinkedServerName
         FROM @tb_ListLinkedServer WHERE IsCheck = 0 
 
-        SELECT @SrvName = ServerName FROM dbo.Mon_Index_Report_Server WITH(NOLOCK) WHERE LinkedServerName = @LinkServerName
+        IF  @@ROWCOUNT = 0
+            BREAK;
+
+        -- Get servername to select data on MonDBDW (Archive)
+        SELECT @SrvName = ServerName 
+        FROM dbo.Mon_Index_Report_Server WITH(NOLOCK) 
+        WHERE LinkedServerName = @LinkServerName
+
+        -- Get servername to select data (Active)
+        SET @sqlCMD = 'SELECT SERVERNAME FROM OPENQUERY('+QUOTENAME(@LinkServerName)+',''SELECT @@SERVERNAME AS SERVERNAME'')'
+        INSERT INTO @tb_ListServerName
+        EXEC sp_executesql @sqlcmd
 
         IF ISNULL(@SrvName , '') = '' 
         BEGIN
-            SET @sqlCMD = 'SELECT SERVERNAME FROM OPENQUERY('+@LinkServerName+',''SELECT @@SERVERNAME AS SERVERNAME'')'
-            INSERT INTO @tb_ListServerName
-            EXEC sp_executesql @sqlcmd
-
             SELECT @SrvName = ServerName FROM @tb_ListServerName
         END
-
+        ELSE 
+            SELECT @SrvName = @SrvName + ',' + ServerName FROM @tb_ListServerName
+        
         IF @Debug = 1   
         BEGIN
             SET @Msg = CHAR(9) + 'Start on: ' + @LinkServerName
@@ -214,385 +294,313 @@ BEGIN
         END
 
         -- Delete/Reset temp table
-        TRUNCATE TABLE #tmp_MonReport
-        TRUNCATE TABLE #tmp_MonReport_Statistics
+        TRUNCATE TABLE #Mon_SPPF_Report
+        TRUNCATE TABLE #Mon_SPPF_Report_Stats
+        TRUNCATE TABLE #ListAbnormal_org
 
         -- Reset @tb_RangeDate for next server
         UPDATE @tb_RangeDate  SET IsCheck = 0
+
         DELETE FROM @tb_RangeDate1
 
-        DECLARE @MissMonReport TABLE (SPID INT, MissDateCount INT);
+        DECLARE @SPID_table TABLE (SPID INT);
         DECLARE @SPIDs VARCHAR(MAX)  = ''
 
         -- Loop through RangeDate
         SET @Msg = 'Get data MonReport'
         IF @Debug = 1   
             RAISERROR (@Msg , 0, 1) WITH NOWAIT
+        
+        IF (SELECT COUNT(1) FROM string_split(@SPName,',')) > 1
+        BEGIN
+            SELECT @sqlcmd = 'SELECT * FROM OPENQUERY('+QUOTENAME(@LinkServerName)+',''select SPID from MonDB.dbo.Mon_SPPF_List WITH (NOLOCK) WHERE SPName in (SELECT value FROM string_split('''''+@SPName+''''','''','''')) '')'
+            INSERT INTO @SPID_table (SPID)
+            EXEC sp_executesql @sqlcmd
 
-        WHILE EXISTS (SELECT 1 FROM @tb_RangeDate  WHERE IsCheck = 0)
+            SELECT @SPIDs = STRING_AGG(SPID,',') FROM @SPID_table
+            SET @SPName  = ''
+        END
+
+        WHILE (1 = 1)
         BEGIN
             SELECT TOP 1  @textDay =  textDay
             FROM @tb_RangeDate  WHERE IsCheck = 0
+            IF @@ROWCOUNT = 0
+                BREAK
+            
+            SELECT @sqlCMD = 'INSERT INTO #Mon_SPPF_Report (SPID,SPRowID,SPName,ServerName,DBName,TimeRange,EventTime,HourOfDay,textDay,' 
+                + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterList a CROSS JOIN @StatisPrefix b WHERE b.VALUE IN ('Avg_per_minute') ) + ')' + CHAR(10) +
+                + ' EXEC dbo.vnDBA_SP_GetAbnormalReport @LinkServerName = '''+@LinkServerName+''', @ServerName = '''+@SrvName+''', 
+                @DBName = '''+@DBName+''', @SPName = '''+@SPName+''', @SPIDs = '''+@SPIDs+''', @textDay = '''+@textDay+''' '
 
-            INSERT INTO #tmp_MonReport (SPID, SPName, ServerName, DBName, Execution_count, CPUTime, LogicalReads, ElapsedTime, TimeRange, EventTime,ExecCount_Per_minute, CPUTime_Per_minute, LogicalReads_Per_minute, ElapsedTime_Per_minute,textDay, RowNo)
-            EXEC dbo.vnDBA_SP_GetAbnormalReport @LinkServerName = @LinkServerName, @ServerName = @SrvName, @DBName = @DBName, @SPName = @SPName, @SPIDs = @SPIDs, @textDay = @textDay
-            --EXEC dbo.vnDBA_SP_GetAbnormalReport @LinkServerName = 'DBCUSTKBT', @ServerName = 'DBCUST', @DBName = 'CustDB', @SPName = 'Acc_CustomerInsMember_MAg', @textDay = '20241212'
+            EXEC sp_executesql @sqlcmd
+
             UPDATE @tb_RangeDate  SET IsCheck = 1 WHERE textDay = @textDay
 
         END
-
-        -- Check list sp has no data for the selected date range and retrieves data from the previous date
-        SET @Msg = 'Check list sp has no data for the selected date range'
-        IF @Debug = 1   
-            RAISERROR (@Msg , 0, 1) WITH NOWAIT
         
-        ;WITH cte_grouptextday AS (
-            SELECT SPID,textDay
-            FROM #tmp_MonReport
-            GROUP BY SPID,textDay
+        -- Check list sp has no data for the selected date range then retrieves data from the previous date
+        -- DECLARE @MissMonReport TABLE (SPID INT, MissDateCount INT);
+        --;WITH cte_grouptextday AS (
+        --    SELECT SPID,textDay
+        --    FROM #Mon_SPPF_Report
+        --    GROUP BY SPID,textDay
+        --)
+        --INSERT INTO @MissMonReport (SPID, MissDateCount)
+        --SELECT SPID,MissDateCount
+        --FROM
+        --(
+        --    SELECT a.SPID, @NumberDateCheck - SUM(IIF(b.SPID IS NULL,0,1)) AS MissDateCount
+        --    FROM  cte_grouptextday a 
+        --        LEFT JOIN cte_grouptextday b on a.SPID = b.SPID AND a.textDay = b.textDay AND b.textDay <> @textDayFilter
+        --    GROUP BY a.SPID
+        --) a
+        --WHERE MissDateCount = @NumberDateCheck  
+        
+        --IF EXISTS ( SELECT TOP 1 1 FROM @MissMonReport)
+        --BEGIN
+        --    SET @Msg = 'Retrieves data from the previous date'
+        --    IF @Debug = 1   
+        --        RAISERROR (@Msg , 0, 1) WITH NOWAIT
+
+        --    SELECT @SPIDs = STRING_AGG(CAST(SPID AS VARCHAR(10)) , ',') FROM @MissMonReport
+        
+        --    SET @i = @NumberDateCheck 
+        --    WHILE (@i > 0) 
+        --    BEGIN 
+        --        INSERT INTO @tb_RangeDate1  (textDay,IsCheck)
+        --        SELECT CONVERT(VARCHAR(8), DATEADD(DAY, (-7 * @i) - (@NumberDateCheck * 7)  , @CheckDate ), 112), 0
+
+        --        SET @i = @i - 1
+        --    END
+
+        --     -- Loop through RangeDate1
+        --    SET @Msg = ''
+        --    IF @Debug = 1   
+        --        RAISERROR (@Msg , 0, 1) WITH NOWAIT
+
+        --    WHILE (1 = 1)
+        --    BEGIN
+        --        SELECT TOP 1  @textDay =  textDay
+        --        FROM @tb_RangeDate1  WHERE IsCheck = 0
+        --        IF @@ROWCOUNT = 0
+        --            BREAK
+
+        --        SELECT @sqlCMD = 'INSERT INTO #Mon_SPPF_Report (SPID,SPRowID,SPName,ServerName,DBName,TimeRange,EventTime,textDay,' 
+        --        + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterList a CROSS JOIN @StatisPrefix b WHERE b.VALUE IN ('Avg_per_minute') ) + ')' + CHAR(10) +
+        --        + ' EXEC dbo.vnDBA_SP_GetAbnormalReport @LinkServerName = '''+@LinkServerName+''', @ServerName = '''+@SrvName+''', 
+        --        @DBName = '''+@DBName+''', @SPName = '''+@SPName+''', @SPIDs = '''+@SPIDs+''', @textDay = '''+@textDay+''' '
+                    
+        --        EXEC sp_executesql @sqlcmd
+
+        --        UPDATE @tb_RangeDate1  SET IsCheck = 1 WHERE textDay = @textDay
+
+        --    END
+        --END
+        
+        -- Filter out stored procedures that start with 'sp_MS' to exclude system procedures
+        DELETE #Mon_SPPF_Report 
+        WHERE ( SPName LIKE 'sp[_]%' OR  SPName LIKE 'vndba[_]%' OR   SPName LIKE '%Repl%' OR   SPName LIKE 'SSB[_]%' OR   SPName LIKE 'f[_]%' ) 
+        
+        -- Remove SPs that are executed non-consecutive
+        ;WITH cte_AvgExecPerHour AS (
+            SELECT SPID, AVG(ExecutionCountPerHour) avg_ExecutionCountPerHour, EventDate
+            FROM (
+                SELECT SPID,SUM(ISNULL(TimeRange,1)) ExecutionCountPerHour, DATEPART(DAY,EventTime) as EventDate
+                FROM #Mon_SPPF_Report --WHERE EventTime >= @Yesterdate and EventTime < @CurrDate
+                GROUP BY SPID, DATEPART(HOUR,EventTime), DATEPART(DAY,EventTime)
+            )   a
+            GROUP BY SPID,EventDate
         )
-        INSERT INTO @MissMonReport (SPID, MissDateCount)
-        SELECT SPID,MissDateCount
-        FROM
-        (
-            SELECT a.SPID, @NumberDateCheck - SUM(IIF(b.SPID IS NULL,0,1)) AS MissDateCount
-            FROM  cte_grouptextday a 
-                LEFT JOIN cte_grouptextday b on a.SPID = b.SPID AND a.textDay = b.textDay AND b.textDay <> @textDayFilter
-            GROUP BY a.SPID
-        ) a
-        WHERE MissDateCount = @NumberDateCheck  
-        
-        IF EXISTS ( SELECT TOP 1 1 FROM @MissMonReport)
-        BEGIN
-            SET @Msg = 'Retrieves data from the previous date'
-            IF @Debug = 1   
-                RAISERROR (@Msg , 0, 1) WITH NOWAIT
+        DELETE 
+        FROM #Mon_SPPF_Report 
+        WHERE SPID IN (SELECT a.SPID FROM cte_AvgExecPerHour a WHERE a.avg_ExecutionCountPerHour < 10)
 
-            SELECT @SPIDs = STRING_AGG(CAST(SPID AS VARCHAR(10)) , ',') FROM @MissMonReport
-        
-            SET @i = @NumberDateCheck 
-            WHILE (@i > 0) 
-            BEGIN
-                INSERT INTO @tb_RangeDate1  (textDay,IsCheck)
-                SELECT CONVERT(VARCHAR(8), DATEADD(DAY, (-7 * @i) - (@NumberDateCheck * 7)  , @CheckDate ), 112), 0
-
-                SET @i = @i - 1
-            END
-
-             -- Loop through RangeDate1
-            SET @Msg = ''
-            IF @Debug = 1   
-                RAISERROR (@Msg , 0, 1) WITH NOWAIT
-
-            WHILE EXISTS (SELECT 1 FROM @tb_RangeDate1  WHERE IsCheck = 0)
-            BEGIN
-                SELECT TOP 1  @textDay =  textDay
-                FROM @tb_RangeDate1  WHERE IsCheck = 0
-
-                INSERT INTO #tmp_MonReport (SPID, SPName, ServerName, DBName, Execution_count, CPUTime, LogicalReads, ElapsedTime, TimeRange, 
-                    EventTime,ExecCount_Per_minute, CPUTime_Per_minute, LogicalReads_Per_minute, ElapsedTime_Per_minute,textDay, RowNo)
-                EXEC dbo.vnDBA_SP_GetAbnormalReport @LinkServerName = @LinkServerName, @ServerName = @SrvName, @DBName = @DBName, @SPName = @SPName, @SPIDs = @SPIDs, @textDay = @textDay
-
-                select @LinkServerName, @ServerName, @DBName, @SPName, @SPIDs, @textDay
-                UPDATE @tb_RangeDate1  SET IsCheck = 1 WHERE textDay = @textDay
-
-            END
-        END
-
-        IF @SPName = ''
-        BEGIN
-            -- Filter out stored procedures that start with 'sp_MS' to exclude system procedures
-            DELETE #tmp_MonReport WHERE ( SPName LIKE 'sp_MS%' OR SPName LIKE 'Repl_%' OR  SPName LIKE 'vndba_%' OR  SPName LIKE 'DBA_%' OR  SPName LIKE '%Repl%' ) 
-        
-            ---- Remove SPs that are executed non-consecutive
-            ;WITH cte_AvgExecPerHour AS (
-             SELECT SPID, AVG(ExecutionCountPerHour) avg_ExecutionCountPerHour
-             FROM (
-                 SELECT SPID,SUM(ISNULL(TimeRange,1)) ExecutionCountPerHour
-                 FROM #tmp_MonReport WHERE EventTime >= @Yesterdate and EventTime < @CurrDate
-                 GROUP BY SPID, DATEPART(HOUR,EventTime)
-             )   a
-             GROUP BY SPID
-            )
-            DELETE 
-            FROM #tmp_MonReport 
-            WHERE SPID IN (SELECT a.SPID FROM cte_AvgExecPerHour a WHERE a.avg_ExecutionCountPerHour < 40)
-        END
 
         SET @Msg = 'Get Statistics from MonReport'
         IF @Debug = 1   
             RAISERROR (@Msg , 0, 1) WITH NOWAIT
 
-         ;WITH cte_IQR AS (
-            SELECT DISTINCT SPID
-                    , PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY Execution_count) OVER (PARTITION BY SPID) AS Q1_Execution_count
-                    , PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY Execution_count) OVER (PARTITION BY SPID) AS Q3_Execution_count
-                    , PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY CPUTime_Per_minute) OVER (PARTITION BY SPID) AS Q1_CPU
-                    , PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY CPUTime_Per_minute) OVER (PARTITION BY SPID) AS Q3_CPU
-                    , PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY LogicalReads_Per_minute) OVER (PARTITION BY SPID) AS Q1_LogicalRead
-                    , PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY LogicalReads_Per_minute) OVER (PARTITION BY SPID) AS Q3_LogicalRead
-                    , PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY ElapsedTime_Per_minute) OVER (PARTITION BY SPID) AS Q1_ElapsedTime
-                    , PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY ElapsedTime_Per_minute) OVER (PARTITION BY SPID) AS Q3_ElapsedTime
-            FROM #tmp_MonReport
-            WHERE textDay <> @textDayFilter
-        ), cte_avgstdev AS
+
+        SELECT @sqlCMD = '
+            ;WITH cte_avgStdev AS
         (
-            SELECT SPID
-               , AVG(Execution_count) AS Avg_ExecutionCount
-                    , AVG(CPUTime_Per_minute) AS Avg_CPUTime
-                    , AVG(LogicalReads_Per_minute) AS Avg_LogicalReads
-                    , AVG(ElapsedTime_Per_minute) AS Avg_ElapsedTime
-                    , STDEV(ExecCount_Per_minute) AS StdDev_ExecutionCount
-                    , STDEV(CPUTime_Per_minute) AS StdDev_CPUTime
-                    , STDEV(LogicalReads_Per_minute) AS StdDev_LogicalReads
-                    , STDEV(ElapsedTime_Per_minute) AS StdDev_ElapsedTime
-            FROM #tmp_MonReport
-            WHERE textDay <> @textDayFilter
+            SELECT SPID,
+                '+ (SELECT STRING_AGG('AVG(' + a.value+b.value +') AS '+ a.value + 'Avg',',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg_per_minute') ) +',
+                '+ (SELECT STRING_AGG('Stdev(' + a.value+b.value +') AS '+ a.value + 'Stdev',',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg_per_minute') ) +'
+            FROM #Mon_SPPF_Report
+            WHERE textDay <> '''+@textDayFilter+''' -- Exclude check date
             GROUP BY SPID
         )
-        
-        INSERT INTO #tmp_MonReport_Statistics (SPID, Avg_ExecutionCount, Avg_CPUTime, Avg_LogicalReads, Avg_ElapsedTime, 
-            StdDev_ExecutionCount, StdDev_CPUTime, StdDev_LogicalReads, StdDev_ElapsedTime, IQR_ExecutionCount, IQR_CPUTime, IQR_LogicalReads, IQR_ElapsedTime
-            , Q3_ExecutionCount , Q3_CPUTime , Q3_LogicalReads , Q3_ElapsedTime)
-        SELECT a.SPID , Avg_ExecutionCount , Avg_CPUTime , Avg_LogicalReads , Avg_ElapsedTime , 
-            StdDev_ExecutionCount , StdDev_CPUTime , StdDev_LogicalReads , StdDev_ElapsedTime ,
-            (Q3_Execution_count - Q1_Execution_count) * 1.5 AS IQR_ExecutionCount ,
-            (Q3_CPU - Q1_CPU) * 1.5 AS IQR_CPUTime ,
-            (Q3_LogicalRead - Q1_LogicalRead) * 1.5 AS IQR_LogicalReads ,
-            (Q3_ElapsedTime - Q1_ElapsedTime) * 1.5 AS IQR_ElapsedTime ,
-             Q3_Execution_count , Q3_CPU , Q3_LogicalRead , Q3_ElapsedTime
-        FROM cte_avgstdev a LEFT JOIN cte_IQR b ON a.SPID = b.SPID 
-
-        --code get abnormal
-
-        IF @Debug = 1  AND @SPName <> ''
-        BEGIN
-            SELECT @Filter_Fromdate Fromdate ,@Filter_Todate  Todate, (SELECT STRING_AGG(textDay,'; ') from @tb_RangeDate ) as checkdate
-            
-            SELECT * FROM #tmp_MonReport_Statistics
-
-            ;WITH cte_result AS
-            (
-            SELECT s.SPID, s.RowNo AS SPRowID , SPName , ServerName , DBName , CAST(EventTime AS DATE) AS EventDate , EventTime , ExecCount_Per_minute , 
-                CPUTime_Per_minute , LogicalReads_Per_minute, ElapsedTime_Per_minute , Avg_ExecutionCount , 
-                Avg_CPUTime , Avg_LogicalReads , Avg_ElapsedTime , StdDev_ExecutionCount , StdDev_CPUTime , StdDev_LogicalReads , 
-                StdDev_ElapsedTime , ExecCount_ZCore , CPUTime_ZCore , ElapsedTime_ZCore , LogicalReads_ZCore ,
-                CONCAT_WS(',',IIF(Is_ExecutionCount_Abnomaly = 1,'ExecutionCount',NULL),IIF(Is_CPUTime_Abnomaly = 1,'CPUTime',NULL),IIF(Is_ElapsedTime_Abnomaly = 1,'ElapsedTime',NULL)
-                            ,IIF(Is_LogicalReads_Abnomaly = 1,'LogicalReads',NULL)) AS AbnormalReason
-                , ROW_NUMBER() OVER (PARTITION BY s.SPID , CAST(EventTime AS DATE) ORDER BY (b.ExecCount_ZCore + b.CPUTime_ZCore + b.ElapsedTime_ZCore + b.LogicalReads_ZCore) DESC) AS RowNo
-            FROM #tmp_MonReport s
-                INNER JOIN #tmp_MonReport_Statistics t ON s.SPID = t.SPID
-                CROSS APPLY (
-                    SELECT  
-                        CASE WHEN ((ExecCount_Per_minute - Avg_ExecutionCount) > @Threshold_ZCore * StdDev_ExecutionCount) 
-                            AND StdDev_ExecutionCount > 0 
-                            AND IIF(Avg_ExecutionCount=0,0,StdDev_ExecutionCount/Avg_ExecutionCount) > @Threshold_CV THEN 1
-                        ELSE 0 END AS Is_ExecutionCount_Abnomaly
-                        , CASE WHEN ((CPUTime_Per_minute - Avg_CPUTime) > @Threshold_ZCore * StdDev_CPUTime)
-                            AND StdDev_CPUTime > 0 
-                            AND IIF(Avg_CPUTime=0,0,StdDev_CPUTime/Avg_CPUTime) > @Threshold_CV THEN 1
-                        ELSE 0 END AS Is_CPUTime_Abnomaly
-                        , CASE WHEN ((ElapsedTime_Per_minute - Avg_ElapsedTime) > @Threshold_ZCore * StdDev_ElapsedTime) 
-                            AND StdDev_ElapsedTime > 0 
-                            AND IIF(Avg_ElapsedTime=0,0,StdDev_ElapsedTime/Avg_ElapsedTime) > @Threshold_CV THEN 1
-                        ELSE 0 END AS Is_ElapsedTime_Abnomaly
-                        , CASE WHEN ((LogicalReads_Per_minute - Avg_LogicalReads) > @Threshold_ZCore * StdDev_LogicalReads)
-                            AND StdDev_LogicalReads > 0 
-                            AND IIF(Avg_LogicalReads=0,0,StdDev_LogicalReads/Avg_LogicalReads) > @Threshold_CV THEN 1
-                            ELSE 0 END AS Is_LogicalReads_Abnomaly
-                                
-                        , CASE WHEN StdDev_ExecutionCount = 0 THEN 0 ELSE CAST((ExecCount_Per_minute - Avg_ExecutionCount) / StdDev_ExecutionCount AS DECIMAL(22,3)) END AS ExecCount_ZCore
-                        , CASE WHEN StdDev_CPUTime = 0 THEN 0 ELSE CAST((CPUTime_Per_minute - Avg_CPUTime) / StdDev_CPUTime AS DECIMAL(22,3)) END AS CPUTime_ZCore
-                        , CASE WHEN StdDev_ElapsedTime = 0 THEN 0 ELSE CAST((ElapsedTime_Per_minute - Avg_ElapsedTime) / StdDev_ElapsedTime AS DECIMAL(22,3)) END AS ElapsedTime_ZCore
-                        , CASE WHEN StdDev_LogicalReads = 0 THEN 0 ELSE CAST((LogicalReads_Per_minute - Avg_LogicalReads) / StdDev_LogicalReads AS DECIMAL(22,3)) END AS LogicalReads_ZCore
-                ) b
-            WHERE (textDay = @textDayFilter )
-            AND EventTime be
-                -- AND (Is_ExecutionCount_Abnomaly = 1 OR Is_CPUTime_Abnomaly = 1 OR Is_ElapsedTime_Abnomaly = 1 OR Is_LogicalReads_Abnomaly = 1)
+        INSERT INTO #Mon_SPPF_Report_Stats (SPID,
+        '+(SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg'))+', 
+        '+(SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Stdev') )+', 
+        '+(SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Threshold') )+' 
             )
-            SELECT 
-            ServerName, DBName, SPID, SPName, EventTime, AbnormalReason,
-            ExecCount_Per_minute, Avg_ExecutionCount, StdDev_ExecutionCount,ExecCount_ZCore,
-                cast(cast(IIF(Avg_ExecutionCount=0,0,StdDev_ExecutionCount/Avg_ExecutionCount) as DECIMAL(9,4)) as float) as ExecutionCount_CV
-            , CPUTime_Per_minute , Avg_CPUTime, StdDev_CPUTime,CPUTime_ZCore,
-                cast(cast(IIF(Avg_CPUTime=0,0,StdDev_CPUTime/Avg_CPUTime) as DECIMAL(9,4)) as float) as CPUTime_CV
-            , ElapsedTime_Per_minute , Avg_ElapsedTime, StdDev_ElapsedTime,ElapsedTime_ZCore,
-                cast(cast(IIF(Avg_ElapsedTime=0,0,StdDev_ElapsedTime/Avg_ElapsedTime) as DECIMAL(9,4)) as float) as ElapsedTime_CV
-            , LogicalReads_Per_minute , Avg_LogicalReads, StdDev_LogicalReads,LogicalReads_ZCore,
-                cast(cast(IIF(Avg_LogicalReads=0,0,StdDev_LogicalReads/Avg_LogicalReads) as DECIMAL(9,4)) as float) as LogicalReads_CV
-            --, LEAD(SPRowID) OVER (PARTITION BY SPID, CAST(EventTime AS DATE) ORDER BY EventTime) - SPRowID AS DiffNextPoint
-            FROM cte_result
-            ORDER BY ServerName,DBName,SPID,EventTime
-               
-        END
-       
+        SELECT a.SPID ,'+(SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg') )+' , 
+            '+(SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Stdev') )+' ,
+            '+
+            CONCAT_WS(',',NULL,((SELECT REPLACE(a.command,'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='Threshold' AND b.value = 'ExecutionCount' )+ CHAR(10))
+                ,((SELECT REPLACE(a.command,'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='Threshold' AND b.value = 'LogicalReads' )+ CHAR(10))
+                    ,((SELECT REPLACE(a.command,'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='Threshold' AND b.value = 'CPUTime' )+ CHAR(10))
+                ,((SELECT REPLACE(a.command,'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='Threshold' AND b.value = 'ElapsedTime' )+ CHAR(10))
+                ) 
+            + ' ,
+        FROM cte_avgStdev a
+        '
+        EXEC sp_executesql @sqlcmd
+        
         SET @Msg = 'code get list abnormal'
         IF @Debug = 1   
             RAISERROR (@Msg , 0, 1) WITH NOWAIT
 
-       ;WITH cte_result AS
+        SELECT @sqlCMD =  ';WITH cte_result AS
         (
             SELECT 
                 s.SPID,
-                s.RowNo AS SPRowID,
+                s.SPRowID,
                 SPName,
                 ServerName,
                 DBName,
                 CAST(EventTime AS DATE) AS EventDate,
                 EventTime,
-                ExecCount_Per_minute,
-                CPUTime_Per_minute,
-                LogicalReads_Per_minute,
-                ElapsedTime_Per_minute,
-                Avg_ExecutionCount,
-                Avg_CPUTime,
-                Avg_LogicalReads,
-                Avg_ElapsedTime,
-                StdDev_ExecutionCount,
-                StdDev_CPUTime,
-                StdDev_LogicalReads,
-                StdDev_ElapsedTime,
-                ExecCount_ZCore,
-                CPUTime_ZCore,
-                ElapsedTime_ZCore,
-                LogicalReads_ZCore,
-    
+   
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg_per_minute') ) +',
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg') ) +',
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Stdev') ) +',
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('ZCore') ) +',
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Threshold') ) +',
+               
                 -- Concatenate abnormal reasons based on conditions
-     CONCAT_WS(',', 
-                    IIF(Is_ExecutionCount_Abnomaly = 1, 'ExecutionCount', NULL),
-                    IIF(Is_CPUTime_Abnomaly = 1, 'CPUTime', NULL),
-                    IIF(Is_ElapsedTime_Abnomaly = 1, 'ElapsedTime', NULL),
-                    IIF(Is_LogicalReads_Abnomaly = 1, 'LogicalReads', NULL)
+                 CONCAT_WS('','',null, 
+                ' + (SELECT STRING_AGG('IIF(' + a.value +  b.value +' = 1, '''+a.value+''', NULL)',',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('IsAbnormal') )  +'
+                ) AS AbnormalReason1,
+                CONCAT_WS('','',null, 
+                ' + (SELECT STRING_AGG('IIF(' + a.value +  b.value +' = 1, '''+a.value+''+ '( ZCore = ''+ CAST('+  a.value + c.value +' AS VARCHAR(50)) + '')'', NULL)',',') 
+                                            FROM @CounterListCheck a CROSS APPLY (SELECT * FROM @StatisPrefix b  WHERE b.value IN ('IsAbnormal')) b
+                                                                    CROSS APPLY (SELECT * FROM @StatisPrefix b  WHERE b.value IN ('ZCore')) c
+                                            GROUP BY b.value )  +'
                 ) AS AbnormalReason,
-
+                CONCAT_WS('','',null, 
+                ' + (SELECT STRING_AGG('IIF(' + a.value +  b.value +' = 1, '''+a.value+''+ '(''+ CAST('+  a.value + d.value +' AS VARCHAR(50)) + '')'', NULL)',',') 
+                                            FROM @CounterListCheck a CROSS APPLY (SELECT * FROM @StatisPrefix b  WHERE b.value IN ('IsAbnormal')) b
+                                                                    CROSS APPLY (SELECT * FROM @StatisPrefix b  WHERE b.value IN ('Avg_per_minute')) d
+                                            GROUP BY b.value )  +'
+                ) AS NormalValue,
+                '+
+                '
                 -- Row number for ranking
                 ROW_NUMBER() OVER (
                     PARTITION BY s.SPID, CAST(EventTime AS DATE), 
-                                CONCAT_WS(',', 
-                                IIF(Is_ExecutionCount_Abnomaly = 1, 'ExecutionCount', NULL),
-                                IIF(Is_CPUTime_Abnomaly = 1, 'CPUTime', NULL),
-                                IIF(Is_ElapsedTime_Abnomaly = 1, 'ElapsedTime', NULL),
-                                IIF(Is_LogicalReads_Abnomaly = 1, 'LogicalReads', NULL)
-                            )
-                    ORDER BY (b.ExecCount_ZCore + b.CPUTime_ZCore + b.ElapsedTime_ZCore + b.LogicalReads_ZCore) DESC
+                                CONCAT_WS('','', null,
+                        ' + (SELECT STRING_AGG('IIF('  + a.value +  b.value + ' = 1, '''+a.value+''', NULL)',',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('IsAbnormal') ) +'
+                    )
+                    ORDER BY (
+                    ' + (SELECT STRING_AGG(a.value+b.value,' + ') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('ZCore') ) + '
+                    ) DESC
                 ) AS RowNo
 
             FROM 
-                #tmp_MonReport s
+                #Mon_SPPF_Report s
             INNER JOIN 
-                #tmp_MonReport_Statistics t ON s.SPID = t.SPID
+                #Mon_SPPF_Report_Stats t ON s.SPID = t.SPID
             CROSS APPLY (
                 SELECT  
                     -- Determine anomalies based on thresholds
-                    CASE 
-                        WHEN ((ExecCount_Per_minute - Avg_ExecutionCount) > @Threshold_ZCore * StdDev_ExecutionCount) 
-                                AND StdDev_ExecutionCount > 0 
-                                AND IIF(Avg_ExecutionCount = 0, 0, StdDev_ExecutionCount / Avg_ExecutionCount) > @Threshold_CV 
-                        THEN 1 ELSE 0 END AS Is_ExecutionCount_Abnomaly,
-
-                    CASE 
-                        WHEN ((CPUTime_Per_minute - Avg_CPUTime) > @Threshold_ZCore * StdDev_CPUTime)
-                                AND StdDev_CPUTime > 0 
-                                AND IIF(Avg_CPUTime = 0, 0, StdDev_CPUTime / Avg_CPUTime) > @Threshold_CV 
-                        THEN 1 ELSE 0 END AS Is_CPUTime_Abnomaly,
-
-                    CASE 
-                        WHEN ((ElapsedTime_Per_minute - Avg_ElapsedTime) > @Threshold_ZCore * StdDev_ElapsedTime) 
-                                AND StdDev_ElapsedTime > 0 
-                                AND IIF(Avg_ElapsedTime = 0, 0, StdDev_ElapsedTime / Avg_ElapsedTime) > @Threshold_CV 
-                        THEN 1 ELSE 0 END AS Is_ElapsedTime_Abnomaly,
-
-                    CASE 
-                        WHEN ((LogicalReads_Per_minute - Avg_LogicalReads) > @Threshold_ZCore * StdDev_LogicalReads)
-                                AND StdDev_LogicalReads > 0 
-                                AND IIF(Avg_LogicalReads = 0, 0, StdDev_LogicalReads / Avg_LogicalReads) > @Threshold_CV 
-                        THEN 1 ELSE 0 END AS Is_LogicalReads_Abnomaly,
-
-                    -- Calculate Z-scores
-                    CASE WHEN StdDev_ExecutionCount = 0 THEN 0 
-                            ELSE CAST((ExecCount_Per_minute - Avg_ExecutionCount) / StdDev_ExecutionCount AS DECIMAL(22,3)) END AS ExecCount_ZCore,
-
-                    CASE WHEN StdDev_CPUTime = 0 THEN 0 
-                            ELSE CAST((CPUTime_Per_minute - Avg_CPUTime) / StdDev_CPUTime AS DECIMAL(22,3)) END AS CPUTime_ZCore,
-
-                    CASE WHEN StdDev_ElapsedTime = 0 THEN 0 
-                            ELSE CAST((ElapsedTime_Per_minute - Avg_ElapsedTime) / StdDev_ElapsedTime AS DECIMAL(22,3)) END AS ElapsedTime_ZCore,
-
-                    CASE WHEN StdDev_LogicalReads = 0 THEN 0 
-                            ELSE CAST((LogicalReads_Per_minute - Avg_LogicalReads) / StdDev_LogicalReads AS DECIMAL(22,3)) END AS LogicalReads_ZCore
-            ) b
+                        '+ 
+                    CONCAT_WS(',',((SELECT REPLACE(REPLACE(a.command,'$Threshold',b.Threshold),'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='IsAbnormal' AND b.value = 'ExecutionCount' )+ CHAR(10)),
+                         ((SELECT REPLACE(REPLACE(a.command,'$Threshold',b.Threshold),'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='IsAbnormal' AND b.value = 'CPUTime' )+ CHAR(10))
+                        ,((SELECT REPLACE(REPLACE(a.command,'$Threshold',b.Threshold),'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='IsAbnormal' AND b.value = 'ElapsedTime' )+ CHAR(10))
+                        ,((SELECT REPLACE(REPLACE(a.command,'$Threshold',b.Threshold),'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='IsAbnormal' AND b.value = 'LogicalReads' )+ CHAR(10))
+                        ) +','+
+                    CONCAT_WS(',',NULL,((SELECT REPLACE(REPLACE(a.command,'$Threshold',b.Threshold),'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='zcore' AND b.value = 'ExecutionCount' )+ CHAR(10)),
+                         ((SELECT REPLACE(REPLACE(a.command,'$Threshold',b.Threshold),'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='zcore' AND b.value = 'CPUTime' )+ CHAR(10))
+                        ,((SELECT REPLACE(REPLACE(a.command,'$Threshold',b.Threshold),'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='zcore' AND b.value = 'ElapsedTime' )+ CHAR(10))
+                        ,((SELECT REPLACE(REPLACE(a.command,'$Threshold',b.Threshold),'$',b.value) FROM @Rules a CROSS JOIN @CounterListCheck b WHERE a.RuleNo='zcore' AND b.value = 'LogicalReads' )+ CHAR(10))
+                        ) +
+            ') b
             WHERE 
-                textDay  = @textDayFilter
-                --(EventTime BETWEEN @Filter_Fromdate AND @Filter_Todate)
-                AND (Is_ExecutionCount_Abnomaly = 1 OR Is_CPUTime_Abnomaly = 1 OR Is_ElapsedTime_Abnomaly = 1 OR Is_LogicalReads_Abnomaly = 1)  )
+                textDay  = '''+@textDayFilter+''' 
+                AND 
+                (' + (SELECT STRING_AGG(a.value+b.value + ' = 1',' OR ') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('IsAbnormal') ) + ')' + CHAR(10) +'
+                )
 
-        INSERT INTO #tb_AbnormalList_temp (SPID, SPRowID , SPName , ServerName  , DBName , EventDate, EventTime , ExecCount_Per_minute , CPUTime_Per_minute , LogicalReads_Per_minute , 
-        ElapsedTime_Per_minute , AbnormalReason, ExecCount_ZCore , CPUTime_ZCore , LogicalReads_ZCore , ElapsedTime_ZCore, RowNo) --, DiffNextPoint
+        INSERT INTO #ListAbnormal_org (SPID, SPRowID , SPName , ServerName  , DBName , EventDate, EventTime , 
+            ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg_per_minute') ) + ',' + CHAR(10) +'
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('ZCore') ) + ',' + CHAR(10) +'
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Threshold') ) + ',' + CHAR(10) +'
+         AbnormalReason,AbnormalReason1, NormalValue, RowNo) 
         SELECT 
-        SPID ,SPRowID , SPName , ServerName  , DBName ,EventDate , EventTime , ExecCount_Per_minute , CPUTime_Per_minute , LogicalReads_Per_minute
-            , ElapsedTime_Per_minute , AbnormalReason
-            , ExecCount_ZCore , CPUTime_ZCore , LogicalReads_ZCore , ElapsedTime_ZCore, RowNo
-            --, LEAD(SPRowID) OVER (PARTITION BY SPID, CAST(EventTime AS DATE) ORDER BY EventTime) - SPRowID AS DiffNextPoint
+            SPID, SPRowID , SPName , ServerName  , DBName , EventDate, EventTime , 
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg_per_minute') ) + ',' + CHAR(10) +'
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('ZCore') ) + ',' + CHAR(10) +'
+                ' + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Threshold') ) + ',' + CHAR(10) +'
+            AbnormalReason,AbnormalReason1, NormalValue, RowNo
         FROM cte_result
+        '
+        EXEC sp_executesql @sqlcmd
         
-
         SET @Msg = 'Get the abnormal value at the highest point'
         IF @Debug = 1   
             RAISERROR (@Msg , 0, 1) WITH NOWAIT
 
-        -- Get the abnormal value at the highest point
-        INSERT INTO #tb_AbnormalList (SPID , SPName , ServerName , LinkedServerName , DBName , EventTime , EventDate , ExecCount_Per_minute , 
-                CPUTime_Per_minute , LogicalReads_Per_minute , ElapsedTime_Per_minute , AbnormalReason , ExecCount_ZCore , CPUTime_ZCore , LogicalReads_ZCore , 
-                ElapsedTime_ZCore , IsAbnormalRecurrent, SPRowID)
-        SELECT SPID , SPName , ServerName , @LinkServerName , DBName , EventTime , EventDate ,  ExecCount_Per_minute , 
-                CPUTime_Per_minute , LogicalReads_Per_minute , ElapsedTime_Per_minute , AbnormalReason , ExecCount_ZCore , CPUTime_ZCore , LogicalReads_ZCore , 
-                ElapsedTime_ZCore , 0 AS IsAbnormalRecurrent , SPRowID
-        FROM #tb_AbnormalList_temp  
-        WHERE RowNo = 1
-
-        SET @Msg = 'Calculate the zCore value around the anomaly point; if it below the threshold, exclude it'
-        IF @Debug = 1   
-            RAISERROR (@Msg , 0, 1) WITH NOWAIT
+        TRUNCATE TABLE #AbnormaLoop
 
         -- Calculate the zCore value around the anomaly point; if it below the threshold, exclude it.
         ;WITH cte_AbnormalRecurrent  AS
         (
-            SELECT a.SPID, a.SPRowID, a.EventDate, MIN(b.EventTime) min_EventTime, MAX(b.EventTime) max_EventTime
-            FROM #tb_AbnormalList a 
-                INNER JOIN #tb_AbnormalList_temp b ON a.SPID = b.SPID
-                AND b.SPRowID  BETWEEN -(@AbnormalPoint - 1) + a.SPRowID AND (@AbnormalPoint - 1) + a.SPRowID
-                AND a.EventDate = b.EventDate
-            GROUP BY a.SPID,a.SPRowID, a.EventDate, b.AbnormalReason
-            HAVING COUNT(a.SPID) >= @AbnormalPoint
+            SELECT a.SPID, a.SPRowID, a.EventTime, 1 as lvl
+            FROM #ListAbnormal_org a 
+            UNION ALL
+            SELECT  b.SPID, b.SPRowID, b.EventTime, a.lvl + 1 as lvl 
+            FROM cte_AbnormalRecurrent a
+                INNER JOIN #ListAbnormal_org b ON a.SPID = b.SPID AND a.SPRowID + 1 = b.SPRowID
         )
-        UPDATE  a 
-        SET 
-            IsAbnormalRecurrent = 1,
-            FromEventTime = min_EventTime,
-            ToEventTime = max_EventTime
-        FROM #tb_AbnormalList a INNER JOIN cte_AbnormalRecurrent b 
-        ON a.SPID = b.SPID AND a.EventDate = b.EventDate AND a.SPRowID = b.SPRowID 
+        INSERT INTO #AbnormaLoop (SPID,SPRowID,fromdate,todate,Cntnum)
+        SELECT SPID, SPRowID,MIN(EventTime) EventTime_min, MAX(EventTime) EventTime_max, COUNT(1) AS cnt_Abnormal
+        FROM (
+            SELECT  SPID, 
+                    SPRowID - COUNT(1) + 1 AS SPRowID , 
+                    EventTime
+            FROM cte_AbnormalRecurrent 
+            GROUP BY SPID, SPRowID, EventTime
+        ) a
+        GROUP BY SPID, SPRowID
+        HAVING COUNT(1) >= @AbnormalPoint -- threshold = 3
+        OPTION (maxrecursion 0) 
 
-        -- Get final result
+         -- Get final result 
         SET @Msg = 'Get final result'
         IF @Debug = 1   
             RAISERROR (@Msg , 0, 1) WITH NOWAIT
-
-        INSERT INTO #tmp_AbnormalResult (SPName, ServerName, LinkedServerName, DBName, EventTimeAbnormal, From_REventTime, To_REventTime, AbnormalReason, QueryPlan, IsAbnormalRecurrent, isExclude)
-        SELECT a.SPName, a.ServerName, a.LinkedServerName, a.DBName, a.EventTime, a.FromEventTime, a.ToEventTime, 
-            'High: ' + a.AbnormalReason + CASE WHEN a.IsAbnormalRecurrent = 1 THEN ' (R)' ELSE '' END, '', a.IsAbnormalRecurrent, 
-            IIF (a.IsAbnormalRecurrent = 1,0,1) AS isExclude
-        FROM #tb_AbnormalList a 
-
-        TRUNCATE TABLE  #tb_AbnormalList
-        TRUNCATE TABLE  #tb_AbnormalList_temp
-
+            
+        SELECT @sqlCMD = '
+        INSERT INTO #ListAbnormal_Result (SPID , SPName , ServerName , LinkedServerName , DBName , EventTime , EventDate ,
+        '
+        + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg_per_minute') ) + ','
+        + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('ZCore') ) + ','
+        + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Threshold') ) + ','
+        + 'IsAbnormalRecurrent, FromEventTime, ToEventTime, SPRowID, AbnormalReason,AbnormalReason1, NormalValue, QueryPlan, isExclude) ' + CHAR(10) +
+      
+        + 'SELECT a.SPID , SPName , ServerName , '''+@LinkServerName+''' , DBName , EventTime , EventDate ,'
+        + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Avg_per_minute') ) + ','
+        + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('ZCore') ) + ','
+        + (SELECT STRING_AGG(a.value+b.value,',') FROM @CounterListCheck a CROSS JOIN @StatisPrefix b where b.value IN ('Threshold') ) + ','
+        + 'IIF(b.SPID IS NULL,0,1) AS IsAbnormalRecurrent , b.fromdate AS FromEventTime, b.todate AS ToEventTime
+            , a.SPRowID,a.AbnormalReason,a.AbnormalReason1,a.NormalValue, 
+            '''',IIF (IIF(b.SPID IS NULL,0,1) = 1,0,1) AS isExclude
+            FROM #ListAbnormal_org  a 
+                LEFT JOIN #AbnormaLoop b ON a.SPID = b.SPID AND a.SPRowID = b.SPRowID
+            WHERE b.SPID IS NOT NULL OR a.RowNo = 1
+            '
+        EXEC sp_executesql @sqlcmd
+      
         -- get query store state
         SET @Msg = 'get query store state'
         IF @Debug = 1   
             RAISERROR (@Msg , 0, 1) WITH NOWAIT
 
-        SET @sqlCMD = 'SELECT '''+@LinkServerName+''',* FROM OPENQUERY('+@LinkServerName+',''
+        SET @sqlCMD = 'SELECT '''+@LinkServerName+''',* FROM OPENQUERY('+QUOTENAME(@LinkServerName)+',''
             SELECT @@SERVERNAME as SERVERNAME, name AS ''''DATABASENAME''''
                  , CASE is_query_store_on
                        WHEN 1 THEN ''''ENABLED''''
@@ -602,7 +610,7 @@ BEGIN
                                 FROM sys.databases
                                 WHERE is_query_store_on = 1 '+ CASE WHEN @DBName = '' THEN '' ELSE ' AND name = '''''+@DBName+'''''' END + '
                             '')'
-        INSERT INTO #tb_ServersHasQueryStore (LinkedServerName, ServerName, DBName, QueryStoreState)
+        INSERT INTO #QueryStoreOnServer (LinkedServerName, ServerName, DBName, QueryStoreState)
         EXEC sp_executesql @sqlcmd
 
         UPDATE @tb_ListLinkedServer SET IsCheck = 1 WHERE LinkedServerName = @LinkServerName
@@ -618,26 +626,27 @@ BEGIN
     -- Process each linked server get info query_store
     DECLARE @tbExclude Table (linkedServer varchar(255), dbname varchar(255))
     INSERT INTO @tbExclude VALUES('DB061KBT','WASAVerse'),('DB062KBT','WASAVerse')
-    DELETE a FROM #tb_ServersHasQueryStore a INNER JOIN @tbExclude b on a.LinkedServerName = b.linkedServer and a.DBName = b.dbname
+
+    DELETE a FROM #QueryStoreOnServer a INNER JOIN @tbExclude b on a.LinkedServerName = b.linkedServer and a.DBName = b.dbname
 
     IF @Debug = 1   
         RAISERROR ('Process each linked server get info query_store' , 0, 1) WITH NOWAIT
     
-    WHILE EXISTS (SELECT TOP 1 1 FROM #tb_ServersHasQueryStore WHERE isChecked = 0)
+    WHILE EXISTS (SELECT TOP 1 1 FROM #QueryStoreOnServer WHERE isChecked = 0)
     BEGIN
         DELETE FROM @tb_DataQueryStore
 
         SELECT TOP 1 @LinkServerName = LinkedServerName , @_DBName = DBName 
-        FROM #tb_ServersHasQueryStore WHERE isChecked = 0
+        FROM #QueryStoreOnServer WHERE isChecked = 0
         
         --Convert table to JSON
         SELECT @json = 
         (
             SELECT 
                 rsm.SPName,
-                CONVERT(VARCHAR(25),rsm.EventTimeAbnormal,120) AS EventTime
+                CONVERT(VARCHAR(25),rsm.EventTime,120) AS EventTime
             FROM 
-                #tmp_AbnormalResult rsm 
+                #ListAbnormal_Result rsm 
             WHERE rsm.DBName = @_DBName AND rsm.LinkedServerName = @LinkServerName 
                 AND IsAbnormalRecurrent = 0 
                 AND (AbnormalReason LIKE '%CPUTime%' OR AbnormalReason LIKE '%ElapsedTime%'OR AbnormalReason LIKE '%LogicalReads%')
@@ -655,7 +664,7 @@ BEGIN
                 INSERT INTO @tb_DataQueryStore (EventTime,SPName,QueryIDs,plan_cnt,rownum)
                 EXEC sp_executesql @sqlCMD
                 
-                --abnomal Execution_count, n times in-a-row, whatever number of query plans
+                --abnomal ExecutionCount, n times in-a-row, whatever number of query plans
                 --abnomal avgCPU or avg read, n times in-a-row, then            
                 -- if 1 query plan mean might different in parameter input  
                 -- or if 1 query plan might query text change in query store (after deployment that make query text change) 
@@ -664,9 +673,13 @@ BEGIN
                 UPDATE a 
                 SET 
                     isExclude = 0
-                FROM #tmp_AbnormalResult a 
-                    INNER JOIN @tb_DataQueryStore b ON a.SPName = b.SPName AND a.EventTimeAbnormal = b.EventTime
+                FROM #ListAbnormal_Result a 
+                    INNER JOIN @tb_DataQueryStore b ON a.SPName = b.SPName AND a.EventTime = b.EventTime
                 WHERE a.LinkedServerName = @LinkServerName AND DBName = @_DBName AND b.rownum = 1 AND b.plan_cnt > 1
+
+
+                -- Delete plan count = 1
+                DELETE FROM @tb_DataQueryStore WHERE plan_cnt = 1
 
                 ;WITH cte_query_store AS (
                     SELECT STRING_AGG (CAST(QueryIDs AS VARCHAR(MAX)) + ' (x' + CAST(plan_cnt AS VARCHAR(100)) + ')','<br>') as plan_cnt, EventTime, SPName
@@ -675,8 +688,8 @@ BEGIN
                 )
                 UPDATE a 
                 SET a.QueryPlan = plan_cnt
-                FROM #tmp_AbnormalResult a 
-                    INNER JOIN cte_query_store b ON a.SPName = b.SPName AND a.EventTimeAbnormal = b.EventTime
+                FROM #ListAbnormal_Result a 
+                    INNER JOIN cte_query_store b ON a.SPName = b.SPName AND a.EventTime = b.EventTime
 
             END TRY
             BEGIN CATCH
@@ -685,7 +698,7 @@ BEGIN
 
         END
        
-        UPDATE  #tb_ServersHasQueryStore SET isChecked = 1 WHERE DBName = @_DBName AND LinkedServerName = @LinkServerName
+        UPDATE  #QueryStoreOnServer SET isChecked = 1 WHERE DBName = @_DBName AND LinkedServerName = @LinkServerName
     END
     -- End Process get info query_store
 
@@ -693,46 +706,103 @@ BEGIN
 
     DECLARE @Subject VARCHAR(1024) = '[Abnormal Report] Data Checking on '-- + ISNULL(CONVERT(VARCHAR(20), @CheckDate, 105), '' )
     DECLARE @Mail_xml NVARCHAR(MAX), @Mail_body NVARCHAR(MAX), @Mail_header NVARCHAR(MAX)
+    DECLARE @tbMail_xml TABLE (Mail_xml NVARCHAR(MAX))
     
     IF @Debug = 1   
         RAISERROR ('Process Sendmail' , 0, 1) WITH NOWAIT
+    
+
+    -- One more step to checking by hours
+
+    SELECT * FROM #ListAbnormal_Result
+
 
     -- Process Sendmail
     WHILE (1=1)
     BEGIN
-        SELECT TOP 1 @LinkServerName = LinkedServerName, @SrvName=ServerName FROM #tmp_AbnormalResult WHERE isChecked = 0 AND isExclude = 0
+        SELECT TOP 1 @LinkServerName = LinkedServerName, @SrvName=ServerName FROM #ListAbnormal_Result WHERE isChecked = 0 AND isExclude = 0
 
         IF @@ROWCOUNT = 0
             BREAK
-
+            
+        DELETE FROM @tbMail_xml
         SELECT @Subject  = '[Abnormal Report] SP Performance Check - KBT@' + @SrvName
-        SET @Mail_header = '<html><body>
-                            <h1> Abnormal SP List : </h1>' +
-                        '<table border = 1>
-                        <tr>
-                        <th>Server Name</th>
-                        <th>DB Name</th>
-                        <th>SP Name</th>
-                        <th>Event Time</th>
-                        <th>Abnormal Reason</th>   
-                        <th>Query Plan Count</th>'   
-        SET @Mail_xml = CAST((
-            SELECT 
-                t.ServerName AS 'td','',
-                t.DBName AS 'td','',   
-                t.SPName AS 'td','',   
-                REPLACE(CONVERT(VARCHAR(16), t.EventTimeAbnormal, 20), '-', '/') AS 'td','',
-                t.AbnormalReason + CASE WHEN t.IsAbnormalRecurrent = 1 THEN ' - ( ' + REPLACE(ISNULL(CONVERT(VARCHAR(16), t.From_REventTime, 20),''), '-', '/') + ' - '+
-                                        REPLACE(ISNULL(CONVERT(VARCHAR(16), t.To_REventTime, 20),''), '-', '/')  + ' )' 
-                                        ELSE '' END AS 'td','' ,
-                t.QueryPlan AS 'td',''
-            FROM #tmp_AbnormalResult t
-            WHERE  isExclude = 0 AND LinkedServerName = @LinkServerName
-            ORDER BY  t.DBName , t.SPName, t.EventTimeAbnormal
-            FOR XML PATH ('tr'), ELEMENTS
-        ) AS NVARCHAR(MAX))
+        SET @Mail_header = '<html>
+                            <head>
+                                <style>
+                                    body { font-family: Arial, sans-serif; }
+                                    h1 { color: #333; }
+                                    table { width: 100%; border-collapse: collapse; }
+                                    th, td { padding: 8px; text-align: left; border: 1px solid #ddd; }
+                                    th { background-color: #f2f2f2; }
+                                    ul { padding-left: 20px}
+                                    tr:nth-child(even) { background-color: #f9f9f9; }
+                                    tr:hover { background-color: #f1f1f1; }
+                                </style>
+                            </head>
+                            <body>
+                            <h1> Abnormal Stored Procedure Report</h1> <p>Generated on: '+FORMAT(@CurrDate, 'yyyy-MM-dd HH:mm:ss')+' (GMT-4)</p> ' + 
+                            '<table border = 1>
+                            <tr>
+                            <th>.No</th>
+                            <th>ServerName</th>
+                            <th>DBName</th>
+                            <th>SPName</th>
+                            <th>EventDate</th>
+                            <th>Reason Abnormal</th>
+                            <th>AbnormalTime</th>
+                            <th>QueryPlan</th>'
 
-        SET @Mail_body = @Mail_header + REPLACE(@Mail_xml,'&lt;BR&gt;','<br>') + '</table></body> <BR> * (R) : Continuous Abnormality <html>'
+        
+        SELECT @sqlCMD =  N'SELECT CAST((
+            SELECT 
+                ROW_NUMBER() OVER (ORDER BY t.DBName ,  t.SPName ) AS ''td'','''',
+                t.ServerName AS ''td'','''',
+                t.DBName AS ''td'','''',
+                t.SPName AS ''td'','''',
+                t.EventDate AS ''td'','''',
+                STUFF((SELECT DISTINCT '', '' + CAST(a.VALUE AS VARCHAR(MAX)) 
+                FROM STRING_SPLIT(AbnormalReason1,'','') AS a
+                FOR XML PATH('''')
+                ), 1, 2, '''')  AS ''td'','''',
+                '+
+                N'STRING_AGG(CAST(AbnormalTimeRange AS VARCHAR(MAX)) ,'', '')  AS ''td'','''',
+                QueryPlan AS ''td'',''''
+            FROM 
+            (
+                SELECT 
+                    t.ServerName ,
+                    t.DBName ,   
+                    t.SPName ,   
+                    STRING_AGG(t.AbnormalReason1,'','') AS AbnormalReason1, 
+                    CONVERT(VARCHAR(16), t.EventTime, 111) AS EventDate,
+                    N''<ul><li>'' + STRING_AGG( CAST(IIF (FromEventTime IS NULL
+                        ,CONVERT(NVARCHAR(5), CAST(t.EventTime AS TIME), 108)  
+                        ,CONVERT(NVARCHAR(5), CAST(FromEventTime AS TIME), 108) + ''-'' + CONVERT(NVARCHAR(5), CAST(ToEventTime AS TIME), 108) +
+                        '' ('' + CONVERT(NVARCHAR(5), DATEDIFF(Minute,FromEventTime,ToEventTime) + 1) +''min)'') AS NVARCHAR(MAX)), N'' </li><li> '') 
+                        WITHIN GROUP (ORDER BY FromEventTime) + N''</li></ul>'' AS AbnormalTimeRange ,
+                    t.QueryPlan
+                FROM #ListAbnormal_Result t
+                WHERE  isExclude = 0 AND LinkedServerName = '''+@LinkServerName+'''
+                GROUP BY t.ServerName,t.DBName,t.SPName,CONVERT(VARCHAR(16), t.EventTime, 111),t.QueryPlan
+                
+            ) t
+            GROUP BY t.ServerName,t.DBName,t.SPName,t.EventDate,AbnormalReason1 ,t.QueryPlan
+            ORDER BY  t.DBName ,   
+                    t.SPName 
+            FOR XML PATH (''tr''), ELEMENTS
+        ) AS NVARCHAR(MAX))' 
+        
+        INSERT INTO @tbMail_xml 
+        EXEC sp_executesql @sqlCMD
+
+        SELECT @Mail_xml = Mail_xml FROM @tbMail_xml
+
+        SET @Mail_body = NULL
+
+        SET @Mail_body = @Mail_header + REPLACE(REPLACE(@Mail_xml,'&lt;','<') ,'&gt;','>') + '</table> <p>* ================= *</p>
+            <p>For more information, please refer to the <a href="https://ops3.starixplay.com/d/WhbvuOKHz/servers-anomaly-report?orgId=1&var-server_name='
+            +@LinkServerName+'" target="_blank">dashboard</a>.</p> </body> <html>'
 
         INSERT INTO @tb_SendMail (LinkServerName,Mail_body)
         SELECT @LinkServerName,@Mail_body
@@ -741,34 +811,29 @@ BEGIN
          IF @Mail_body IS NOT NULL AND @Debug = 0
          BEGIN
         
-            EXEC msdb.dbo.sp_send_dbmail @recipients='lukas.luu@starixsoft.com;evan.trinh@starixsoft.com'
+            EXEC msdb.dbo.sp_send_dbmail @recipients='lukas.luu@starixsoft.com;evan.trinh@starixsoft.com;daniel.truong@starixsoft.com;patrick.pham@starixsoft.com;sol.le@starixsoft.com;brice.nguyen@starixsoft.com'
                     , @subject = @subject 
                     , @body = @Mail_body
                     , @body_format = 'HTML'
+
+            INSERT INTO DBA_AbnormalResultLog (SPID, Logdate,ServerName,LinkedServerName,DBName,SPName,EventTimeAbnormal,From_REventTime,To_REventTime,AbnormalReason,QueryPlan,IsAbnormalRecurrent)
+            SELECT SPID,CAST(@CurrDate AS DATE),ServerName,LinkedServerName,DBName,SPName,EventTime,FromEventTime,ToEventTime,AbnormalReason,QueryPlan,IsAbnormalRecurrent 
+            FROM #ListAbnormal_Result WHERE  isExclude = 0 AND LinkedServerName = @LinkServerName
+
         END
+         
+        UPDATE #ListAbnormal_Result SET isChecked = 1 WHERE LinkedServerName = @LinkServerName
         
-        
-        UPDATE #tmp_AbnormalResult SET isChecked = 1 WHERE LinkedServerName = @LinkServerName
-
-        INSERT INTO DBA_AbnormalResultLog (Logdate,ServerName,LinkedServerName,DBName,SPName,EventTimeAbnormal,From_REventTime,To_REventTime,AbnormalReason,QueryPlan,IsAbnormalRecurrent)
-        SELECT CAST(@CurrDate AS DATE),ServerName,LinkedServerName,DBName,SPName,EventTimeAbnormal,From_REventTime,To_REventTime,AbnormalReason,QueryPlan,IsAbnormalRecurrent 
-        FROM #tmp_AbnormalResult WHERE  isExclude = 0 AND LinkedServerName = @LinkServerName
-
     END
     -- End Process Sendmail
+    IF @Debug = 1
+    BEGIN
+        --SELECT * FROM #Mon_SPPF_Report
+        --SELECT * FROM #Mon_SPPF_Report_Stats
 
-   SELECT * FROM @tb_SendMail  order by LinkServerName
+        SELECT * FROM #ListAbnormal_org ORDER BY EventTime
+        SELECT * FROM #ListAbnormal_Result WHERE isExclude = 0
+        SELECT * FROM @tb_SendMail  order by LinkServerName
+    END
 
 END
-
-GO
-DECLARE @CheckDate DATE = '20241222'
-EXEC vnDBA_SP_AbnormalReport @ServerName = 'DB02'
-                           , @DBName = ''
-                           , @Threshold_ZCore = 3
-                           , @Threshold_CV = 0
-                           , @SPName = 'Dot_Admin_GetSportsTickerChild'
-                           , @CheckDate = @CheckDate
-                           , @NumberDateCheck = 1
-                           , @Debug = 1 
-GO
