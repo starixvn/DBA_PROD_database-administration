@@ -5,6 +5,7 @@
 		SAS_adhocReport_UAT
 		MONDB
 		DEL_LasDB_Archive
+		bodb_TGRS
 		bodb_TGRS_UAT
 		
 	Created on 20250303 by Daniel
@@ -16,7 +17,7 @@ USE msdb;
 GO
 DECLARE @DatabaseList TABLE (DatabaseName NVARCHAR(128));
 INSERT INTO @DatabaseList (DatabaseName)
-VALUES ('bodb_archive'), ('bodb_Report'), ('SAS_adhocReport_UAT'),('MONDB'),('DEL_LasDB_Archive'),('bodb_TGRS_UAT'); -- Add your database names here
+VALUES ('bodb_archive'), ('bodb_Report'), ('SAS_adhocReport_UAT'),('MONDB'),('DEL_LasDB_Archive'),('bodb_TGRS'),('bodb_TGRS_UAT'); -- Add your database names here
 
 SELECT 
 		--j.job_id,  

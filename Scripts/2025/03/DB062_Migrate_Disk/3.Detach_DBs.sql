@@ -5,6 +5,7 @@
 		SAS_adhocReport_UAT
 		MONDB
 		DEL_LasDB_Archive
+		bodb_TGRS
 		bodb_TGRS_UAT
 		
 	Created on 20250303 by Daniel
@@ -59,6 +60,16 @@ GO
 USE [master]
 GO
 EXEC master.dbo.sp_detach_db @dbname = N'DEL_LasDB_Archive'
+GO
+
+--bodb_TGRS
+USE [master]
+GO
+ALTER DATABASE [bodb_TGRS] SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+GO
+USE [master]
+GO
+EXEC master.dbo.sp_detach_db @dbname = N'bodb_TGRS'
 GO
 
 --bodb_TGRS_UAT

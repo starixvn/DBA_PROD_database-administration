@@ -57,6 +57,27 @@ GO
 
 USE [master]
 GO
+CREATE DATABASE [bodb_TGRS] ON
+ (FILENAME = 'L:\USER_DB\bodb_TGRS\bodb_TGRS_log.ldf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\Data.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\Index.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\bodb_TGRS.mdf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\Trader_StagingDB.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\TraderInfo_Index.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\TraderInfo_Table.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\TraderPerformanceDetail_Index.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\TraderPerformanceDetail_Table.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\TraderPerformanceSummary_Index.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\TraderPerformanceSummary_Table.ndf')
+,(FILENAME = 'L:\USER_DB\bodb_TGRS\UserLog_RunSp.ndf')
+
+ FOR ATTACH
+GO
+
+
+
+USE [master]
+GO
 CREATE DATABASE [bodb_TGRS_UAT] ON
  (FILENAME = 'K:\USER_DB\bodb_TGRS_UAT\bodb_TGRS_log.ldf')
 ,(FILENAME = 'K:\USER_DB\bodb_TGRS_UAT\Data.ndf')

@@ -2430,6 +2430,18 @@ robocopy J:\USER_DB\bodb_TGRS_UAT K:\USER_DB\bodb_TGRS_UAT TraderPerformanceDeta
 robocopy J:\USER_DB\bodb_TGRS_UAT K:\USER_DB\bodb_TGRS_UAT TraderPerformanceSummary_Index.ndf /COPYALL /MT:16
 robocopy J:\USER_DB\bodb_TGRS_UAT K:\USER_DB\bodb_TGRS_UAT TraderPerformanceSummary_Table.ndf /COPYALL /MT:16
 robocopy J:\USER_DB\bodb_TGRS_UAT K:\USER_DB\bodb_TGRS_UAT UserLog_RunSp.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS bodb_TGRS_log.ldf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS Data.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS Index.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS bodb_TGRS.mdf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS Trader_StagingDB.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS TraderInfo_Index.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS TraderInfo_Table.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS TraderPerformanceDetail_Index.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS TraderPerformanceDetail_Table.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS TraderPerformanceSummary_Index.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS TraderPerformanceSummary_Table.ndf /COPYALL /MT:16
+robocopy F:\USER_DB\bodb_TGRS L:\USER_DB\bodb_TGRS UserLog_RunSp.ndf /COPYALL /MT:16
 echo -------------------------------------------------
 echo ----
 
