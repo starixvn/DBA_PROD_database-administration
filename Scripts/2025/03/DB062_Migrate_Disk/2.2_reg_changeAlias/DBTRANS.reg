@@ -1,0 +1,7 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSSQLServer\Client\ConnectTo]
+
+"DB062"="DBMSSOCN,10.1.1.100"
+"DBARC62"="DBMSSOCN,10.1.1.100"
+"DBRPT"="DBMSSOCN,10.1.1.100"
