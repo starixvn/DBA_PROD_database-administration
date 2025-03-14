@@ -1727,7 +1727,7 @@ WITH FILE = 1,norecovery
 GO
 
 -- bodb_LicenseeReportArchive
-RESTORE DATABASE bodb_LicenseeReport_new FROM DISK = 'F:\Brice_tmp\bodb_LicenseeReportArchive_20250318.bak'   WITH FILE = 1,norecovery
+RESTORE DATABASE bodb_LicenseeReportArchive_new FROM DISK = 'F:\Brice_tmp\bodb_LicenseeReportArchive_20250318.bak'   WITH FILE = 1,norecovery
 , MOVE 'bodb_LicenseeReportArchive_Data' TO 'F:\USER_DB\bodb_LicenseeReportArchive\bodb_LicenseeReportArchive_Data.mdf'
 , MOVE 'BATrans_Data' TO 'K:\USER_DB\bodb_LicenseeReportArchive\Audit_Data.ndf'
 , MOVE 'BATrans_Index' TO 'K:\USER_DB\bodb_LicenseeReportArchive\Audit_Data_Index.ndf'
@@ -1924,19 +1924,21 @@ RESTORE DATABASE bodb_LicenseeReport_new FROM DISK = 'F:\Brice_tmp\bodb_Licensee
 ,NOUNLOAD, STATS = 10;
 
 --bodb_N88_Archive
-BACKUP DATABASE [bodb_N88_Archive] TO  
-DISK = N'F:\Brice_tmp\bodb_N88_Archive_20250318.bak'
-WITH NOFORMAT, NOINIT, SKIP, NOREWIND, NOUNLOAD,compression,  STATS = 2, BUFFERCOUNT = 10, MAXTRANSFERSIZE = 1048576;
-GO
+RESTORE DATABASE bodb_N88_Archive_new FROM DISK = 'F:\Brice_tmp\bodb_N88_Archive_20250318.bak'   WITH FILE = 1,norecovery
+, MOVE 'bodb_N88_Archive' TO 'K:\USER_DB\bodb_N88_Archive\bodb_N88_Archive.mdf'
+, MOVE 'ReportData' TO 'K:\USER_DB\bodb_N88_Archive\ReportData.ndf'
+, MOVE 'bodb_N88_Archive_log' TO 'K:\USER_DB\bodb_N88_Archive\bodb_N88_Archive_Log.ldf'
+,NOUNLOAD, STATS = 10;
 
 --MonDB
-BACKUP DATABASE [MonDB] TO  
-DISK = N'F:\Brice_tmp\MonDB_20250318.bak'
-WITH NOFORMAT, NOINIT, SKIP, NOREWIND, NOUNLOAD,compression,  STATS = 2, BUFFERCOUNT = 10, MAXTRANSFERSIZE = 1048576;
-GO
+RESTORE DATABASE MonDB_new FROM DISK = 'F:\Brice_tmp\MonDB_20250318.bak'   WITH FILE = 1,norecovery
+, MOVE 'MonDB' TO 'K:\USER_DB\MonDB\MonDB.mdf'
+, MOVE 'MonDB_log' TO 'K:\USER_DB\MonDB\MonDB_log.ldf'
+,NOUNLOAD, STATS = 10;
 
---SAS_adhocReport
-BACKUP DATABASE [SAS_adhocReport] TO  
-DISK = N'F:\Brice_tmp\SAS_adhocReport_20250318.bak'
-WITH NOFORMAT, NOINIT, SKIP, NOREWIND, NOUNLOAD,compression,  STATS = 2, BUFFERCOUNT = 10, MAXTRANSFERSIZE = 1048576;
-GO
+--SAS_adhocReport_UAT
+RESTORE DATABASE SAS_adhocReport_UAT_new FROM DISK = 'F:\Brice_tmp\SAS_adhocReport_20250318.bak'   WITH FILE = 1,norecovery
+, MOVE 'SAS_adhocReport' TO 'K:\User_DB\SAS_adhocReport\SAS_adhocReport.mdf'
+, MOVE 'data' TO 'K:\User_DB\SAS_adhocReport\data.ndf'
+, MOVE 'SAS_adhocReport_log' TO 'K:\User_DB\SAS_adhocReport\SAS_adhocReport_log.ldf'
+,NOUNLOAD, STATS = 10;
