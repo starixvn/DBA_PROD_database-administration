@@ -1,0 +1,4 @@
+-- DB053
+use master
+go
+ALTER DATABASE bodb_Ploutos  SET HADR AVAILABILITY GROUP = [DB05HA2G2];

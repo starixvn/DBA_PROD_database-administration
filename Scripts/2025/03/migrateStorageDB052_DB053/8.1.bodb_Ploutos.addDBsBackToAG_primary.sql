@@ -1,0 +1,4 @@
+-- DB053
+use master
+go
+ALTER AVAILABILITY GROUP [DB05HA2G2] ADD DATABASE  bodb_Ploutos 
