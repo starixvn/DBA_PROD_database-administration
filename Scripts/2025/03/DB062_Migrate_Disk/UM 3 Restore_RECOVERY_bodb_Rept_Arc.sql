@@ -7,7 +7,6 @@
 	Run on DB062
 */
 
--- Disable LS jobs
 use MASTER
 GO
 
