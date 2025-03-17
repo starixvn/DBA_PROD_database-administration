@@ -1,5 +1,6 @@
 /*
 	Task: Map orphan users in DB <> Login and update DB Property
+		bodb_TGRS
 		bodb_Report
 		bodb_Archive
 		
@@ -33,6 +34,8 @@ GO
 */
 --> Change owner to sa
 USE [master];
+GO
+EXEC [bodb_TGRS].dbo.sp_changedbowner @loginame = N'sa';
 GO
 EXEC [bodb_Report].dbo.sp_changedbowner @loginame = N'sa';
 GO

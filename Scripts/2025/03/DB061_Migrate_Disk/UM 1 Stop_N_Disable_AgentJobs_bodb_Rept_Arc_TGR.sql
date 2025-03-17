@@ -1,5 +1,6 @@
 /*
 	Task: Stop and disable SQL Jobs related to indicated databases
+		bodb_TGRS
 		bodb_archive
 		bodb_Report
 		
@@ -12,7 +13,7 @@ USE msdb;
 GO
 DECLARE @DatabaseList TABLE (DatabaseName NVARCHAR(128));
 INSERT INTO @DatabaseList (DatabaseName)
-VALUES ('bodb_archive'), ('bodb_Report'); -- Add your database names here
+VALUES ('bodb_TGRS'), ('bodb_archive'), ('bodb_Report'); -- Add your database names here
 
 SELECT 
 		--j.job_id,  
@@ -52,3 +53,10 @@ EXEC msdb.dbo.sp_stop_job @job_name = 'bodb02: Check and Correct Data - After MB
 EXEC msdb.dbo.sp_stop_job @job_name = 'bodb02: Deposit Report Summary'; EXEC msdb.dbo.sp_update_job @job_name = 'bodb02: Deposit Report Summary', @enabled = 0;
 EXEC msdb.dbo.sp_stop_job @job_name = 'DBA: SSIS Thursday Routine - Update Statistics'; EXEC msdb.dbo.sp_update_job @job_name = 'DBA: SSIS Thursday Routine - Update Statistics', @enabled = 0;
 EXEC msdb.dbo.sp_stop_job @job_name = 'DBA_Backup: backup dif bodb_archive'; EXEC msdb.dbo.sp_update_job @job_name = 'DBA_Backup: backup dif bodb_archive', @enabled = 0;
+EXEC msdb.dbo.sp_stop_job @job_name = 'TGRS_OS_Market_DailyData'; EXEC msdb.dbo.sp_update_job @job_name = 'TGRS_OS_Market_DailyData', @enabled = 0;
+EXEC msdb.dbo.sp_stop_job @job_name = 'TGRS-RobotTrading DailyData'; EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-RobotTrading DailyData', @enabled = 0;
+EXEC msdb.dbo.sp_stop_job @job_name = 'TGRS-RobotTrading HourlyData'; EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-RobotTrading HourlyData', @enabled = 0;
+EXEC msdb.dbo.sp_stop_job @job_name = 'TGRS-Staging Data Daily'; EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-Staging Data Daily', @enabled = 0;
+EXEC msdb.dbo.sp_stop_job @job_name = 'TGRS-Staging Data Hourly'; EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-Staging Data Hourly', @enabled = 0;
+EXEC msdb.dbo.sp_stop_job @job_name = 'TGRS-Staging OS Data CustomerClass Daily'; EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-Staging OS Data CustomerClass Daily', @enabled = 0;
+EXEC msdb.dbo.sp_stop_job @job_name = 'TGRS-Staging OS Data Daily'; EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-Staging OS Data Daily', @enabled = 0;

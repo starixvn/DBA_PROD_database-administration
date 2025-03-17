@@ -1,5 +1,6 @@
 /*
 	Task: Enable back SQL Jobs related to indicated databases
+		bodb_TGRS
 		bodb_archive
 		bodb_Report
 		
@@ -19,3 +20,10 @@ EXEC msdb.dbo.sp_update_job @job_name = 'bodb02: Check and Correct Data - After 
 EXEC msdb.dbo.sp_update_job @job_name = 'bodb02: Deposit Report Summary', @enabled = 1;
 EXEC msdb.dbo.sp_update_job @job_name = 'DBA: SSIS Thursday Routine - Update Statistics', @enabled = 1;
 EXEC msdb.dbo.sp_update_job @job_name = 'DBA_Backup: backup dif bodb_archive', @enabled = 1;
+EXEC msdb.dbo.sp_update_job @job_name = 'TGRS_OS_Market_DailyData', @enabled = 1;
+EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-RobotTrading DailyData', @enabled = 1;
+EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-RobotTrading HourlyData', @enabled = 1;
+EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-Staging Data Daily', @enabled = 1;
+EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-Staging Data Hourly', @enabled = 1;
+EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-Staging OS Data CustomerClass Daily', @enabled = 1;
+EXEC msdb.dbo.sp_update_job @job_name = 'TGRS-Staging OS Data Daily', @enabled = 1;
