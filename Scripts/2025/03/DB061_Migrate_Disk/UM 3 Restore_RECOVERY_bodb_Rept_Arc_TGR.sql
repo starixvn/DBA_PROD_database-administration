@@ -1,5 +1,6 @@
 /*
 	Task: Restore databases recovery from LS secondary
+		bodb_TGRS_New
 		bodb_archive_New
 		bodb_Report_New
 		
@@ -10,6 +11,8 @@
 use MASTER
 GO
 
+RESTORE bodb_TGRS_New WITH RECOVERY
+GO
 RESTORE bodb_Report_New WITH RECOVERY
 GO
 RESTORE bodb_Archive_New WITH RECOVERY
