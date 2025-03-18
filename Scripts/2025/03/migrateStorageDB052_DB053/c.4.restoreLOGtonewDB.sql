@@ -1,0 +1,59 @@
+-- DB053
+use master
+go
+RESTORE LOG   bodb_YashBet FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   bodb_YashBet_Archive FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_12B  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_12bet  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_9Bet  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_Aoncash  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_Athena000  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_itcbet  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_MacauBet  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_N88  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_N8B  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_N8G  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_Spondemo  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   Affiliate_YashBet  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   bodb_12B  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   bodb_12B_Archive  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   bodb_CRM FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   bodb_FraudSensor  FROM DISK = '' WITH NORECOVERY;
+go
+--ALTER AVAILABILITY GROUP [DB05HA2G2] ADD DATABASE  bodb_Ploutos 
+go
+RESTORE LOG   bodb_RMS  FROM DISK = '' WITH NORECOVERY;
+go
+RESTORE LOG   MessageNotification  FROM DISK = '' WITH NORECOVERY;
+
+GO
+
+RESTORE LOG   bodb_LicenseeReport_new  FROM DISK = 'F:\Brice_tmp\bodb_LicenseeReport_20250318.trn' WITH NORECOVERY;
+go
+RESTORE LOG   bodb_LicenseeReportArchive_new  FROM DISK = 'F:\Brice_tmp\bodb_LicenseeReportArchive_20250318.trn' WITH NORECOVERY;
+go
+--RESTORE LOG   bodb_N88_new  FROM DISK = 'F:\Brice_tmp\bodb_N88_20250318.trn' WITH NORECOVERY;
+go
+RESTORE LOG   bodb_N88_Archive_new  FROM DISK = 'F:\Brice_tmp\bodb_N88_Archive_20250318.trn' WITH NORECOVERY;
+go
+RESTORE LOG   MonDB_new FROM DISK = 'F:\Brice_tmp\MonDB_20250318.trn' WITH NORECOVERY;
+go
+RESTORE LOG   SAS_adhocReport_new  FROM DISK = 'F:\Brice_tmp\SAS_adhocReport_20250318.trn' WITH NORECOVERY;
+

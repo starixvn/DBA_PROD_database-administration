@@ -1,5 +1,5 @@
-declare @bk_dir nvarchar(max) =N'F:\Brice_tmp\bodb_N88_Archive_20250318.bak'
-
+declare @bk_dir nvarchar(max) =N'\\db053\G$\BACKUP\DB053.bodb_Ploutos_20250317.bak'
+declare @restore_DB nvarchar(100) = N'bodb_Ploutos'
 -- Create a temporary table to hold the results of RESTORE FILELISTONLY with 22 columns
 IF OBJECT_ID('tempdb..##FileList') IS NOT NULL DROP TABLE #FileList
 CREATE TABLE    #FileList (
@@ -64,13 +64,15 @@ EXEC sp_executesql @FileListSQL;
 -- Now, loop through the results and build the MOVE clauses
 DECLARE @LogicalName NVARCHAR(128), @PhysicalName NVARCHAR(260);
 
-DECLARE @RestoreCommand NVARCHAR(MAX) = 'RESTORE DATABASE bodb_LicenseeReport_new FROM DISK = '''+@bk_dir+''' 
-WITH FILE = 1,norecovery';
+DECLARE @RestoreCommand NVARCHAR(MAX) = 'RESTORE DATABASE '+@restore_DB+' FROM DISK = '''+@bk_dir+''' 
+WITH FILE = 1,norecovery,replace';
 -- Concatenate the MOVE clauses for each file
+select 'if (select 1 from sys.databases where name like '''+@restore_DB+''' and state_desc =''RESTORING'')=1'
+union all
 select @RestoreCommand
 union all
 select 
-', MOVE ''' + LogicalName + ''' TO ''' + PhysicalName + ''''
+', MOVE ''' + LogicalName + ''' TO ''' + replace(replace(PhysicalName,'I:','J:'),'F:','K:') + ''''
 FROM #FileList
 union all
 select 
