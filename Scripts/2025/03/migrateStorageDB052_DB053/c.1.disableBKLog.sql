@@ -19,10 +19,6 @@ execute msdb.dbo.sp_update_job @job_name =N'bodb_YashBet', @enabled = 0
 go
 execute msdb.dbo.sp_update_job @job_name =N'bodb_YashBet_Archive', @enabled = 0
 go
-execute msdb.dbo.sp_update_job @job_name =N'MonDB', @enabled = 0
-go
-execute msdb.dbo.sp_update_job @job_name =N'SAS_adhocReport', @enabled = 0
-go
 execute msdb.dbo.sp_update_job @job_name =N'Affiliate_12B', @enabled = 0
 go
 execute msdb.dbo.sp_update_job @job_name =N'Affiliate_12bet', @enabled = 0
