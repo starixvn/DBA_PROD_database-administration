@@ -1,0 +1,74 @@
+version: '3.7'
+
+# Define networks
+networks:
+  default:
+    name: ${MONGO_NETWORK}          
+    driver: ${DRIVER_NETWORK}       
+    external: ${EXTERNAL_NETWORK}  
+
+services:
+  # MongoDB Replica Set - Primary Node
+  rocketchat_1:
+    image: mongo:${MONGO_TAG}
+    container_name: ${MONGO_HOST} 
+    hostname: ${MONGO_HOST}
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: 16G
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}  
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} 
+      TZ: ${TIMEZONE} 
+    ports:
+      - ${MONGO_PORT}:27017         
+    volumes:
+      - ${MONGO_DATA}/${MONGO_HOST}_primary:/data/db         
+      - ${MONGO_BACKUP}:/data/backup         
+      - ${MONGO_LOG}/${MONGO_HOST}_primary:/var/log/mongodb    
+      - ${MONGO_CONF}/replica.key:/data/replica.key  # Replica set key file
+      - ${MONGO_CONF}/mongod.conf:/etc/mongod.conf  # Mount mongod.conf
+    depends_on:
+      - rocketchat_2                # Ensure secondary starts before primary
+    restart: always                
+    command: "mongod --config /etc/mongod.conf"     # Use mongod.conf
+
+  # MongoDB Replica Set - Secondary Node
+  rocketchat_2:
+    image: mongo:${MONGO_TAG}       
+    container_name: ${MONGO_HOST}2  
+    hostname: ${MONGO_HOST}2   
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: 16G     
+    expose:
+      - 27017                       # Expose MongoDB port internally
+    volumes:
+      - ${MONGO_DATA}/${MONGO_HOST}2:/data/db      
+      - ${MONGO_BACKUP}:/data/backup      
+      - ${MONGO_LOG}/${MONGO_HOST}2:/var/log/mongodb    
+      - ${MONGO_CONF}/replica.key:/data/replica.key  
+      - ${MONGO_CONF}/mongod.conf:/etc/mongod.conf  # Mount mongod.conf
+    restart: always                 # Always restart the container
+    command: "mongod --config /etc/mongod.conf" # Use mongod.conf
+
+    #command: "mongod --bind_ip_all --replSet dbrs --keyFile /data/replica.key"  # Start MongoDB with replica set
+    
+  # MongoDB Replica Set Initialization Script
+  mongo-setup-owp:
+    image: mongo:${MONGO_TAG}
+    container_name: mongo-setup-owp
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    depends_on:
+      - rocketchat_1
+      - rocketchat_2
+    volumes:
+      - ${MONGO_CONFIG_DIR}/mongo-scripts/mongodb_rs_init.sh:/scripts/mongodb_rs_init.sh  # Initialization script
+    restart: on-failure
+    entrypoint: ["/bin/bash", "/scripts/mongodb_rs_init.sh"]  # Run the initialization script
