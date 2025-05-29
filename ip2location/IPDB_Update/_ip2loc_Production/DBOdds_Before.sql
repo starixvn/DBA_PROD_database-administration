@@ -1,3 +1,8 @@
 truncate table TEMP_IPTable_Denied
-truncate table TEMP_IPTable_Mini
+
+IF @@SERVERNAME <> 'DBCUST'
+BEGIN
+	truncate table TEMP_IPTable_Mini
+END
+
 GO
