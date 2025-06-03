@@ -1,0 +1,6 @@
+
+# Full backup on Sunday at 00:00
+0 0 * * 0 bash /var/docker/rocketchat33/crontab/full_backup_rocketchat.sh >> /var/docker/rocketchat33/log/cron_full.log 2>&1
+
+# Incremental backup from Monday to Saturday at 00:00
+0 0 * * 1-6 bash /var/docker/rocketchat33/crontab/incremental_backup_rocketchat.sh >> /var/docker/rocketchat33/log/cron_diff.log 2>&1
