@@ -18,6 +18,14 @@ BEGIN
 END
 GO
 
+IF @@SERVERNAME = 'DBCUST'
+BEGIN
+	exec sp_rename 'IPTable_Denied','Denied_T3'
+	exec sp_rename 'TEMP_IPTable_Denied','IPTable_Denied'
+	exec sp_rename 'Denied_T3', 'TEMP_IPTable_Denied'
+END
+GO
+
 exec sp_rename 'IPTable','T'
 exec sp_rename 'TEMP_IP','IPTable'
 exec sp_rename 'T', 'TEMP_IP'

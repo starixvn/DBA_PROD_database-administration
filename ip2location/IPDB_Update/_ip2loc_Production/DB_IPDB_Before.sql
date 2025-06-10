@@ -8,3 +8,10 @@ truncate table TEMP_KeyMap_IPv6_DB3
 truncate table temp_ipv6_db1
 truncate table temp_ipv6_db3
 GO
+
+IF @@SERVERNAME = 'DBCUST'
+BEGIN
+	truncate table TEMP_IPTable_Denied
+END
+
+GO
