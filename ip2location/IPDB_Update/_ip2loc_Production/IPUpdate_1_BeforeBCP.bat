@@ -9,5 +9,3 @@ sqlcmd -U vnJoe -P r4g95x -S DBSITEC3 -d IPDB   -i DB_IPDB_Before.sql
 sqlcmd -U vnJoe -P r4g95x -S DB062    -d bodb02 -i DB_bodb02_Before.sql
 sqlcmd -U vnJoe -P r4g95x -S DB061    -d bodb02 -i DB_bodb02_Before.sql
 sqlcmd -U vnJoe -P r4g95x -S DBTP10C  -d bodb02 -i DB_bodb02_Before.sql
-
-sqlcmd -U vnJoe -P r4g95x -S DBOddsN2 -d DBIP   -i DBOdds_Before.sql
