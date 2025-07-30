@@ -9,7 +9,7 @@ exec sp_rename 'IPTable','T'
 exec sp_rename 'TEMP_IP','IPTable'
 exec sp_rename 'T', 'TEMP_IP'
 GO
-IF @@SERVERNAME = 'DBTP10C'
+IF @@SERVERNAME = 'DBKULC1'
 BEGIN
 exec sp_rename 'IPv6_DB3','T3'
 exec sp_rename 'TEMP_IPv6_DB3','IPv6_DB3'

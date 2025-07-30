@@ -1,6 +1,6 @@
 bcp TEMP_IP             IN bcp_IPTable.csv        -S DB062   -U vnJoe -P r4g95x -d bodb02 -c -tv!x -b 100000
 bcp TEMP_IP             IN bcp_IPTable.csv        -S DB061   -U vnJoe -P r4g95x -d bodb02 -c -tv!x -b 100000
-bcp TEMP_IP             IN bcp_IPTable.csv        -S DBTP10C -U vnJoe -P r4g95x -d bodb02 -c -tv!x -b 100000
+bcp TEMP_IP             IN bcp_IPTable.csv        -S DBKULC1 -U vnJoe -P r4g95x -d bodb02 -c -tv!x -b 100000
 
 bcp TEMP_IPTable_Mini   IN bcp_IPTable_Mini.csv   -S DBTrans -U vnJoe -P r4g95x -d IPDB   -c -tv!x -b 100000
 bcp TEMP_IP             IN bcp_IPTable.csv        -S DBTrans -U vnJoe -P r4g95x -d IPDB   -c -tv!x -b 100000
