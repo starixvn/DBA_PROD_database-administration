@@ -1,0 +1,809 @@
+{
+  "name": "Send alert if GoSQL deployer in meeting/off",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://rocketor.nexdev.net/goSQL/Request",
+        "responseFormat": "string",
+        "options": {
+          "fullResponse": true,
+          "followAllRedirects": true
+        }
+      },
+      "id": "e524be69-aecb-4a74-9aab-1aa2dde3baae",
+      "name": "GET Login Rocketor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Lấy HTML từ response\nconst html = $json.body || $json.data;\n\n// Lấy token bằng regex\nconst match = html.match(/<input[^>]+name=\"__RequestVerificationToken\"[^>]+value=\"([^\"]+)\"/);\n\n// Lấy cookie từ header\nconst setCookie = $json.headers['set-cookie'];\nconst cookies = Array.isArray(setCookie)\n  ? setCookie.map(c => c.split(';')[0]).join('; ')\n  : '';\n\nif (!match || !match[1]) {\n  throw new Error(\"Không tìm thấy token!\");\n}\n\nreturn [\n  {\n    json: {\n      token: match[1],\n      cookies,\n    }\n  }\n];\n"
+      },
+      "id": "4d78d64a-d9c9-4061-ae20-50601468797a",
+      "name": "Extract Token & Cookies (rocketor)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const cookies = $json.headers['set-cookie']\n  ? $json.headers['set-cookie'].map(c => c.split(';')[0]).join('; ')\n  : $node[\"Extract Token & Cookies\"].json[\"cookies\"];\n\nreturn [{ json: { cookies } }];"
+      },
+      "id": "68639054-7bca-498d-b212-c8cb460ababf",
+      "name": "Get Final Cookie Rocketor",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://rocketor.nexdev.net/goSQL/Request/Search",
+        "responseFormat": "string",
+        "options": {
+          "bodyContentType": "multipart-form-data",
+          "fullResponse": false,
+          "ignoreResponseCode": true
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "UserId",
+              "value": "0"
+            },
+            {
+              "name": "SiteId",
+              "value": "55,6,51,53,56,63,62,13,67,11,18,10,36,39,16,40,60,57,43,19,24,20,15,34,27,33,45,37,54,25,22,32,28,44,41,30,14,17,47,35,42,26,23,29,21,68,69,59,58,46,64,65,61,8,9,7,70"
+            },
+            {
+              "name": "StatusId",
+              "value": "1,4"
+            },
+            {
+              "name": "EnvironmentId",
+              "value": "0"
+            },
+            {
+              "name": "DeployInUM",
+              "value": "0"
+            },
+            {
+              "name": "FromDate"
+            },
+            {
+              "name": "ToDate"
+            },
+            {
+              "name": "ItemsPerPage",
+              "value": "30"
+            },
+            {
+              "name": "PageIndex",
+              "value": "0"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Cookie",
+              "value": "={{ $('Get Final Cookie Rocketor').item.json.cookies }}"
+            }
+          ]
+        }
+      },
+      "id": "9f3ca47d-7ab0-4041-b1ca-7d6b928ce44e",
+      "name": "Get Requests Rocketor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        2320,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.first().json.data || '';\nconst rows = html.match(/<tr>[\\s\\S]*?<\\/tr>/g);\n\n// Nếu không có hàng nào thì trả về output để node IF tiếp theo vẫn chạy được\nif (!rows || rows.length === 0) {\n  return [{\n    json: {\n      hasData: false\n    }\n  }];\n}\n\nconst results = [];\n\n// Danh sách assignee được phép\nconst allowedAssignees = [\n  \"kean.nguyen\",\n  \"malcolm.huynh\",\n  \"lukas.luu\",\n  \"roy.du\",\n  \"dominic.dao\",\n  \"daniel.truong\",\n  \"patrick.pham\",\n  \"sol.le\",\n  \"evan.trinh\",\n  \"brice.nguyen\"\n];\n\nfor (const row of rows) {\n  const tds = row.match(/<td[\\s\\S]*?<\\/td>/g);\n  if (!tds || tds.length < 12) continue;\n\n  // Extract requester\n  const requester = tds[7].replace(/<[^>]*>/g, '').trim();\n\n  // Extract environment\n  const envFull = tds[8].replace(/<[^>]*>/g, '').trim();\n  const envUpper = envFull.toUpperCase();\n  if (envUpper.includes('LOCAL')) {\n    continue;\n  }\n\n  // Extract assignee\n  const assignee = tds[9].replace(/<[^>]*>/g, '').trim() || null;\n  if (!assignee || !allowedAssignees.includes(assignee.toLowerCase())) {\n    continue;\n  }\n\n  // Extract Deploy In UM & Deploy Time\n  const umSpans = tds[11].match(/<span class=\"um\">([^<]*)<\\/span>/g);\n  let deployInUM = \"No\";\n  let deployTime = null;\n\n  if (umSpans && umSpans.length > 0) {\n    const umTexts = umSpans.map(s => s.replace(/<[^>]*>/g, '').trim()).filter(Boolean);\n    if (umTexts.includes(\"UM\")) {\n      deployInUM = \"Yes\";\n      const timeStr = umTexts.find(t => t !== \"UM\");\n      if (timeStr) deployTime = timeStr;\n    } else {\n      deployTime = umTexts[0];\n    }\n  }\n\n  // Extract package name\n  const pkgMatch = row.match(/<a[^>]*class=\"[^\"]*view-package[^\"]*\"[^>]*>(.*?)<\\/a>/);\n  const packageName = pkgMatch ? pkgMatch[1].trim() : null;\n\n  // Extract repo name\n  const repoMatch = row.match(/data-sitename=\"([^\"]+)\"/);\n  const repo = repoMatch ? repoMatch[1].trim() : null;\n\n  // Determine package type\n  const packageTypeMatch = row.match(/badge-label package-type\\s+([^\"]+)\"/);\n  let packageType = '[SP/Func]';\n  if (packageTypeMatch) {\n    const typeClass = packageTypeMatch[1].toLowerCase();\n    if (typeClass.includes('sp-func')) {\n      packageType = '[SP/Func]';\n    } else if (typeClass.includes('script')) {\n      packageType = '[Script]';\n    }\n  }\n\n  // Extract request time\n  const timeMatch = row.match(/<span class=\"request-time\"[^>]*data-time=\"([^\"]+)\"/);\n  const requestTime = timeMatch ? timeMatch[1].trim() : null;\n\n  if (!deployTime && requestTime) {\n    deployTime = requestTime;\n  }\n\n  results.push({\n    type: packageType,\n    requester,\n    repo: `${packageType === '[Script]' ? 'Scripts ' : ''}${repo}`,\n    packageName,\n    environment: envFull,\n    assignee,\n    deployInUM,\n    requestTime,\n    deployTime\n  });\n}\n\n// Nếu sau cùng không có kết quả nào thỏa điều kiện, vẫn cần trả về hasData: false\nif (results.length === 0) {\n  return [{\n    json: {\n      hasData: false\n    }\n  }];\n}\n\n// Nếu có kết quả, gắn hasData: true vào từng item\nreturn results.map(item => ({\n  json: {\n    hasData: true,\n    message: `${item.type} Deployment request has been created by ${item.requester} :rocket:\nRepo: ${item.repo}\nPackage: ${item.packageName}\nEnvironment: ${item.environment}\nAssignee: ${item.assignee || 'Unassigned'}\nDeploy In UM: ${item.deployInUM}\nRequest Time: ${item.requestTime || 'N/A'}\nDeploy Time: ${item.deployTime || 'N/A'}`,\n    ...item\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2800,
+        140
+      ],
+      "id": "9b092773-32f2-41f7-aeee-5416040b28e7",
+      "name": "Parse Rocketor Requests",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "batchSize": "={{ $input.all().length}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        4000,
+        140
+      ],
+      "id": "900276cd-e276-4bb0-aa02-48e14cc2c0ab",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 900,
+        "width": 5120,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -60
+      ],
+      "id": "b00649a1-7eb0-4569-9f9b-d75de7ca09d4",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://rocketor.nexdev.net/Account/Login?ReturnUrl=%2F",
+        "responseFormat": "string",
+        "options": {
+          "bodyContentType": "form-urlencoded",
+          "fullResponse": true,
+          "followAllRedirects": false,
+          "ignoreResponseCode": true
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "Username",
+              "value": "evan.trinh"
+            },
+            {
+              "name": "Password",
+              "value": "Tranhungdao@0825"
+            },
+            {
+              "name": "RememberMe",
+              "value": "false"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "={{ $json.token }}"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            },
+            {
+              "name": "cookie",
+              "value": "={{ $json.cookies }}; path=/; samesite=strict; httponly"
+            }
+          ]
+        }
+      },
+      "id": "f9249399-e311-40b5-9e35-d7b3dfe06e13",
+      "name": "POST Login Rocketor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        140
+      ],
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_Rocketor_DeployRequestAlert_Ins"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        3560,
+        140
+      ],
+      "id": "3f4104d5-de8c-44a5-a97c-c878124fb469",
+      "name": "n8n_DeploymentRequestRemind_Ins",
+      "executeOnce": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_Rocketor_DeployRequestAlert_Sel"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        3780,
+        140
+      ],
+      "id": "c0b9af9a-6bf3-4117-8520-ff0e032dd7aa",
+      "name": "n8n_DeploymentRequestRemind_Sel",
+      "executeOnce": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_Rocketor_DeployRequest_Ins @message = '{{ $json.message }}',\n@type = '{{ $json.type }}',\n@requestTime = '{{ $json.requestTime }}',\n@requester = '{{ $json.requester }}',\n@repo = '{{ $json.repo }}',\n@packageName = '{{ $json.packageName }}',\n@environment = '{{ $json.environment }}',\n@assignee = '{{ $json.assignee }}',\n@deployInUM = '{{ $json.deployInUM }}',\n@DeployIn = '{{ $json.deployTime }}',\n@StartTime = '{{ $('Set Input Param').item.json.startTime }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        3280,
+        140
+      ],
+      "id": "0a9a9c63-4937-489c-9d01-84fe0ba4c305",
+      "name": "Exec insert data n8n_DeploymentRequestTmp_Ins",
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4220,
+        -60
+      ],
+      "id": "0a9eef9c-b0d7-4563-8d0e-05b78b067b00",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_Rocketor_DeployRequestAlert_Update @DeployID = {{ $('Parse Message').item.json.DeployID }}"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        4780,
+        240
+      ],
+      "id": "2e41c3b3-6679-429d-8408-1b5758f8498b",
+      "name": "n8n_DeploymentRequestRemind_Update",
+      "executeOnce": false,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n    const json = item.json;\n    const assignee = json.Assignee || 'Unknown';\n    const requester = json.Requester || 'someone';\n    const baseMessage = json.Message || '';\n    const reason = json.Reason || 'Unavailable';\n    let notification = '';\n\n    // Format deploy message as blockquote\n    const formattedBaseMessage = baseMessage ? `> ${baseMessage.trim().replace(/\\n/g, '\\n> ')}` : '';\n\n    const deployTime = new Date(json.DeployIn);\n    const today = new Date();\n    const isToday = deployTime.toDateString() === today.toDateString();\n    const whenText = isToday ? 'today' : 'at the scheduled time';\n\n    // Start with a greeting\n    notification += `⚠️ *PACKAGE DEPLOY ALERT* 🚀 \\n\\n Hi *${requester}*,\\n\\n`;\n\n    if (reason === 'In a meeting') {\n        const room = json.Room || 'unknown room';\n        const start = new Date(json.StartTime);\n        const end = new Date(json.EndTime);\n        const startStr = start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });\n        const endStr = end.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });\n        notification += `📅 *${assignee}* is in a meeting (${startStr}–${endStr}) ${whenText}, 🚫 can't deploy.\\n:point_right: Contact Pontus team for reassignment.`;\n    } \n    else if (reason === 'Checkin/checkout') {\n        const checkIn = json.CheckInTime;\n        const checkOut = json.CheckOutTime || '17:00';\n        \n        // Check if CheckInTime is null or 'null'\n        if (checkIn === null || checkIn === 'null' || !checkIn) {\n            notification += `🏠 *${assignee}* hasn't checked in yet, 🚫 can't deploy ${whenText}.\\n:point_right: Contact Pontus team for reassignment.`;\n        } else {\n            notification += `🕐 *${assignee}* working hours (${checkIn}–${checkOut}), 🚫 can't deploy ${whenText}.\\n:point_right: Contact Pontus team for reassignment.`;\n        }\n    }\n    else if (json.Leavedate) {\n        const leaveDateObj = new Date(json.Leavedate);\n        const leaveDateStr = leaveDateObj.toLocaleDateString('en-GB');\n        const from = json.FromTime || '08:00';\n        const to = json.ToTime || '18:00';\n        const timeNote = (from === '08:00' && to === '18:00') ? '' : `(${from}–${to})`;\n        notification += `🌴 *${assignee}* is on leave *${leaveDateStr}*${timeNote}, 🚫 can't deploy ${whenText}.\\n :point_right: Contact Pontus team for reassignment.`;\n    } \n    else {\n        notification += `🚫 *${assignee}* isn't available ${whenText}.\\n:point_right: Contact Pontus team for reassignment.`;\n    }\n\n    // Add deploy info blockquote\n    if (formattedBaseMessage) {\n        notification += `\\n\\n${formattedBaseMessage}`;\n    }\n\n    // Footer\n    notification += `\\n\\n➵➵➵➵➵➵➵➵➵➵➵➵`;\n\n    return {\n        json: {\n            message: notification,\n            DeployID: json.DeployID,\n            Requester: json.Requester\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4260,
+        140
+      ],
+      "id": "60bbaac5-c1cc-497a-b02a-9094dd99069a",
+      "name": "Parse Message"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "exec n8n_Login_GetInfo @LoginName = '{{ $json.LoginName }}' , @SiteName = '{{ $json.SiteName }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        360
+      ],
+      "id": "be5a6907-2c18-42ed-bceb-0a0a0dde4556",
+      "name": "Get Last Cookie",
+      "executeOnce": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a2f01d7e-24f9-4cab-bbbc-e3a60c9d551a",
+              "leftValue": "={{ $json.Cookie }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        380
+      ],
+      "id": "64b7bc98-b3d3-4441-bc8c-a804ebab3d8b",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const loginName = 'evan.trinh';\nconst siteName = 'Rocketor';\n// Lấy thời gian hiện tại (UTC+7)\nconst now = new Date();\nconst offsetMs = 7 * 60 * 60 * 1000; // +07:00\nconst vietnamTime = new Date(now.getTime() + offsetMs);\n\n// Format thành \"YYYY-MM-DD HH:mm:ss\"\nfunction formatDateTime(date) {\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\n\n// Trả về dữ liệu mới\nreturn $input.all().map(item => {\n  return {\n    json: {\n      ...item.json,\n      LoginName: loginName,\n      SiteName: siteName,\n      startTime: formatDateTime(vietnamTime)\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        360
+      ],
+      "id": "26fda9f6-582e-4d3b-9786-a197b3b230a8",
+      "name": "Set Input Param"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_CookiesLogin_Update @LoginName = '{{ $('Set Input Param').item.json.LoginName }}'\n\t\t\t\t\t\t   , @SiteName = '{{ $('Set Input Param').item.json.SiteName }}'\n\t\t\t\t\t\t   , @Cookie = N'{{ $json.cookies }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        2020,
+        140
+      ],
+      "id": "cfea7ddb-85ff-4cf4-9892-156005672796",
+      "name": "Update Cookie",
+      "executeOnce": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://rocketor.nexdev.net/goSQL/Request/Search",
+        "responseFormat": "string",
+        "options": {
+          "bodyContentType": "multipart-form-data",
+          "fullResponse": false,
+          "ignoreResponseCode": true
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "UserId",
+              "value": "0"
+            },
+            {
+              "name": "SiteId",
+              "value": "55,6,51,53,56,63,62,13,67,11,18,10,36,39,16,40,60,57,43,19,24,20,15,34,27,33,45,37,54,25,22,32,28,44,41,30,14,17,47,35,42,26,23,29,21,68,69,59,58,46,64,65,61,8,9,7,70"
+            },
+            {
+              "name": "StatusId",
+              "value": "1,4"
+            },
+            {
+              "name": "EnvironmentId",
+              "value": "0"
+            },
+            {
+              "name": "DeployInUM",
+              "value": "0"
+            },
+            {
+              "name": "FromDate"
+            },
+            {
+              "name": "ToDate"
+            },
+            {
+              "name": "ItemsPerPage",
+              "value": "30"
+            },
+            {
+              "name": "PageIndex",
+              "value": "0"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Cookie",
+              "value": "={{ $json.Cookie }}"
+            }
+          ]
+        }
+      },
+      "id": "5447b763-042a-4698-bfc2-1ded4b9b909b",
+      "name": "Get Requests Rocketor2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        2180,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */1 0-10 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        120,
+        360
+      ],
+      "id": "7c783ec8-e6c1-4335-a038-43b4334fe4d3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08FZU44NJ3",
+          "mode": "id"
+        },
+        "text": "={{ $json.message }}\n\n",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        4500,
+        160
+      ],
+      "id": "146913b6-4954-4dc0-83d7-bef26d402570",
+      "name": "Send to pontus-vnprodba (C08FZU44NJ3)",
+      "webhookId": "971b7617-190b-4aa8-93a8-6090771ae099",
+      "credentials": {
+        "slackApi": {
+          "id": "5xBPy4Ud4QNqSA5i",
+          "name": "Slack account Evan (Pontus-bot)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c9e90294-a9d7-400f-8403-160064d771c7",
+              "leftValue": "={{ $json.hasData }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3000,
+        140
+      ],
+      "id": "1b69b3a9-fc7a-4596-a8bb-3a013cf8f6d8",
+      "name": "If2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET Login Rocketor": {
+      "main": [
+        [
+          {
+            "node": "Extract Token & Cookies (rocketor)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Token & Cookies (rocketor)": {
+      "main": [
+        [
+          {
+            "node": "POST Login Rocketor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Final Cookie Rocketor": {
+      "main": [
+        [
+          {
+            "node": "Update Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Requests Rocketor": {
+      "main": [
+        [
+          {
+            "node": "Parse Rocketor Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Rocketor Requests": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST Login Rocketor": {
+      "main": [
+        [
+          {
+            "node": "Get Final Cookie Rocketor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n_DeploymentRequestRemind_Ins": {
+      "main": [
+        [
+          {
+            "node": "n8n_DeploymentRequestRemind_Sel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n_DeploymentRequestRemind_Sel": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec insert data n8n_DeploymentRequestTmp_Ins": {
+      "main": [
+        [
+          {
+            "node": "n8n_DeploymentRequestRemind_Ins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n_DeploymentRequestRemind_Update": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Send to pontus-vnprodba (C08FZU44NJ3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Cookie": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "GET Login Rocketor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Requests Rocketor2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Input Param": {
+      "main": [
+        [
+          {
+            "node": "Get Last Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Cookie": {
+      "main": [
+        [
+          {
+            "node": "Get Requests Rocketor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Requests Rocketor2": {
+      "main": [
+        [
+          {
+            "node": "Parse Rocketor Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Input Param",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to pontus-vnprodba (C08FZU44NJ3)": {
+      "main": [
+        [
+          {
+            "node": "n8n_DeploymentRequestRemind_Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Exec insert data n8n_DeploymentRequestTmp_Ins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1811d299-ffeb-4511-9852-782204be4187",
+  "meta": {
+    "instanceId": "98bfed1c0f22fa9e07d0e38dc58da94b0281d63095bd4ba14894d42a90a063e3"
+  },
+  "id": "nPjj240VhWPPcXbx",
+  "tags": []
+}

@@ -1,0 +1,1165 @@
+{
+  "name": "Calendar/HRM - Scan - Insert DB",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Google Calandar",
+        "height": 1280,
+        "width": 3100,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        5320,
+        -6960
+      ],
+      "id": "856e1fa1-5d70-4bde-b826-0d3a11c3a700",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "starixsoft.com_t2iefq0ne5np6dfhf1uuh5s67s@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "B1 - Meeting Room"
+        },
+        "timeMin": "={{ $json.timeMin }}",
+        "timeMax": "={{ $json.timeMax }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        6380,
+        -6900
+      ],
+      "id": "dc163754-7adf-4cfc-99ea-139d38733d1d",
+      "name": "B1 - Meeting Room",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "VFOv2JmYvSC9VuaG",
+          "name": "Google Calendar test-gg-calandar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "c_bd6ac6964beb120fce795ac83a89ed7676d3cf36380dabb6d31a3562d56b7753@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "B2 - Meeting Room"
+        },
+        "timeMin": "={{ $json.timeMin }}",
+        "timeMax": "={{ $json.timeMax }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        6380,
+        -6660
+      ],
+      "id": "6b897b28-eb2f-4385-9eac-84b01098f5fb",
+      "name": "B2 - Meeting Room",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "VFOv2JmYvSC9VuaG",
+          "name": "Google Calendar test-gg-calandar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "starixsoft.com_bcmane3rhrdsl559dpt31d3k50@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "A1 - Meeting Room"
+        },
+        "timeMin": "={{ $json.timeMin }}",
+        "timeMax": "={{ $json.timeMax }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        6400,
+        -6440
+      ],
+      "id": "ff47352d-82a2-42df-a310-6ea29c9b716f",
+      "name": "A1 - Meeting Room",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "VFOv2JmYvSC9VuaG",
+          "name": "Google Calendar test-gg-calandar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "starixsoft.com_h1p6is3iac4pq23ptsctiuruj4@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "A2 - Meeting Room"
+        },
+        "timeMin": "={{ $json.timeMin }}",
+        "timeMax": "={{ $json.timeMax }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        6400,
+        -6260
+      ],
+      "id": "24d5c49b-b5ce-42f5-b812-6f1e3faec774",
+      "name": "A2 - Meeting Room1",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "VFOv2JmYvSC9VuaG",
+          "name": "Google Calendar test-gg-calandar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "starixsoft.com_ra2giii8o2nq551kam3b2bifbc@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "A3 - Meeting Room"
+        },
+        "timeMin": "={{ $json.timeMin }}",
+        "timeMax": "={{ $json.timeMax }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        6400,
+        -6100
+      ],
+      "id": "5c3ef0e0-06ad-447a-9cb2-fcb162150376",
+      "name": "A3 - Meeting Room",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "VFOv2JmYvSC9VuaG",
+          "name": "Google Calendar test-gg-calandar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "starixsoft.com_cs7aaok7gvvcdp1iu4evr43pgg@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "A4 - Meeting Room"
+        },
+        "timeMin": "={{ $json.timeMin }}",
+        "timeMax": "={{ $json.timeMax }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        6400,
+        -5920
+      ],
+      "id": "8bb7eeb4-9edd-46f1-9390-94e2810ebed7",
+      "name": "A4 - Meeting Room",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "VFOv2JmYvSC9VuaG",
+          "name": "Google Calendar test-gg-calandar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 6
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        6760,
+        -6660
+      ],
+      "id": "0ae33150-8f7a-4f41-92c5-ae1401dbb024",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */1 0-10 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        4860,
+        -7100
+      ],
+      "id": "e3dd5853-0891-461e-b78b-4c5eed521608",
+      "name": "Schedule 5mins"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current UTC time and convert to Vietnam time (UTC+7)\nconst nowUTC = new Date();\nconst nowVN = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);  // shift +7h\n\n// Clone and reset time to Monday 00:00\nconst nowVN1 = new Date(nowVN);\nconst day = nowVN1.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6\nconst diff = (day === 0 ? -6 : 1 - day); // Adjust for Sunday being 0\nnowVN1.setDate(nowVN1.getDate() + diff);\nnowVN1.setHours(0, 0, 0, 0);\nnowVN.setTime(nowVN1); // Set nowVN to start of this Monday\n\n// Format timeMin as Monday 00:00 in Vietnam time, ISO format\nconst yyyyNow = nowVN.getFullYear();\nconst mmNow = String(nowVN.getMonth() + 1).padStart(2, '0');\nconst ddNow = String(nowVN.getDate()).padStart(2, '0');\nconst hhNow = String(nowVN.getHours()).padStart(2, '0');\nconst minNow = String(nowVN.getMinutes()).padStart(2, '0');\nconst timeMin = `${yyyyNow}-${mmNow}-${ddNow}T${hhNow}:${minNow}:00+07:00`;\n\n// Calculate day of week (0 = Sunday, ..., 6 = Saturday)\nconst currentDay = nowVN.getDay();\nconst diffToMonday = currentDay === 0 ? 6 : currentDay - 1;\n\n// Get Monday of this week\nconst monday = new Date(nowVN);\nmonday.setDate(nowVN.getDate() - diffToMonday);\n\n// Get Friday of this week\nconst friday = new Date(monday);\nfriday.setDate(monday.getDate() + 4);\n\n// Format timeMax as Friday 18:00 in Vietnam time\nconst yyyy = friday.getFullYear();\nconst mm = String(friday.getMonth() + 1).padStart(2, '0');\nconst dd = String(friday.getDate()).padStart(2, '0');\nconst timeMax = `${yyyy}-${mm}-${dd}T18:00:00+07:00`;\n\n// Add runtime (current moment) in ISO string with +07:00\nconst nowVNRuntime = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);\nconst runtime = nowVNRuntime.toISOString().replace('Z', '+07:00');\n\nreturn [{\n  json: {\n    timeMin,\n    timeMax,\n    runtime\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5940,
+        -6580
+      ],
+      "id": "69845483-ab72-45d5-b2af-ed19835da751",
+      "name": "SetTime"
+    },
+    {
+      "parameters": {
+        "content": "## Load HRM Page",
+        "height": 740,
+        "width": 3780
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        5320,
+        -7720
+      ],
+      "id": "e8ee73b1-5680-49c3-a166-95fcb8532dac",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "url": "https://hrm.nexdev.net/Auth/Login",
+        "responseFormat": "string",
+        "options": {
+          "fullResponse": true,
+          "followAllRedirects": true
+        }
+      },
+      "id": "724126c5-4aa9-498a-93ef-2ff5b8293713",
+      "name": "GET Login HRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        6560,
+        -7640
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Lấy HTML từ response\nconst html = $json.body || $json.data;\n\n// Lấy token bằng regex\nconst match = html.match(/<input[^>]+name=\"__RequestVerificationToken\"[^>]+value=\"([^\"]+)\"/);\n\n// Lấy cookie từ header\nconst setCookie = $json.headers['set-cookie'];\nconst cookies = Array.isArray(setCookie)\n  ? setCookie.map(c => c.split(';')[0]).join('; ')\n  : '';\n\nif (!match || !match[1]) {\n  throw new Error(\"Không tìm thấy token!\");\n}\n\nreturn [\n  {\n    json: {\n      token: match[1],\n      cookies,\n    }\n  }\n];\n"
+      },
+      "id": "b8114142-29ab-4366-a35a-28f3ea649eef",
+      "name": "Extract Token & Cookies (HRM)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        6780,
+        -7640
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://hrm.nexdev.net/Auth/Login",
+        "responseFormat": "string",
+        "options": {
+          "bodyContentType": "form-urlencoded",
+          "fullResponse": true,
+          "followAllRedirects": false,
+          "ignoreResponseCode": true
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "Username",
+              "value": "={{ $('Get Last Cookie').item.json.LoginName }}"
+            },
+            {
+              "name": "Password",
+              "value": "={{ $('Get Last Cookie').item.json.PassLogin }}"
+            },
+            {
+              "name": "RememberMe",
+              "value": "false"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "={{ $json.token }}"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            },
+            {
+              "name": "cookie",
+              "value": "={{ $json.cookies }}; path=/; samesite=strict; httponly"
+            }
+          ]
+        }
+      },
+      "id": "eae9c45b-7d28-4223-aaf9-ea259f292cd6",
+      "name": "POST Login HRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        7000,
+        -7640
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "let cookies;\n\nif ($json.headers && $json.headers['set-cookie']) {\n  const rawCookies = $json.headers['set-cookie'];\n  cookies = rawCookies.map(cookieStr => cookieStr.split(';')[0]).join('; ');\n} else {\n  cookies = $node[\"Extract Token & Cookies\"].json[\"cookies\"];\n}\n\nreturn [{ json: { cookies } }];"
+      },
+      "id": "3b27858c-4a2e-4e82-bd8c-ca4a338753a7",
+      "name": "Get Final Cookie HRM",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        7220,
+        -7640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const monthMap = {\n  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,\n  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11\n};\n\nconst output = [];\nconst data = $input.all().map(item => item.json);\n\nconst parseDate = (str, fallbackYear = null, fallbackMonth = null) => {\n  const cleaned = str.trim().replace(',', '');\n  const parts = cleaned.split(' ');\n  const day = parseInt(parts[0], 10);\n  const month = monthMap[parts[1]] ?? fallbackMonth;\n  const year = parseInt(parts[2], 10) || fallbackYear;\n  return new Date(year, month, day);\n};\n\nfor (const item of data) {\n  const { employee, fullname, team, leaveDate } = item;\n\n  // Parse time if exists\n  const timeMatch = leaveDate.match(/\\((\\d{2}:\\d{2})-(\\d{2}:\\d{2})\\)/);\n  let fromTime = timeMatch?.[1] || \"08:00\";\n  let toTime = timeMatch?.[2] || \"18:00\";\n\n  // Remove time from leaveDate\n  const dateClean = leaveDate.replace(/\\s*\\(.*?\\)/, '').trim();\n  const isRange = dateClean.includes(' - ');\n\n  if (isRange) {\n    const [fromStrRaw, toStrRaw] = dateClean.split(' - ');\n\n    const toParts = toStrRaw.trim().replace(',', '').split(' '); // e.g., [\"29\", \"Jul\", \"2025\"]\n    const dayFrom = parseInt(fromStrRaw.trim(), 10);\n    const month = monthMap[toParts[1]];\n    const year = parseInt(toParts[2], 10);\n\n    const start = new Date(year, month, dayFrom);\n    const end = parseDate(toStrRaw);\n\n    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {\n      output.push({\n        employee,\n        fullname,\n        team,\n        date: d.toISOString().slice(0, 10),\n        fromTime,\n        toTime\n      });\n    }\n\n  } else {\n    const singleDate = parseDate(dateClean);\n    output.push({\n      employee,\n      fullname,\n      team,\n      date: singleDate.toISOString().slice(0, 10),\n      fromTime,\n      toTime\n    });\n  }\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8400,
+        -7460
+      ],
+      "id": "08c3ad62-cac3-497c-9a5e-7079b72a1395",
+      "name": "Parse Leave Dates",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const htmlData = $input.first().json.data;\n\n// Match tất cả dòng <tr>\nconst rowMatches = [...htmlData.matchAll(/<tr[^>]*>[\\s\\S]*?<\\/tr>/gi)];\n\nfunction decodeHtmlEntities(str) {\n  return str.replace(/&#x([0-9A-Fa-f]+);/g, (_, hex) =>\n    String.fromCharCode(parseInt(hex, 16))\n  );\n}\n\nconst results = [];\n\nfor (const rowMatch of rowMatches) {\n  const row = rowMatch[0];\n\n  const tdTooltips = [...row.matchAll(/<td[^>]*class=['\"]tooltip['\"][^>]*title=['\"]([^'\"]+)['\"][^>]*>([\\s\\S]*?)<\\/td>/gi)];\n\n  const teamTitle = tdTooltips[0]?.[1]?.trim() || '';\n  if (teamTitle !== 'Pontus') continue;\n\n  const employeeName = tdTooltips[1]?.[2]?.trim() || 'Unknown';\n  const employeeFullnameRaw = tdTooltips[1]?.[1]?.trim() || '';\n  const employeeFullname = decodeHtmlEntities(employeeFullnameRaw);\n\n  const leaveMatches = [...row.matchAll(/<span[^>]*class=['\"][^'\"]*\\bleave\\b[^'\"]*['\"][^>]*>([\\s\\S]*?)<\\/span>/gi)];\n  const leaveDate = leaveMatches[0]?.[1]?.trim() || null;\n\n  if (!leaveDate) {\n    console.warn(`[Node: \"Code2\"] ⚠️ Không tìm thấy <span class=\"req leave\"> trong dòng của ${employeeName}`);\n    continue;\n  }\n\n  results.push({\n    employee: employeeName,\n    fullname: employeeFullname,\n    team: teamTitle,\n    leaveDate: leaveDate\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8160,
+        -7460
+      ],
+      "id": "336a9f1a-b098-48a3-bcf8-a434888fa418",
+      "name": "Parse Leave Requests",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "\nEXEC n8n_GoogleCalandar_Realtime_Ins @ID = '{{ $json.id }}'\n\t\t\t\t\t\t\t\t   , @StartTime = '{{ $json.start }}'\n\t\t\t\t\t\t\t\t   , @EndTime = '{{ $json.end }}'\n\t\t\t\t\t\t\t\t   , @Attendees = '{{ $json.attendees }}'\n\t\t\t\t\t\t\t\t   , @Room = '{{ $json.room }}'\n\t\t\t\t\t\t\t\t   , @Summary = '{{ $json.summary }}'\n                                   , @Runtime = '{{ $json.runtime }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        7400,
+        -6580
+      ],
+      "id": "0bc8a7fa-cbb0-42c3-9f98-f7f050400339",
+      "name": "Insert into MeetingLog",
+      "executeOnce": false,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_HRM_LeaveLog_Ins\nEXEC n8n_FlowSchedule_Upd @Flow = '{{ $('Check schedule1').item.json.Flow }}', @Runtime = '{{ $('Set Input Param').item.json.startTime }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        8860,
+        -7340
+      ],
+      "id": "a98177d7-6c20-4fd0-8b8e-bf5db2e10ab9",
+      "name": "Insert into LeaveLog",
+      "executeOnce": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a2f01d7e-24f9-4cab-bbbc-e3a60c9d551a",
+              "leftValue": "={{ $json.Cookie }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6340,
+        -7540
+      ],
+      "id": "1a859b38-1ccb-48b4-b247-d525ae45f02e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_CookiesLogin_Update @LoginName = '{{ $('Set Input Param').item.json.LoginName }}'\n\t\t\t\t\t\t   , @SiteName = '{{ $('Set Input Param').item.json.SiteName }}'\n\t\t\t\t\t\t   , @Cookie = N'{{ $json.cookies }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        7420,
+        -7640
+      ],
+      "id": "6ec603d7-88db-468a-b68e-862fb86824e6",
+      "name": "Update Cookie",
+      "executeOnce": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const loginName = 'evan.trinh';\nconst siteName = 'HRM';\n\nconst today = new Date(); // mặc định là UTC\nconst dayOfWeek = today.getUTCDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7\n\n// Tính ngày thứ 2 (Monday)\nconst monday = new Date(today);\nmonday.setUTCDate(today.getUTCDate() - ((dayOfWeek + 6) % 7));\n\n// Tính ngày thứ 6 (Friday)\nconst friday = new Date(monday);\nfriday.setUTCDate(monday.getUTCDate() + 4);\n\n// Format thành chuỗi dạng 25Jul2025\nfunction formatDate(date) {\n  return date.getUTCDate().toString().padStart(2, '0') +\n    date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }) +\n    date.getUTCFullYear();\n}\n\nconst fromDate = formatDate(monday);\nconst toDate = formatDate(friday);\nconst toDay = formatDate(today);  // thêm dòng này\n\n// Lấy thời gian hiện tại (UTC+7)\nconst now = new Date();\nconst offsetMs = 7 * 60 * 60 * 1000; // +07:00\nconst vietnamTime = new Date(now.getTime() + offsetMs);\n\n// Format thành \"YYYY-MM-DD HH:mm:ss\"\nfunction formatDateTime(date) {\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\n\nreturn $input.all().map(item => {\n  return {\n    json: {\n      ...item.json,\n      LoginName: loginName,\n      SiteName: siteName,\n      FromDate: fromDate,\n      ToDate: toDate,\n      ToDay: toDay,  // thêm dòng này\n      startTime: formatDateTime(vietnamTime)\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5880,
+        -7520
+      ],
+      "id": "1cee4f4f-5386-431d-a517-ff811b920697",
+      "name": "Set Input Param"
+    },
+    {
+      "parameters": {
+        "url": "=https://hrm.nexdev.net/request/GetAllRequestByEmployee?Date=0%20&DateOption=3%20&FromDate={{ $('Set Input Param').item.json.FromDate }}%20&ToDate={{ $('Set Input Param').item.json.ToDate }}%20&IsFilterByEffectedDate=true%20&TeamId=535%20&statusId=0%20&Employee=%20&EmployeeId=-1%20&LeaveTypeId=0%20&RequestType=5%20&ItemsPerPage=100%20&CurrentPage=1",
+        "responseFormat": "string",
+        "options": {
+          "fullResponse": false
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Cookie",
+              "value": "={{ $json.cookie }}"
+            }
+          ]
+        }
+      },
+      "id": "4e1d2b9d-341a-4834-b3cc-c7c4c302a6e0",
+      "name": "Get Leave Requests",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        7880,
+        -7460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "exec n8n_Login_GetInfo @LoginName = '{{ $json.LoginName }}' , @SiteName = '{{ $json.SiteName }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        6120,
+        -7540
+      ],
+      "id": "6b701d47-b223-4149-958e-c84216ad6935",
+      "name": "Get Last Cookie",
+      "executeOnce": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_GoogleCalandar_Ins\n\nEXEC n8n_FlowSchedule_Upd @Flow = 'GoogleCalandar', @Runtime = '{{ $('GetInfo Calandar').item.json.runtime }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        7640,
+        -6580
+      ],
+      "id": "86381bc2-aa31-4b5f-836e-981bff477697",
+      "name": "Insert into MeetingLog1",
+      "executeOnce": true,
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const inputData = $input.first().json;\n\nreturn [\n  {\n    json: {\n      cookie: inputData.Cookie\n    }\n  }\n];\n"
+      },
+      "id": "961e9b12-d558-477e-9b1d-13f168220565",
+      "name": "Get Final Cookie",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        7640,
+        -7380
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO [HRM_AttendanceLog] (Nickname, WorkDate, CheckInTime, CheckOutTime, Runtime)\nVALUES('{{ $json.employee}}','{{ $json.date }}','{{ $json.checkIn }}','{{ $json.checkOut }}','{{ $('Set Input Param').item.json.startTime }}')"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        8440,
+        -7260
+      ],
+      "id": "46e7916d-d9d7-4cf4-8cc1-567192b17153",
+      "name": "Insert into [AttendanceLog]",
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://hrm.nexdev.net/report/ListAttendance?Date=0&FromDate={{ $('Set Input Param').item.json.ToDay }}&ToDate={{ $('Set Input Param').item.json.ToDay }}&AttendanceType=0&DepartmentId=&GroupId=535&Employee=&EmployeeId=&ExcludeUserDelete=true&CurrentPage=1&ItemsPerPage=500&ExcludeUserDelete=false\n",
+        "responseFormat": "string",
+        "options": {
+          "fullResponse": false
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Cookie",
+              "value": "={{ $json.cookie }}"
+            }
+          ]
+        }
+      },
+      "id": "14b9ee62-d3bc-4bcc-8e6b-9704551fc188",
+      "name": "Get ListAttendance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        7900,
+        -7260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const htmlData = $input.first().json.data;\n\n// Tìm tất cả các dòng <tr class=\"noshift\">\nconst rowMatches = [...htmlData.matchAll(/<tr[^>]*class=['\"]noshift['\"][^>]*>[\\s\\S]*?<\\/tr>/gi)];\n\nfunction decodeHtmlEntities(str) {\n  return str\n    .replace(/&#x([0-9A-Fa-f]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"')\n    .replace(/&#39;/g, \"'\");\n}\n\n// Format \"06 Aug, 2025\" → \"2025-08-06\"\nfunction formatDateString(dateStr) {\n  const parsedDate = new Date(dateStr.replace(',', ''));\n  const year = parsedDate.getFullYear();\n  const month = String(parsedDate.getMonth() + 1).padStart(2, '0'); // zero-based\n  const day = String(parsedDate.getDate()).padStart(2, '0');\n  return `${year}-${month}-${day}`;\n}\n\nconst results = [];\n\nfor (const rowMatch of rowMatches) {\n  const row = rowMatch[0];\n\n  // Tìm tất cả các <td> trong dòng\n  const cells = [...row.matchAll(/<td[^>]*>([\\s\\S]*?)<\\/td>/gi)].map(cell =>\n    decodeHtmlEntities(cell[1].replace(/\\n/g, '').trim())\n  );\n\n  // Bỏ qua dòng không đủ dữ liệu\n  if (cells.length < 11) continue;\n\n  const employee = cells[3];\n  const checkIn = cells[8] || null;\n  const checkOut = cells[9] || null;\n\n  const rawDate = cells[1];\n  const date = formatDateString(rawDate);\n\n  results.push({\n    employee,\n    date,\n    checkIn,\n    checkOut,\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8140,
+        -7260
+      ],
+      "id": "6deb82f0-f3bf-4a98-b941-ecee09743683",
+      "name": "Parse ListAttendance",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "\nEXEC n8n_HRM_LeaveLog_Realtime_Ins\n@Nickname='{{ $json.employee}}',@Fullname=N'{{ $json.fullname }}',@Team='{{ $json.team }}',@Leavedate = '{{ $json.date }}',@FromTime='{{ $json.fromTime }}',@ToTime='{{ $json.toTime }}',@Runtime = '{{ $('Set Input Param').item.json.startTime }}'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        8620,
+        -7460
+      ],
+      "id": "3930b358-bb01-4a27-ab35-fbf14faf75cd",
+      "name": "Insert LeaveLog_Realtime",
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_FlowSchedule_Sel @Flow = 'GoogleCalandar'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        5360,
+        -6700
+      ],
+      "id": "2b63c76e-c52c-4e2e-9b42-7a37f0500de0",
+      "name": "Check schedule",
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC n8n_FlowSchedule_Sel @Flow = 'HRM'"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        5380,
+        -7360
+      ],
+      "id": "d554955b-e6ce-4db5-9f86-caf64341d641",
+      "name": "Check schedule1",
+      "credentials": {
+        "microsoftSql": {
+          "id": "jr5PmysFlfoDs3Lr",
+          "name": "DEVDB061"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "10f81449-92fa-43ad-b553-9d6d42a9eb1d",
+              "leftValue": "={{ $json.TriggerRun }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5640,
+        -7380
+      ],
+      "id": "4056c6a9-4ba1-4617-8573-9b070972a0c3",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fedc4a84-4ed4-483d-b7b9-882266298228",
+              "leftValue": "={{ $json.TriggerRun }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5660,
+        -6620
+      ],
+      "id": "d8fbe4a9-b8a4-443c-acbd-49ba44362e85",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// List of official team member emails\nconst teamEmails = [\n  \"kean.nguyen@starixsoft.com\",\n  \"malcolm.huynh@starixsoft.com\",\n  \"lukas.luu@starixsoft.com\",\n  \"roy.du@starixsoft.com\",\n  \"dominic.dao@starixsoft.com\",\n  \"daniel.truong@starixsoft.com\",\n  \"patrick.pham@starixsoft.com\",\n  \"sol.le@starixsoft.com\",\n  \"evan.trinh@starixsoft.com\",\n  \"brice.nguyen@starixsoft.com\"\n];\n\nfunction toLocalSqlDatetime(isoString) {\n  return isoString.replace('T', ' ').slice(0, 19); \n}\n\n\n\nconst output = [];\n\nfor (const item of items) {\n  const event = item.json;\n\n  // Skip if event has no start time\n  if (!event.start?.dateTime) continue;\n\n  // Filter attendees that are in our team\n  const matched = (event.attendees || [])\n    .filter(att => teamEmails.includes(att.email))\n    .map(att => att.email.replace('@starixsoft.com', '')); // Remove domain\n\n  if (matched.length === 0) continue;\n\n\n  const rawRuntime = $('SetTime').first().json.runtime;\n  const cleanRuntime = rawRuntime.split('.')[0];  \n  \n  // Build SQL-friendly record\n  output.push({\n    json: {\n      id:event.id,\n      start: toLocalSqlDatetime(event.start.dateTime),\n      end: event.end?.dateTime ? toLocalSqlDatetime(event.end.dateTime) : null,\n      attendees: matched.join(','),\n      room: event.organizer?.displayName || null,\n      summary: event.summary || null,\n      runtime : cleanRuntime\n    }\n  });\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7120,
+        -6600
+      ],
+      "id": "fb1bff55-f569-4674-a6c6-8d2b3c1b262c",
+      "name": "GetInfo Calandar",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "B1 - Meeting Room": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "B2 - Meeting Room": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "A1 - Meeting Room": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "A2 - Meeting Room1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "A3 - Meeting Room": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "A4 - Meeting Room": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "GetInfo Calandar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule 5mins": {
+      "main": [
+        [
+          {
+            "node": "Check schedule",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check schedule1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetTime": {
+      "main": [
+        [
+          {
+            "node": "B1 - Meeting Room",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "B2 - Meeting Room",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "A1 - Meeting Room",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "A2 - Meeting Room1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "A3 - Meeting Room",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "A4 - Meeting Room",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Login HRM": {
+      "main": [
+        [
+          {
+            "node": "Extract Token & Cookies (HRM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Token & Cookies (HRM)": {
+      "main": [
+        [
+          {
+            "node": "POST Login HRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST Login HRM": {
+      "main": [
+        [
+          {
+            "node": "Get Final Cookie HRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Final Cookie HRM": {
+      "main": [
+        [
+          {
+            "node": "Update Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Leave Dates": {
+      "main": [
+        [
+          {
+            "node": "Insert LeaveLog_Realtime",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Leave Requests": {
+      "main": [
+        [
+          {
+            "node": "Parse Leave Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "GET Login HRM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Final Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Cookie": {
+      "main": [
+        [
+          {
+            "node": "Get Final Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Input Param": {
+      "main": [
+        [
+          {
+            "node": "Get Last Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leave Requests": {
+      "main": [
+        [
+          {
+            "node": "Parse Leave Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Cookie": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert into MeetingLog": {
+      "main": [
+        [
+          {
+            "node": "Insert into MeetingLog1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert into LeaveLog": {
+      "main": [
+        []
+      ]
+    },
+    "Get Final Cookie": {
+      "main": [
+        [
+          {
+            "node": "Get Leave Requests",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get ListAttendance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ListAttendance": {
+      "main": [
+        [
+          {
+            "node": "Parse ListAttendance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse ListAttendance": {
+      "main": [
+        [
+          {
+            "node": "Insert into [AttendanceLog]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert LeaveLog_Realtime": {
+      "main": [
+        []
+      ]
+    },
+    "Insert into [AttendanceLog]": {
+      "main": [
+        [
+          {
+            "node": "Insert into LeaveLog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check schedule": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check schedule1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Set Input Param",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "SetTime",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetInfo Calandar": {
+      "main": [
+        [
+          {
+            "node": "Insert into MeetingLog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "366df719-70fa-4541-9626-414a4268ef58",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "98bfed1c0f22fa9e07d0e38dc58da94b0281d63095bd4ba14894d42a90a063e3"
+  },
+  "id": "CRcgjph07QQ0YR3o",
+  "tags": []
+}

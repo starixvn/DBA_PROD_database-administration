@@ -1,0 +1,56 @@
+{
+  "name": "Error Alert to Slack",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": 1,
+      "name": "Workflow Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#general",
+        "text": "*\u274c Workflow Error Alert \u274c*\n*Workflow:* {{$json.workflow.name}}\n*Error:* {{$json.error.message}}\n*Execution ID:* {{$json.execution.id}}\n*Time:* {{$json.execution.startedAt}}"
+      },
+      "id": 2,
+      "name": "Send to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ],
+      "credentials": {
+        "slackApi": {
+          "id": "1",
+          "name": "Slack Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Workflow Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": "a94a8d48-955d-4dcb-a7b6-52490a20f718",
+  "createdAt": "2025-08-08T07:43:30.495971Z",
+  "updatedAt": "2025-08-08T07:43:30.495981Z"
+}
