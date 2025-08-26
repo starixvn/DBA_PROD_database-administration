@@ -1,7 +1,4 @@
-SET QUOTED_IDENTIFIER ON;
-SET ANSI_NULLS ON;
-GO
-CREATE PROCEDURE	chksum.Task_CheckCustomerData
+ALTER PROCEDURE	[chksum].[Task_CheckCustomerData]
 						@Debug				BIT				= 0
 AS
 /*
@@ -11,6 +8,7 @@ AS
 
 	Revisions:
 		- 20200123@Billy:	Initial - [Redmine: #127620]
+		- 20250815@Daniel: Fix code avoid deadlocks between update and delete
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -65,7 +63,7 @@ BEGIN;
 	BEGIN;
 		SELECT	@Query = N'';
 		SELECT	@Query += N'\
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+--SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 SET NOCOUNT ON;
 
 SELECT	TOP(1)
@@ -185,7 +183,7 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 	BEGIN;
 		WAITFOR DELAY '00:01:00.000';
 
-		DELETE	chksum.CheckResults WITH (PAGLOCK)
+		DELETE	chksum.CheckResults-- WITH (ROWLOCK)
 		WHERE	ChkDate = @CheckTime
 			AND	SrcCount = DstCount
 			AND	SrcChecksum = DstChecksum
