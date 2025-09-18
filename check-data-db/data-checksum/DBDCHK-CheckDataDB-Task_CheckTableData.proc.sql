@@ -17,6 +17,7 @@ AS
 		- 20241031@Daniel: Support tables have partition column other than CustID
 		- 20241204@Daniel: fix fail checksum schema if STDEV is NULL
 		- 20241210@Daniel: Add check empty tables
+        - 20250905@Daniel: Solve floating point issue when comparing float/real datatype that may cause false alerts
 		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -381,38 +382,40 @@ Target ' + QUOTENAME(_t.TargetServer) + N'.' + QUOTENAME(_t.TargetDatabase) + N'
 
 
 	-- Prepare checksum query --
-	SELECT	@Query = N'';
-	SELECT	@Query += N'\
+	-- Build column list for checksum, casting float/real columns to DECIMAL(18,6)
+	DECLARE @cols_cast NVARCHAR(MAX);
+	SELECT @cols_cast = (
+		SELECT
+			CASE
+				WHEN ts.ColType LIKE 'FLOAT%' OR ts.ColType LIKE 'REAL%'
+					THEN 'CAST(' + QUOTENAME(ts.ColName) + ' AS DECIMAL(18,6)), '
+				ELSE QUOTENAME(ts.ColName) + ', '
+			END
+		FROM @TargetSchemas AS ts
+		INNER JOIN @Targets AS t ON ts.TargetId = t.TargetId
+		WHERE t.isSource = 1
+		ORDER BY ts.RowNum
+		FOR XML PATH(''), TYPE
+	).value('.', 'NVARCHAR(MAX)');
+	-- Remove trailing comma and space
+	SELECT @cols_cast = LEFT(@cols_cast, LEN(@cols_cast) - 1);
+
+	SELECT @Query = N'';
+	SELECT @Query += N'
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 SET NOCOUNT ON;
 
-DECLARE	@Start		DATETIME;
-SELECT	@Start = GETDATE();
+DECLARE @Start DATETIME;
+SELECT @Start = GETDATE();
 
-SELECT	@Count		= COUNT(1)
-	,	@Chksum		= ISNULL(CHECKSUM_AGG(BINARY_CHECKSUM(' + cols.str + N')), 0)
-	,	@Stdev		= ISNULL(STDEV(BINARY_CHECKSUM(' + cols.str + N')), 0)
-FROM	' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (NOLOCK)
-WHERE	' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
-	AND	' + QUOTENAME(@PartitionCol) + N' <= @IntervalTo;
+SELECT @Count = COUNT(1)
+	, @Chksum = ISNULL(CHECKSUM_AGG(BINARY_CHECKSUM(' + @cols_cast + N')), 0)
+	, @Stdev = ISNULL(STDEV(BINARY_CHECKSUM(' + @cols_cast + N')), 0)
+FROM ' + QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table) + N' WITH (NOLOCK)
+WHERE ' + QUOTENAME(@PartitionCol) + N' >= @IntervalFrom
+	AND ' + QUOTENAME(@PartitionCol) + N' <= @IntervalTo;
 
-SELECT	@Duration = DATEDIFF(MILLISECOND, @Start, GETDATE());'
-	FROM	(
-		SELECT	QUOTENAME(ts.ColName) + N', '
-		FROM		@TargetSchemas AS ts
-		INNER JOIN	@Targets AS t
-				ON	ts.TargetId = t.TargetId
-		WHERE	t.isSource = 1
-		ORDER BY ts.RowNum
-		FOR XML PATH ('')
-		,	TYPE
-	) AS xcol(xml)
-	CROSS APPLY (
-		SELECT	LEFT(xq.str, LEN(xq.str) - 1)
-		FROM	(
-			SELECT	xcol.xml.value('.[1]', 'NVARCHAR(MAX)')
-		) AS xq(str)
-	) AS cols(str);
+SELECT @Duration = DATEDIFF(MILLISECOND, @Start, GETDATE());';
 
 
 	SELECT	@Param = N'';
