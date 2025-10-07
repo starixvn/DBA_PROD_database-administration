@@ -5,6 +5,8 @@ ALTER PROCEDURE	[chksum].[Task_CheckTableData]
 					,	@CheckTime			DATETIME		= NULL
 					,	@MaxPartitionValue	BIGINT			= NULL
 					,	@Debug				BIT				= 0
+					,	@RetryAttempt		INT				= 0
+					,	@DiscrepancyIntervals NVARCHAR(MAX)	= NULL
 AS
 /*
 	Creator:	20200123@Billy
@@ -18,6 +20,7 @@ AS
 		- 20241204@Daniel: fix fail checksum schema if STDEV is NULL
 		- 20241210@Daniel: Add check empty tables
         - 20250905@Daniel: Solve floating point issue when comparing float/real datatype that may cause false alerts
+        - 20251006@Daniel: Add intelligent retry mechanism - retry only discrepancies from previous runs, clean up false positives
 		
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -196,20 +199,77 @@ Error occured when obtaining @MaxPartitionValue, cannot check data. Exiting...';
 	if (@PartitionInterval > @MaxPartitionValue)
 		set @PartitionInterval = @MaxPartitionValue
 		
-	INSERT INTO	@Intervals (IntervalFrom, IntervalTo)
-	SELECT	[IntervalFrom]	= (t.id - 1) * @PartitionInterval
-		,	[IntervalTo]	= CASE WHEN t.id * @PartitionInterval < @MaxPartitionValue THEN t.id * @PartitionInterval - 1 ELSE @MaxPartitionValue END
-	FROM	(
-		SELECT	TOP(@MaxPartitionValue / @PartitionInterval + 1)
-				[id] = ROW_NUMBER() OVER(ORDER BY (SELECT NULL))
-		FROM		(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x10(n)
-		CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x100(n)
-		CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x1000(n)
-		CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x10000(n)
-		CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x100000(n)
-		CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x1000000(n)
-	) AS t
-	WHERE	t.id < @MaxPartitionValue / @PartitionInterval + 1;
+	-- For retry attempts > 0, only check intervals that had discrepancies in previous runs
+	IF @RetryAttempt > 0 AND @DiscrepancyIntervals IS NOT NULL
+	BEGIN;
+		-- Parse the discrepancy intervals from the parameter
+		-- Expected format: "IntervalFrom1,IntervalTo1;IntervalFrom2,IntervalTo2;..."
+		DECLARE @IntervalPairs TABLE (
+			IntervalFrom	BIGINT
+		,	IntervalTo		BIGINT
+		,	PRIMARY KEY CLUSTERED (IntervalFrom, IntervalTo)
+		);
+		
+		-- Parse the intervals string
+		DECLARE @Pos INT = 1;
+		DECLARE @NextPos INT;
+		DECLARE @Pair NVARCHAR(100);
+		DECLARE @CommaPos INT;
+		
+		WHILE @Pos <= LEN(@DiscrepancyIntervals)
+		BEGIN;
+			SET @NextPos = CHARINDEX(';', @DiscrepancyIntervals, @Pos);
+			IF @NextPos = 0
+				SET @NextPos = LEN(@DiscrepancyIntervals) + 1;
+			
+			SET @Pair = SUBSTRING(@DiscrepancyIntervals, @Pos, @NextPos - @Pos);
+			SET @CommaPos = CHARINDEX(',', @Pair);
+			
+			IF @CommaPos > 0
+			BEGIN;
+				INSERT INTO @IntervalPairs (IntervalFrom, IntervalTo)
+				VALUES (
+					CAST(LEFT(@Pair, @CommaPos - 1) AS BIGINT),
+					CAST(SUBSTRING(@Pair, @CommaPos + 1, LEN(@Pair)) AS BIGINT)
+				);
+			END;
+			
+			SET @Pos = @NextPos + 1;
+		END;
+		
+		-- Insert parsed intervals
+		INSERT INTO @Intervals (IntervalFrom, IntervalTo)
+		SELECT IntervalFrom, IntervalTo FROM @IntervalPairs;
+		
+		-- If no intervals parsed, exit
+		IF NOT EXISTS (SELECT 1 FROM @Intervals)
+		BEGIN;
+			SELECT @Msg = N'[Check Table Data] - ' + @Schema + N'.' + @Table + N' - Retry attempt ' + CAST(@RetryAttempt AS NVARCHAR) + N' - No valid discrepancy intervals provided. Exiting...';
+			PRINT @Msg;
+			RETURN;
+		END;
+		
+		SELECT @Msg = N'[Check Table Data] - ' + @Schema + N'.' + @Table + N' - Retry attempt ' + CAST(@RetryAttempt AS NVARCHAR) + N' - Checking ' + CAST((SELECT COUNT(*) FROM @Intervals) AS NVARCHAR) + N' intervals with previous discrepancies...';
+		PRINT @Msg;
+	END
+	ELSE
+	BEGIN;
+		-- First run or no discrepancy intervals - check all intervals
+		INSERT INTO	@Intervals (IntervalFrom, IntervalTo)
+		SELECT	[IntervalFrom]	= (t.id - 1) * @PartitionInterval
+			,	[IntervalTo]	= CASE WHEN t.id * @PartitionInterval < @MaxPartitionValue THEN t.id * @PartitionInterval - 1 ELSE @MaxPartitionValue END
+		FROM	(
+			SELECT	TOP(@MaxPartitionValue / @PartitionInterval + 1)
+					[id] = ROW_NUMBER() OVER(ORDER BY (SELECT NULL))
+			FROM		(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x10(n)
+			CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x100(n)
+			CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x1000(n)
+			CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x10000(n)
+			CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x100000(n)
+			CROSS JOIN	(VALUES (0), (0), (0), (0), (0), (0), (0), (0), (0), (0)) AS _x1000000(n)
+		) AS t
+		WHERE	t.id < @MaxPartitionValue / @PartitionInterval + 1;
+	END;
 
 
 	-- Check schema --
@@ -367,18 +427,39 @@ Target ' + QUOTENAME(_t.TargetServer) + N'.' + QUOTENAME(_t.TargetDatabase) + N'
 		WHERE	TargetStatus = 0;
 	END;
 
-	-- Initial result --
-	INSERT INTO	chksum.CheckResults (ChkDate, ItemId, IntervalFrom, IntervalTo)
-	SELECT	[ChkDate]		= @CheckTime
-		,	[ItemId]		= l.ItemId
-		,	[IntervalFrom]	= i.IntervalFrom
-		,	[IntervalTo]	= i.IntervalTo
-	FROM		chksum.Checklist AS l WITH (NOLOCK)
-	INNER JOIN	@Targets AS t
-			ON	l.TargetId = t.TargetId
-	CROSS APPLY	@Intervals AS i
-	WHERE	l.TableId = @TableId
-		AND	l.isActive = 1;
+	-- Initial result - Use MERGE to handle retry attempts --
+	MERGE chksum.CheckResults AS target
+	USING (
+		SELECT	[ChkDate]		= @CheckTime
+			,	[ItemId]		= l.ItemId
+			,	[IntervalFrom]	= i.IntervalFrom
+			,	[IntervalTo]	= i.IntervalTo
+		FROM		chksum.Checklist AS l WITH (NOLOCK)
+		INNER JOIN	@Targets AS t
+				ON	l.TargetId = t.TargetId
+		CROSS APPLY	@Intervals AS i
+		WHERE	l.TableId = @TableId
+			AND	l.isActive = 1
+	) AS source ON (
+		target.ChkDate = source.ChkDate
+		AND target.ItemId = source.ItemId
+		AND target.IntervalFrom = source.IntervalFrom
+		AND target.IntervalTo = source.IntervalTo
+	)
+	WHEN NOT MATCHED THEN
+		INSERT (ChkDate, ItemId, IntervalFrom, IntervalTo)
+		VALUES (source.ChkDate, source.ItemId, source.IntervalFrom, source.IntervalTo)
+	WHEN MATCHED THEN
+		UPDATE SET 
+			-- Reset values for retry attempt
+			SrcCount = NULL,
+			SrcChecksum = NULL,
+			SrcStdev = NULL,
+			SrcDuration = NULL,
+			DstCount = NULL,
+			DstChecksum = NULL,
+			DstStdev = NULL,
+			DstDuration = NULL;
 
 
 	-- Prepare checksum query --

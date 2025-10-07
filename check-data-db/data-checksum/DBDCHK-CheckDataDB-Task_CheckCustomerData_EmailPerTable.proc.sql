@@ -6,6 +6,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 ALTER PROCEDURE	[chksum].[Task_CheckCustomerData_EmailPerTable]
 						@Debug				BIT				= 0
+					,	@MaxRetries			INT				= 3
+					,	@RetryDelaySeconds	INT				= 5
 AS
 /*
 	Creator:	20250924@Daniel
@@ -14,6 +16,8 @@ AS
 
 	Revisions:
 		- 20250924@Daniel:	Clone from orginal version Task_CheckCustomerData and enhance
+		- 20251005@Daniel:	Add intelligent retry mechanism - retry only discrepancies from previous runs, clean up false positives
+
 
 	Developer's Notes:
 		- @Example:			NULL		- Explaination [DEFAULT]
@@ -47,6 +51,15 @@ BEGIN;
 		,	@MaxCustId		INT
 		,	@MaxCreatedDate	DATETIME
 		;
+
+	-- Retry mechanism variables --
+	DECLARE	@CurrentRetry		INT = 0
+		,	@HasDiscrepancies	BIT = 0
+		,	@DiscrepancyIntervals TABLE (
+				IntervalFrom	BIGINT
+			,	IntervalTo		BIGINT
+			,	PRIMARY KEY CLUSTERED (IntervalFrom, IntervalTo)
+			);
 
 	-- Table Variables --
 	DECLARE	@TableList AS TABLE (
@@ -139,7 +152,8 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 	-- Get list of tables to be checked --
 	INSERT INTO	@TableList (SchName, TblName, TableID)
 	SELECT	tbl.SchName, tbl.TblName, TableID
-	FROM	chksum.TableConfigs AS tbl WITH (NOLOCK);
+	FROM	chksum.TableConfigs AS tbl WITH (NOLOCK)
+    ORDER BY TableID;
 
 	WHILE	0 = 0
 	BEGIN;
@@ -147,7 +161,8 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 				@Schema		= tbl.SchName
 			,	@Table		= tbl.TblName
 			,	@TableID	= tbl.TableID
-		FROM	@TableList AS tbl;
+		FROM	@TableList AS tbl
+        ORDER BY TableID;
 
 		IF	@@ROWCOUNT = 0
 			BREAK;
@@ -167,46 +182,161 @@ Cannot determine MAX(CustId) to continue checking data. Exiting...';
 		INSERT INTO	chksum.CheckHistory (ChkDate)
 		VALUES	(@CheckTime);  
 
-		EXECUTE	chksum.Task_CheckTableData
-					@Schema				= @Schema
-				,	@Table				= @Table
-				,	@CheckTime			= @CheckTime
-				,	@MaxPartitionValue	= @MaxCustId
-				,	@Debug				= @Debug
-				;
+		-- Reset retry variables for this table --
+		SET @CurrentRetry = 0;
+		SET @HasDiscrepancies = 0;
+		DELETE FROM @DiscrepancyIntervals;
 
-		WHILE	EXISTS (
-			SELECT top 1 1 FROM chksum.CheckResults r WITH (NOLOCK)
-				inner join chksum.Checklist cl WITH (NOLOCK) on r.ItemId = cl.ItemId 
-			WHERE ChkDate = @CheckTime
-				and cl.TableId = @TableID
-				AND (SrcDuration IS NULL OR DstDuration IS NULL)
-			)
+		-- Retry loop for this table --
+		WHILE @CurrentRetry <= @MaxRetries
 		BEGIN;
-			WAITFOR DELAY '00:01:00.000';
+			SET @CurrentRetry = @CurrentRetry + 1;
 
-			DELETE r from chksum.CheckResults r-- WITH (ROWLOCK)
-				inner join chksum.Checklist cl WITH (NOLOCK) on r.ItemId = cl.ItemId 
-			WHERE	ChkDate = @CheckTime
-				and cl.TableId = @TableID
-				AND	SrcCount = DstCount
-				AND	SrcChecksum = DstChecksum
-				AND	SrcStdev = DstStdev;
+			IF @CurrentRetry = 1
+			BEGIN;
+				-- First run - check all intervals
+				EXECUTE	chksum.Task_CheckTableData
+							@Schema				= @Schema
+						,	@Table				= @Table
+						,	@CheckTime			= @CheckTime
+						,	@MaxPartitionValue	= @MaxCustId
+						,	@Debug				= @Debug
+						;
+			END
+			ELSE
+			BEGIN;
+				-- Retry run - only check intervals with discrepancies
+				-- Get intervals that had discrepancies in the previous attempt
+				DELETE FROM @DiscrepancyIntervals;
+				INSERT INTO @DiscrepancyIntervals (IntervalFrom, IntervalTo)
+				SELECT	DISTINCT r.IntervalFrom, r.IntervalTo
+				FROM	chksum.CheckResults AS r WITH (NOLOCK)
+				INNER JOIN chksum.Checklist AS l WITH (NOLOCK)
+					ON r.ItemId = l.ItemId
+				WHERE	r.ChkDate = @CheckTime
+					AND l.TableId = @TableID
+					AND (r.SrcCount <> r.DstCount 
+						OR r.SrcChecksum <> r.DstChecksum 
+						OR ISNULL(r.SrcStdev, 0) <> ISNULL(r.DstStdev, 0));
 
-			SELECT	@Rowcount = @@ROWCOUNT;
+				-- If no discrepancies found, exit retry loop
+				IF NOT EXISTS (SELECT 1 FROM @DiscrepancyIntervals)
+				BEGIN;
+					SELECT @Msg = N'[Check Customer Data] - ' + @Schema + N'.' + @Table + N' - Retry attempt ' + CAST(@CurrentRetry AS NVARCHAR) + N' - No discrepancies found in previous run. Data checksum OK.';
+					PRINT @Msg;
+					BREAK;
+				END;
 
-			IF	@Debug = 1
-				RAISERROR('\
-	[VERBOSE]	Task_CheckCustomerData:
-				Waiting...
-				Deleted %d rows', 0, 0, @Rowcount) WITH NOWAIT;
+				SELECT @Msg = N'[Check Customer Data] - ' + @Schema + N'.' + @Table + N' - Retry attempt ' + CAST(@CurrentRetry AS NVARCHAR) + N' - Checking ' + CAST((SELECT COUNT(*) FROM @DiscrepancyIntervals) AS NVARCHAR) + N' intervals with previous discrepancies...';
+				PRINT @Msg;
 
-			-- Error Handling --
-			EXECUTE	async.ASyncErrorHandling
-						@Pattern	= N'-- Task_CheckTableData --'
-					,	@From		= @CheckTime
-					,	@Debug		= @Debug
-					;
+				-- Build discrepancy intervals string for child SP
+				DECLARE @DiscrepancyIntervalsString NVARCHAR(MAX) = '';
+				SELECT @DiscrepancyIntervalsString = @DiscrepancyIntervalsString + 
+					CAST(IntervalFrom AS NVARCHAR) + ',' + CAST(IntervalTo AS NVARCHAR) + ';'
+				FROM @DiscrepancyIntervals
+				ORDER BY IntervalFrom;
+				
+				-- Remove trailing semicolon
+				IF LEN(@DiscrepancyIntervalsString) > 0
+					SET @DiscrepancyIntervalsString = LEFT(@DiscrepancyIntervalsString, LEN(@DiscrepancyIntervalsString) - 1);
+
+				-- Call Task_CheckTableData with specific intervals
+				EXECUTE	chksum.Task_CheckTableData
+							@Schema				= @Schema
+						,	@Table				= @Table
+						,	@CheckTime			= @CheckTime
+						,	@MaxPartitionValue	= @MaxCustId
+						,	@Debug				= @Debug
+						,	@RetryAttempt		= @CurrentRetry
+						,	@DiscrepancyIntervals = @DiscrepancyIntervalsString
+						;
+			END;
+
+			-- Wait for async execution to complete
+			WHILE	EXISTS (
+				SELECT top 1 1 FROM chksum.CheckResults r WITH (NOLOCK)
+					inner join chksum.Checklist cl WITH (NOLOCK) on r.ItemId = cl.ItemId 
+				WHERE ChkDate = @CheckTime
+					and cl.TableId = @TableID
+					AND (SrcDuration IS NULL OR DstDuration IS NULL)
+				)
+			BEGIN;
+				WAITFOR DELAY '00:01:00.000';
+
+				DELETE r from chksum.CheckResults r-- WITH (ROWLOCK)
+					inner join chksum.Checklist cl WITH (NOLOCK) on r.ItemId = cl.ItemId 
+				WHERE	ChkDate = @CheckTime
+					and cl.TableId = @TableID
+					AND	SrcCount = DstCount
+					AND	SrcChecksum = DstChecksum
+					AND	SrcStdev = DstStdev;
+
+				SELECT	@Rowcount = @@ROWCOUNT;
+
+				IF	@Debug = 1
+					RAISERROR('\
+		[VERBOSE]	Task_CheckCustomerData:
+					Waiting...
+					Deleted %d rows', 0, 0, @Rowcount) WITH NOWAIT;
+
+				-- Error Handling --
+				EXECUTE	async.ASyncErrorHandling
+							@Pattern	= N'-- Task_CheckTableData --'
+						,	@From		= @CheckTime
+						,	@Debug		= @Debug
+						;
+			END;
+
+			-- Check for discrepancies after this attempt
+			SELECT @HasDiscrepancies = CASE 
+				WHEN EXISTS (
+					SELECT 1 
+					FROM chksum.CheckResults AS r WITH (NOLOCK)
+					INNER JOIN chksum.Checklist AS l WITH (NOLOCK)
+						ON r.ItemId = l.ItemId
+					WHERE r.ChkDate = @CheckTime
+						AND l.TableId = @TableID
+						AND (r.SrcCount <> r.DstCount 
+							OR r.SrcChecksum <> r.DstChecksum 
+							OR ISNULL(r.SrcStdev, 0) <> ISNULL(r.DstStdev, 0))
+				) THEN 1 ELSE 0 END;
+
+			IF @HasDiscrepancies = 0
+			BEGIN;
+				-- No more discrepancies - clean up previous false positives
+				DELETE FROM chksum.CheckResults 
+				WHERE ChkDate = @CheckTime
+					AND ItemId IN (
+						SELECT l.ItemId 
+						FROM chksum.Checklist AS l WITH (NOLOCK)
+						WHERE l.TableId = @TableID
+					);
+				
+				SELECT @Msg = N'[Check Customer Data] - ' + @Schema + N'.' + @Table + N' - Retry attempt ' + CAST(@CurrentRetry AS NVARCHAR) + N' - No more discrepancies found. Previous false positives cleaned up. Data checksum OK.';
+				PRINT @Msg;
+				BREAK;
+			END
+			ELSE IF @CurrentRetry < @MaxRetries
+			BEGIN;
+				-- Still have discrepancies, continue retrying
+				SELECT @Msg = N'[Check Customer Data] - ' + @Schema + N'.' + @Table + N' - Retry attempt ' + CAST(@CurrentRetry AS NVARCHAR) + N' - Discrepancies still found. Continuing retry...';
+				PRINT @Msg;
+				
+				-- Wait before next retry
+				IF @RetryDelaySeconds > 0
+				BEGIN;
+					SELECT @Msg = N'[Check Customer Data] - ' + @Schema + N'.' + @Table + N' - Waiting ' + CAST(@RetryDelaySeconds AS NVARCHAR) + N' seconds before retry...';
+					PRINT @Msg;
+					WAITFOR DELAY '00:00:05'; -- Wait 5 seconds before retry
+				END;
+			END
+			ELSE
+			BEGIN;
+				-- Max retries reached, keep only the last attempt results
+				SELECT @Msg = N'[Check Customer Data] - ' + @Schema + N'.' + @Table + N' - Max retries (' + CAST(@MaxRetries AS NVARCHAR) + N') reached. Data checksum FAILED.';
+				PRINT @Msg;
+			END;
 		END;
 
 		WAITFOR DELAY '00:01:00.000';
