@@ -54,8 +54,10 @@ BEGIN;
 
 	-- Retry mechanism variables --
 	DECLARE	@CurrentRetry		INT = 0
-		,	@HasDiscrepancies	BIT = 0
-		,	@DiscrepancyIntervals TABLE (
+		,	@HasDiscrepancies	BIT = 0;
+
+	DECLARE	
+			@DiscrepancyIntervals TABLE (
 				IntervalFrom	BIGINT
 			,	IntervalTo		BIGINT
 			,	PRIMARY KEY CLUSTERED (IntervalFrom, IntervalTo)
