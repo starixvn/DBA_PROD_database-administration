@@ -1,5 +1,5 @@
-/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,DBTP-MonDB" executers="wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
-ALTER PROCEDURE [vndba_sp_trace_WebApp]
+/*<info serverAlias="DBTXN-MonDB,DBCUST-MonDB,DBPRO-MonDB,DBACC-MonDB,DBAGE-MonDB,DBONUSER-MonDB,DBWH-MonDB,DBBOF-MonDB,DBAFF-MonDB,DBTP-MonDB,DBSABAPLAY-MonDB" executers="wsv_nap,vnteam" selecters="" viewers="" isFunction="0" isNested="0"></info>*/
+ALTER PROCEDURE [dbo].[vndba_sp_trace_WebApp]
 	@Site VARCHAR(20),
 	@TraceTimer INT = 30,
 	@TextDataLike NVARCHAR(256),
@@ -28,6 +28,7 @@ AS
 			20230619@Daniel: Fix app name filter
 			20240309@Daniel: Change web login, support NAP policy, saparate account for AFF site
 			20240916@Daniel: support login asv_cust (API create cust), DBCUST.GlobCustDB (scale-out)
+			20240916@Daniel: support login DBsabaplay server/login sabaplay_spbu, Dot_Intg and site Sabaplay
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -55,9 +56,9 @@ BEGIN
 
 	SET NOCOUNT ON
 
-	IF (ISNULL(@Site, '') NOT IN ('NAP','EX-NAP','DW','PRMS','LC','ALPHA','LICENSEE', 'AFF', 'MEMBER', 'FPS', 'FD', 'OWP','Ploutos'))
+	IF (ISNULL(@Site, '') NOT IN ('NAP','EX-NAP','DW','PRMS','LC','ALPHA','LICENSEE', 'AFF', 'MEMBER', 'FPS', 'FD', 'OWP','Ploutos','SABAPLAY'))
 	BEGIN
-		SET @ErrorMsg = '@Site input error! Please set one site to filter (NAP/EX-NAP/DW/PRMS/LC/ALPHA/LICENSEE/AFF/MEMBER/FPS/FD/OWP/Ploutos). Ex: @Site = ''NAP'''
+		SET @ErrorMsg = '@Site input error! Please set one site to filter (NAP/EX-NAP/DW/PRMS/LC/ALPHA/LICENSEE/AFF/MEMBER/FPS/FD/OWP/Ploutos/SABAPLAY). Ex: @Site = ''NAP'''
 		SET @HasError = 1
 		PRINT @ErrorMsg
 		RETURN
@@ -97,12 +98,14 @@ BEGIN
 			WHEN @Site = 'FD' THEN 'wsv_wasa'
 			WHEN @Site = 'OWP' THEN 'wsv_owp'
 			WHEN @Site = 'Ploutos' THEN 'wsv_pts'
+			WHEN @Site = 'SABAPLAY' THEN 'sabaplay_spbu'
 		END
 		
-	SELECT @LoginNameLike2 = CASE WHEN @Site IN ('NAP') THEN 'wsv_pol' END
-	SELECT @LoginNameLike3 = CASE WHEN @Site IN ('NAP','EX-NAP','ALPHA','MEMBER') THEN 'asv_cust' END --support acc called from API on some sites
+	SELECT @LoginNameLike2 = CASE WHEN @Site IN ('NAP') THEN 'wsv_pol' WHEN  @Site = 'SABAPLAY' THEN 'Dot_Intg' END
+	SELECT @LoginNameLike3 = CASE WHEN @Site IN ('NAP','EX-NAP','ALPHA','MEMBER') THEN 'asv_cust'  WHEN  @Site = 'SABAPLAY' THEN 'oneseal_integration' END --support acc called from API on some sites
+	SELECT @LoginNameLike4 = CASE WHEN @Site IN ('NAP') THEN 'oneseal_integration' end
 		
-	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2')
+	IF @@SERVERNAME IN('DBCUST', 'DB233', 'DB230\SQLSERVER2008R2', 'SITDBCUST')
 		SELECT @DatabaseNameLike = '%custDB', @DatabaseNameLike2 = 'NAP_UserControl', @DatabaseNameLike3 = 'N88_UserControl',
 			@DatabaseNameLike4 = 'SiteConfig', @DatabaseNameLike5 = 'IPDB'
 	ELSE IF @Site = 'AFF'
@@ -111,24 +114,31 @@ BEGIN
 		SET @DatabaseNameLike = 'FPS_%'
 	ELSE IF @Site = 'FD'
 		SELECT @DatabaseNameLike = 'SPU_FraudDetection', @DatabaseNameLike2 = 'bodb%'
-	ELSE 
+	ELSE IF @Site = 'SABAPLAY'
+		SELECT @DatabaseNameLike = 'Saba%'
+	ELSE
 		SET @DatabaseNameLike = 'bodb%'
 	
-	IF (@@SERVERNAME IN('DB05', 'DB03', 'DB05BK1') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
+	IF (@@SERVERNAME IN('DB05', 'DB03', 'DB05BK1', 'SITDB05', 'SITDB03', 'SITDB05BK1') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
 		SELECT @DatabaseNameLike2 = 'ON_USER', @DatabaseNameLike3 = 'IPDB'
 
-	IF (@@SERVERNAME IN('DB052', 'DB053') AND @Site = 'NAP')
+	IF (@@SERVERNAME IN('DB052', 'DB053', 'SITDB052', 'SITDB053') AND @Site = 'NAP')
 		SET @DatabaseNameLike2 = 'bk'
 
-	IF (@@SERVERNAME IN('DBTRANS', 'DB06', 'DB061') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
+	IF (@@SERVERNAME IN('DBTRANS', 'DB06', 'DB061','SITDBTRANS', 'SITDB06', 'SITDB061') AND @Site IN('NAP', 'EXT-NAP', 'ALPHA', 'MEMBER'))
 		SET @DatabaseNameLike2 = 'IPDB'
+
+	IF (@@SERVERNAME LIKE '%dbsabaplay%')
+		SELECT @DatabaseNameLike2 = 'WalletBridge%'
 
 	EXEC vndba_sp_Trace
 		@TraceTimer = @TraceTimer,
-		--@AppNameLike = '%SqlClient Data Provider',
+		@AppNameLike = '%SqlClient Data Provider',
 		@LoginNameLike = @LoginNameLike,
 		@LoginNameLike2 = @LoginNameLike2,
 		@LoginNameLike3 = @LoginNameLike3,
+		@LoginNameLike4 = @LoginNameLike4,
+		@LoginNameLike5 = @LoginNameLike5,
 		@DatabaseNameLike = @DatabaseNameLike,
 		@DatabaseNameLike2 = @DatabaseNameLike2,
 		@DatabaseNameLike3 = @DatabaseNameLike3,
