@@ -28,7 +28,8 @@ AS
 			20230619@Daniel: Fix app name filter
 			20240309@Daniel: Change web login, support NAP policy, saparate account for AFF site
 			20240916@Daniel: support login asv_cust (API create cust), DBCUST.GlobCustDB (scale-out)
-			20240916@Daniel: support login DBsabaplay server/login sabaplay_spbu, Dot_Intg and site Sabaplay
+			20251017@Daniel: support login DBsabaplay server/login sabaplay_spbu, Dot_Intg and site Sabaplay
+			20251105@Daniel: support database DBSitex.custDB for site NAP, ALPHA
 		
 		Parameter's Explanation:
 		  . Site: Input a site name to filter, choose one of the following:
@@ -131,6 +132,11 @@ BEGIN
 	IF (@@SERVERNAME LIKE '%dbsabaplay%')
 		SELECT @DatabaseNameLike2 = 'WalletBridge%'
 
+	IF (@@SERVERNAME LIKE 'DBSITEC%' AND @Site IN('NAP', 'EXT-NAP', 'ALPHA'))
+		SET @DatabaseNameLike2 = 'CustDB'
+
+
+
 	EXEC vndba_sp_Trace
 		@TraceTimer = @TraceTimer,
 		@AppNameLike = '%SqlClient Data Provider',
@@ -155,5 +161,9 @@ BEGIN
 		@HasError = @HasError output,
 		@ErrorMsg = @ErrorMsg output
 END
+
+
+
+
 
 
